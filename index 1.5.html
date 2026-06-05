@@ -1,0 +1,4851 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bubaru - Inventario Eficiente con Limpieza Selectiva</title>
+    <style>
+        /* ===============================================
+           ESTILOS GLOBALES Y VARIABLES CSS
+           =============================================== */
+
+        /* 1. MODO CLARO */
+        :root {
+            --bg-principal: #E2FAFA;
+            --bg-tarjetas: #FFFFFF;
+            --bg-intermedio: #F5EFEB;
+            --chocolate-bubaru: #3E200C;
+            --chocolate-mutado: #6E4A35;
+            --menta-destacado: #2ABEC2;
+            --morado-bubaru: #A960BD;
+            --morado-hover: #914FA5;
+
+            /* Sub-tonos pastel adaptados */
+            --pastel-rosa: #B3D9FF;
+            --pastel-vainilla: #FFFFFF;
+            --pastel-menta: #E0F2FF;
+            --pastel-lavanda: #D1E8FF;
+            --pastel-crema: #F0F8FF;
+
+            --estado-ok-bg: rgba(22, 163, 74, 0.1);
+            --estado-ok: #16A34A;
+            --estado-alerta-bg: rgba(234, 88, 12, 0.1);
+            --estado-alerta: #EA580C;
+            --estado-critico-bg: rgba(220, 38, 38, 0.1);
+            --estado-critico: #DC2626;
+        }
+
+        /* 2. MODO OSCURO AUTOMÁTICO (Tu paleta oscura original sin cambios) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-principal: #1A2A3A;
+                --bg-tarjetas: #2A3A4A;
+                --bg-intermedio: #3A4A5A;
+                --chocolate-bubaru: #E6F3FF;
+                --chocolate-mutado: #B3D9FF;
+                --menta-destacado: #87CEEB;
+                --morado-bubaru: #5BA3C6;
+                --morado-hover: #7BB8D6;
+                
+                --pastel-rosa: #4A6B8C;
+                --pastel-vainilla: #3A5A7A;
+                --pastel-menta: #2A4A6A;
+                --pastel-lavanda: #3A5A8A;
+                --pastel-crema: #2A4A6A;
+
+                --estado-ok-bg: rgba(91, 163, 198, 0.2);
+                --estado-ok: #5BA3C6;
+                --estado-alerta-bg: rgba(255, 152, 0, 0.2);
+                --estado-alerta: #FF9800;
+                --estado-critico-bg: rgba(244, 67, 54, 0.2);
+                --estado-critico: #F44336;
+            }
+        }
+
+        /* 3. MODO OSCURO MANUAL (Tu paleta oscura original sin cambios) */
+        body.dark-mode {
+            --bg-principal: #1A2A3A;
+            --bg-tarjetas: #2A3A4A;
+            --bg-intermedio: #3A4A5A;
+            --chocolate-bubaru: #E6F3FF;
+            --chocolate-mutado: #B3D9FF;
+            --menta-destacado: #87CEEB;
+            --morado-bubaru: #5BA3C6;
+            --morado-hover: #7BB8D6;
+            
+            --pastel-rosa: #4A6B8C;
+            --pastel-vainilla: #3A5A7A;
+            --pastel-menta: #2A4A6A;
+            --pastel-lavanda: #3A5A8A;
+            --pastel-crema: #2A4A6A;
+
+            --estado-ok-bg: rgba(91, 163, 198, 0.2);
+            --estado-ok: #5BA3C6;
+            --estado-alerta-bg: rgba(255, 152, 0, 0.2);
+            --estado-alerta: #FF9800;
+            --estado-critico-bg: rgba(244, 67, 54, 0.2);
+            --estado-critico: #F44336;
+        }
+
+        /* 4. FORZAR MODO CLARO (Evita que el sistema operativo rompa el cambio) */
+        body:not(.dark-mode) {
+            --bg-principal: #E2FAFA;
+            --bg-tarjetas: #FFFFFF;
+            --bg-intermedio: #F5EFEB;
+            --chocolate-bubaru: #3E200C;
+            --chocolate-mutado: #6E4A35;
+            --menta-destacado: #2ABEC2;
+            --morado-bubaru: #A960BD;
+            --morado-hover: #914FA5;
+
+            --pastel-rosa: #B3D9FF;
+            --pastel-vainilla: #FFFFFF;
+            --pastel-menta: #E0F2FF;
+            --pastel-lavanda: #D1E8FF;
+            --pastel-crema: #F0F8FF;
+
+            --estado-ok-bg: rgba(22, 163, 74, 0.1);
+            --estado-ok: #16A34A;
+            --estado-alerta-bg: rgba(234, 88, 12, 0.1);
+            --estado-alerta: #EA580C;
+            --estado-critico-bg: rgba(220, 38, 38, 0.1);
+            --estado-critico: #DC2626;
+        }
+
+        /* ===============================================
+           ESTRUCTURA PRINCIPAL DEL LAYOUT
+           =============================================== */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-principal);
+            color: var(--chocolate-bubaru);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font-family: inherit;
+        }
+
+        .oculto {
+            display: none !important;
+        }
+
+        /* ===============================================
+           BARRA SUPERIOR (APP BAR)
+           =============================================== */
+
+        .app-bar {
+            background: linear-gradient(135deg, var(--pastel-vainilla), var(--bg-tarjetas));
+            border-bottom: 3px solid var(--pastel-rosa);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .marca {
+            flex: 0 0 auto;
+        }
+
+        .marca h1 {
+            color: var(--chocolate-bubaru);
+            font-size: 1.8rem;
+            letter-spacing: 3px;
+            font-weight: 800;
+        }
+
+        .marca p {
+            font-size: 0.8rem;
+            color: var(--chocolate-mutado);
+            font-weight: 600;
+        }
+
+        .busqueda-global {
+            flex: 1;
+            max-width: 520px;
+            position: relative;
+        }
+
+        .busqueda-input-wrap {
+            position: relative;
+        }
+
+        .busqueda-global input {
+            width: 100%;
+            padding: 10px 38px 10px 12px;
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            border-radius: 6px;
+            background-color: var(--bg-intermedio);
+            color: var(--chocolate-bubaru);
+            outline: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .busqueda-global input:focus {
+            border-color: var(--morado-bubaru);
+            background-color: var(--bg-tarjetas);
+        }
+
+        .btn-limpiar-busqueda {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background-color: transparent;
+            color: var(--chocolate-mutado);
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .btn-limpiar-busqueda:hover {
+            color: var(--chocolate-bubaru);
+            background-color: var(--bg-principal);
+        }
+
+        .contador-busqueda {
+            min-height: 16px;
+            margin-top: 4px;
+            color: var(--morado-bubaru);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .busqueda-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-tarjetas);
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 15%, transparent);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px color-mix(in srgb, var(--chocolate-bubaru) 12%, transparent);
+            z-index: 300;
+            max-height: 280px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .busqueda-dropdown.visible {
+            display: block;
+        }
+
+        .busqueda-dropdown-grupo-header {
+            padding: 6px 12px 4px;
+            font-size: 0.78rem;
+            color: var(--chocolate-mutado);
+            font-weight: 700;
+            border-top: 1px solid var(--bg-intermedio);
+        }
+
+        .busqueda-dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px solid var(--bg-intermedio);
+        }
+
+        .busqueda-dropdown-item:hover {
+            background-color: var(--bg-principal);
+        }
+
+        .busqueda-dropdown-item-nombre {
+            font-weight: bold;
+            color: var(--chocolate-bubaru);
+        }
+
+        .busqueda-dropdown-item-info {
+            font-size: 0.85rem;
+            color: var(--chocolate-mutado);
+        }
+
+        .info-estacion {
+            text-align: right;
+            flex: 0 0 auto;
+        }
+
+        .info-estacion h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .info-estacion .subtxt {
+            color: var(--morado-bubaru);
+            font-weight: 600;
+            font-size: 0.82rem;
+        }
+
+        .selector-rol {
+            margin-top: 6px;
+            padding: 6px 8px;
+            border: 1px solid color-mix(in srgb, var(--morado-bubaru) 35%, transparent);
+            border-radius: 6px;
+            color: var(--chocolate-bubaru);
+            background-color: var(--bg-principal);
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* ===============================================
+           CONTENEDOR DASHBOARD (Sidebar + Principal)
+           =============================================== */
+
+        .contenedor-dashboard {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ===============================================
+           SELECCIÓN DE ÁREAS
+           =============================================== */
+
+        .sidebar-areas {
+            width: 250px;
+            background: linear-gradient(180deg, var(--pastel-vainilla), var(--bg-tarjetas));
+            border-right: 2px solid var(--pastel-rosa);
+            padding: 20px 10px;
+            overflow-y: auto;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .titulo-seccion {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--chocolate-mutado);
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            font-weight: bold;
+        }
+
+        .btn-area {
+            width: 100%;
+            background: linear-gradient(135deg, var(--pastel-crema), var(--bg-intermedio));
+            border: 2px solid var(--pastel-rosa);
+            color: var(--chocolate-bubaru);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .btn-area:hover {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--pastel-crema));
+            transform: translateX(4px);
+        }
+
+        .btn-area.activo {
+            background: linear-gradient(135deg, var(--morado-bubaru), var(--pastel-rosa));
+            border-left-color: var(--chocolate-bubaru);
+            color: var(--bg-tarjetas);
+        }
+
+        .controles-modulos-sidebar {
+            border-top: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 10%, transparent);
+            padding-top: 16px;
+            margin-top: 18px;
+        }
+
+        .btn-modulo {
+            background-color: var(--bg-tarjetas);
+        }
+
+        .badge-alerta {
+            background-color: var(--estado-critico);
+            color: var(--bg-tarjetas);
+            font-size: 0.75rem;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .btn-reiniciar-memoria {
+            background-color: transparent;
+            color: var(--chocolate-mutado);
+            border: 1px dashed var(--chocolate-mutado);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .btn-reiniciar-memoria:hover {
+            background-color: var(--bg-intermedio);
+        }
+
+        /* ===============================================
+           CONTENIDO PRINCIPAL
+           =============================================== */
+
+        .contenido-principal {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: linear-gradient(180deg, var(--pastel-menta), var(--bg-principal));
+        }
+
+        /* ===============================================
+           FORMULARIO DE REGISTRO/EDICIÓN
+           =============================================== */
+
+        .tarjeta-formulario {
+            background: linear-gradient(135deg, var(--pastel-vainilla), var(--bg-tarjetas));
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid var(--pastel-rosa);
+            transition: all 0.3s ease;
+        }
+
+        .tarjeta-formulario.modo-edicion-activa {
+            border-color: var(--morado-bubaru);
+            background: linear-gradient(135deg, var(--pastel-lavanda), var(--pastel-vainilla));
+        }
+
+        .form-grid {
+            display: grid;
+            /* Cambiamos el mínimo a 160px para obligar a los campos a alinearse horizontalmente en pantallas anchas como la imagen */
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-top: 10px;
+            align-items: flex-end;
+        }
+
+        .campo-form {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .campo-form label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--chocolate-mutado);
+        }
+
+        .campo-form input,
+        .campo-form select,
+        .campo-form textarea {
+            padding: 12px 16px;
+            border: 2px solid var(--pastel-rosa);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: var(--chocolate-bubaru);
+            background: linear-gradient(135deg, var(--pastel-vainilla), var(--bg-tarjetas));
+            outline: none;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .campo-form textarea {
+            min-height: 88px;
+            resize: vertical;
+        }
+
+        .campo-form input:focus,
+        .campo-form select:focus,
+        .campo-form textarea:focus {
+            border-color: var(--morado-bubaru);
+            background: linear-gradient(135deg, var(--pastel-lavanda), var(--pastel-vainilla));
+        }
+
+        .solo-inventario-form {
+            display: none;
+        }
+
+        .btn-guardar {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--morado-bubaru));
+            color: var(--bg-tarjetas);
+            border: 2px solid var(--pastel-rosa);
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+            height: 45px;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .btn-guardar:hover {
+            background: linear-gradient(135deg, var(--morado-bubaru), var(--pastel-rosa));
+            transform: translateY(-2px);
+        }
+
+        .btn-guardar.edicion {
+            background: linear-gradient(135deg, var(--pastel-lavanda), var(--morado-bubaru));
+            border-color: var(--pastel-lavanda);
+        }
+
+        /* ===============================================
+           TARJETAS DE RESUMEN (KPI's)
+           =============================================== */
+
+        .grid-resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .tarjeta-stat {
+            background: linear-gradient(135deg, var(--pastel-menta), var(--pastel-vainilla));
+            padding: 18px;
+            border-radius: 16px;
+            border: 2px solid var(--pastel-rosa);
+        }
+
+        .tarjeta-stat p {
+            font-size: 0.85rem;
+            color: var(--chocolate-mutado);
+            font-weight: 600;
+        }
+
+        .tarjeta-stat .valor {
+            font-size: 1.6rem;
+            font-weight: bold;
+        }
+
+        /* ===============================================
+           TABLA DE INVENTARIO
+           =============================================== */
+
+        .contenedor-tabla {
+            background: linear-gradient(135deg, var(--pastel-vainilla), var(--bg-tarjetas));
+            border-radius: 16px;
+            border: 2px solid var(--pastel-rosa);
+            padding: 20px;
+        }
+
+        .tabla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--bg-intermedio);
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabla-acciones {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabla-scroll {
+            overflow-x: auto;
+        }
+
+        .tabla-inventario {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tabla-inventario th {
+            text-align: left;
+            color: var(--chocolate-mutado);
+            font-size: 0.85rem;
+            padding: 12px 10px;
+            border-bottom: 2px solid var(--bg-intermedio);
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .tabla-inventario th:hover {
+            color: var(--morado-bubaru);
+        }
+
+        .tabla-inventario td {
+            padding: 12px 10px;
+            border-bottom: 1px solid var(--bg-intermedio);
+            vertical-align: middle;
+        }
+
+        .nombre-insumo {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        mark {
+            background-color: var(--estado-alerta-bg);
+            color: var(--estado-alerta);
+            padding: 0 2px;
+            border-radius: 4px;
+            font-weight: 800;
+        }
+
+        .mensaje-vacio {
+            text-align: center;
+            color: var(--chocolate-mutado);
+            font-weight: 700;
+            padding: 24px;
+        }
+
+        /* ===============================================
+           CONTROLES DE STOCK
+           =============================================== */
+
+        .controles-stock {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, var(--pastel-crema), var(--bg-intermedio));
+            padding: 6px;
+            border-radius: 12px;
+            width: fit-content;
+            border: 2px solid var(--pastel-rosa);
+        }
+
+        .btn-control {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--pastel-rosa);
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-control.menos {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--morado-bubaru));
+            color: var(--bg-tarjetas);
+        }
+
+        .btn-control.menos:hover {
+            transform: scale(1.1);
+        }
+
+        .btn-control.mas {
+            background: linear-gradient(135deg, var(--pastel-menta), var(--pastel-vainilla));
+            color: var(--chocolate-bubaru);
+        }
+
+        .btn-control.mas:hover {
+            transform: scale(1.1);
+        }
+
+        .input-stock-directo {
+            width: 60px;
+            height: 38px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--chocolate-bubaru);
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 15%, transparent);
+            background-color: var(--bg-tarjetas);
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .unidad-medida {
+            font-size: 0.8rem;
+            color: var(--chocolate-mutado);
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        /* ===============================================
+           BOTONES DE ACCIONES
+           =============================================== */
+
+        .grupo-botones-acciones {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-editar,
+        .btn-eliminar,
+        .btn-transferencia {
+            border: 2px solid var(--pastel-rosa);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-editar {
+            background: linear-gradient(135deg, var(--pastel-lavanda), var(--morado-bubaru));
+            color: var(--bg-tarjetas);
+            border-color: var(--pastel-lavanda);
+        }
+
+        .btn-editar:hover {
+            background: linear-gradient(135deg, var(--morado-bubaru), var(--pastel-lavanda));
+            transform: scale(1.1);
+        }
+
+        .btn-eliminar {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--estado-critico));
+            color: var(--bg-tarjetas);
+            border-color: var(--pastel-rosa);
+        }
+
+        .btn-eliminar:hover {
+            background: linear-gradient(135deg, var(--estado-critico), var(--pastel-rosa));
+            transform: scale(1.1);
+        }
+
+        .btn-transferencia {
+            background: linear-gradient(135deg, var(--pastel-menta), var(--estado-ok));
+            color: var(--bg-tarjetas);
+            border-color: var(--pastel-menta);
+        }
+
+        .btn-transferencia:hover {
+            background: linear-gradient(135deg, var(--estado-ok), var(--pastel-menta));
+            transform: scale(1.1);
+        }
+
+        .btn-accion-urgente,
+        .btn-csv,
+        .btn-secundario,
+        .btn-peligro {
+            border: 2px solid var(--pastel-rosa);
+            padding: 12px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-accion-urgente {
+            background: linear-gradient(135deg, var(--morado-bubaru), var(--pastel-lavanda));
+            color: var(--bg-tarjetas);
+            border-color: var(--morado-bubaru);
+        }
+
+        .btn-accion-urgente:hover {
+            background: linear-gradient(135deg, var(--pastel-lavanda), var(--morado-bubaru));
+            transform: translateY(-2px);
+        }
+
+        .btn-csv,
+        .btn-secundario {
+            background: linear-gradient(135deg, var(--pastel-crema), var(--bg-intermedio));
+            color: var(--chocolate-bubaru);
+        }
+
+        .btn-csv:hover,
+        .btn-secundario:hover {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--pastel-crema));
+            transform: translateY(-2px);
+        }
+
+        .btn-peligro {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--estado-critico));
+            color: var(--bg-tarjetas);
+            border-color: var(--estado-critico);
+        }
+
+        .btn-peligro:hover {
+            background: linear-gradient(135deg, var(--estado-critico), var(--pastel-rosa));
+            transform: translateY(-2px);
+        }
+
+        /* ===============================================
+           BADGES DE ESTADO
+           =============================================== */
+
+        .badge-estado,
+        .badge-solicitud {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+            border: 2px solid var(--pastel-rosa);
+            cursor: default;
+        }
+
+        .badge-estado.ok,
+        .badge-solicitud.normal,
+        .badge-solicitud.atendida {
+            background: linear-gradient(135deg, var(--pastel-menta), var(--estado-ok-bg));
+            color: var(--estado-ok);
+            border-color: var(--pastel-menta);
+        }
+
+        .badge-estado.bajo,
+        .badge-solicitud.urgente,
+        .badge-solicitud.pendiente {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--estado-alerta-bg));
+            color: var(--estado-alerta);
+            border-color: var(--pastel-rosa);
+        }
+
+        .badge-estado.critico,
+        .badge-solicitud.rechazada {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--estado-critico-bg));
+            color: var(--estado-critico);
+            border-color: var(--estado-critico);
+        }
+
+        button.badge-solicitud {
+            cursor: pointer;
+        }
+
+        /* ===============================================
+           MODALES Y PANELES
+           =============================================== */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.fullscreen {
+            align-items: stretch;
+            justify-content: stretch;
+        }
+
+        .modal-card {
+            width: min(960px, 100%);
+            max-height: min(86vh, 760px);
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, var(--pastel-vainilla), var(--bg-tarjetas));
+            border-radius: 20px;
+            border: 2px solid var(--pastel-rosa);
+            overflow: hidden;
+        }
+
+        .fullscreen .modal-card {
+            width: 100%;
+            max-height: none;
+        }
+
+        .modal-compacto {
+            width: min(460px, 100%);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 2px solid var(--pastel-rosa);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--pastel-lavanda), var(--pastel-vainilla));
+        }
+
+        .modal-header h3 {
+            color: var(--chocolate-bubaru);
+            font-size: 1.1rem;
+        }
+
+        .modal-acciones {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-cerrar-modal {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--pastel-rosa);
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--morado-bubaru));
+            color: var(--bg-tarjetas);
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cerrar-modal:hover {
+            background: linear-gradient(135deg, var(--morado-bubaru), var(--pastel-rosa));
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(180deg, var(--pastel-vainilla), var(--bg-tarjetas));
+        }
+
+        .modal-info {
+            background: linear-gradient(135deg, var(--pastel-crema), var(--bg-intermedio));
+            color: var(--chocolate-mutado);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            border: 2px solid var(--pastel-rosa);
+        }
+
+        .form-grid-modal {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .campo-form.campo-amplio {
+            grid-column: 1 / -1;
+        }
+
+        .solicitudes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .solicitud-card {
+            background-color: var(--bg-tarjetas);
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 10%, transparent);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .solicitud-card h4 {
+            color: var(--chocolate-bubaru);
+            font-size: 1rem;
+        }
+
+        .solicitud-meta {
+            color: var(--chocolate-mutado);
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .solicitud-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .notificacion-inline {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            max-width: min(420px, calc(100vw - 40px));
+            background-color: var(--chocolate-bubaru);
+            color: var(--bg-tarjetas);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-weight: 700;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 120;
+        }
+
+        .notificacion-inline.exito {
+            background-color: var(--estado-ok);
+        }
+
+        .notificacion-inline.alerta {
+            background-color: var(--estado-alerta);
+        }
+
+        .notificacion-inline.error {
+            background-color: var(--estado-critico);
+        }
+
+        /* ===============================================
+           RESTRICCIONES VISUALES POR ROL
+           =============================================== */
+
+        body.rol-operador .solo-admin {
+            display: none !important;
+        }
+
+        /* ===============================================
+           LOCK SCREEN (AUTENTICACIÓN POR PIN)
+           =============================================== */
+
+        #lock-screen {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-principal);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #lock-screen.oculto {
+            display: none;
+        }
+
+        .lock-screen-content {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .lock-screen-logo {
+            color: var(--chocolate-bubaru);
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .lock-screen-subtitle {
+            color: var(--chocolate-mutado);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .lock-screen-title {
+            color: var(--chocolate-bubaru);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .lock-screen-desc {
+            color: var(--chocolate-mutado);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .login-screen {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rol-selection-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-rol-selection {
+            background-color: var(--bg-tarjetas);
+            border: 2px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-rol-selection:hover {
+            border-color: var(--morado-bubaru);
+            background-color: var(--bg-intermedio);
+            transform: translateY(-2px);
+        }
+
+        .rol-icon {
+            font-size: 2.5rem;
+        }
+
+        .rol-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--chocolate-bubaru);
+        }
+
+        .rol-desc {
+            font-size: 0.85rem;
+            color: var(--chocolate-mutado);
+        }
+
+        .area-selection-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-area-selection {
+            background-color: var(--bg-tarjetas);
+            border: 2px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            border-radius: 10px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-area-selection:hover {
+            border-color: var(--morado-bubaru);
+            background-color: var(--bg-intermedio);
+            transform: translateY(-2px);
+        }
+
+        .area-icon {
+            font-size: 2rem;
+        }
+
+        .area-name {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--chocolate-bubaru);
+        }
+
+        .btn-volver {
+            background-color: transparent;
+            border: none;
+            color: var(--chocolate-mutado);
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-volver:hover {
+            background-color: var(--bg-intermedio);
+            color: var(--chocolate-bubaru);
+        }
+
+        .pin-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .pin-box {
+            width: 50px;
+            height: 60px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            border-radius: 8px;
+            background-color: var(--bg-tarjetas);
+            color: var(--chocolate-bubaru);
+            outline: none;
+        }
+
+        .btn-toggle-pin {
+            background: transparent;
+            border: none;
+            color: var(--chocolate-mutado);
+            font-size: 0.82rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-toggle-pin:hover {
+            color: var(--chocolate-bubaru);
+        }
+
+        .pin-box:focus {
+            border-color: var(--morado-bubaru);
+        }
+
+        .pin-box.pin-shake {
+            animation: pinShake 0.5s ease-in-out;
+        }
+
+        @keyframes pinShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+
+        .pin-error {
+            color: var(--estado-critico);
+            font-weight: bold;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        .pin-bloqueado {
+            color: var(--estado-alerta);
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .btn-cerrar-sesion {
+            background-color: transparent;
+            color: var(--chocolate-mutado);
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .btn-cerrar-sesion:hover {
+            background-color: var(--bg-intermedio);
+            color: var(--chocolate-bubaru);
+        }
+
+        .btn-gestion-pines {
+            background-color: var(--morado-bubaru);
+            color: var(--bg-tarjetas);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-gestion-pines:hover {
+            background-color: var(--morado-hover);
+        }
+
+        .btn-dark-mode {
+            background: linear-gradient(135deg, var(--pastel-rosa), var(--morado-bubaru));
+            color: var(--chocolate-bubaru);
+            border: 2px solid var(--pastel-rosa);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-dark-mode:hover {
+            background: linear-gradient(135deg, var(--morado-bubaru), var(--pastel-rosa));
+            transform: scale(1.05);
+        }
+        
+        .btn-dark-mode:active {
+            transform: scale(0.95);
+        }
+
+        .btn-deshacer {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--morado-bubaru);
+            color: var(--bg-tarjetas);
+            border: none;
+            padding: 14px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .btn-deshacer.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .btn-deshacer:hover {
+            background-color: var(--morado-hover);
+            transform: translateY(-2px);
+        }
+
+        /* ===============================================
+           VALIDACIÓN VISUAL DE FORMULARIOS
+           =============================================== */
+
+        .campo-form.error input,
+        .campo-form.error select,
+        .campo-form.error textarea {
+            border-color: var(--estado-critico);
+            background-color: color-mix(in srgb, var(--estado-critico) 10%, transparent);
+        }
+
+        .field-error {
+            color: var(--estado-critico);
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .input-invalid {
+            border: 2px solid var(--estado-critico) !important;
+        }
+
+        /* ===============================================
+           MODAL DE CONFIRMACIÓN
+           =============================================== */
+
+        #modal-confirmacion {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        #modal-confirmacion:not(.oculto) {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .modal-confirmacion-card {
+            width: min(460px, 100%);
+        }
+
+        .modal-confirmacion-body {
+            padding: 20px;
+            color: var(--chocolate-bubaru);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .modal-confirmacion-checkbox {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-confirmacion-checkbox input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .modal-confirmacion-checkbox label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modal-confirmacion-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--bg-intermedio);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-danger {
+            background-color: var(--estado-critico);
+            color: var(--bg-tarjetas);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-danger:hover {
+            background-color: color-mix(in srgb, var(--estado-critico) 80%, black);
+        }
+
+        .btn-danger:disabled {
+            background-color: var(--estado-critico-bg);
+            color: var(--estado-critico);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* ===============================================
+           DASHBOARD GENERAL
+           =============================================== */
+
+        #dashboard-view {
+            display: none;
+        }
+
+        #dashboard-view.visible {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dashboard-kpi-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            position: relative;
+        }
+
+        .dashboard-refresh-container {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+
+        .btn-actualizar-dashboard {
+            background-color: var(--bg-intermedio);
+            color: var(--chocolate-bubaru);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-actualizar-dashboard:hover {
+            background-color: color-mix(in srgb, var(--bg-intermedio) 78%, var(--chocolate-mutado));
+        }
+
+        .dashboard-ultima-actualizacion {
+            font-size: 0.78rem;
+            color: var(--chocolate-mutado);
+            text-align: right;
+            margin-top: -10px;
+        }
+
+        .dashboard-kpi-card {
+            background-color: var(--bg-tarjetas);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 10%, transparent);
+        }
+
+        .dashboard-kpi-card .kpi-label {
+            font-size: 0.85rem;
+            color: var(--chocolate-mutado);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-kpi-card .kpi-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--chocolate-bubaru);
+        }
+
+        .dashboard-kpi-card .kpi-value.critico {
+            color: var(--estado-critico);
+        }
+
+        .dashboard-kpi-card .kpi-value.dinero {
+            color: var(--menta-destacado);
+        }
+
+        .dashboard-areas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .dashboard-area-card {
+            background-color: var(--bg-tarjetas);
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 10%, transparent);
+            border-left: 4px solid var(--estado-ok);
+            transition: all 0.2s;
+        }
+
+        .dashboard-area-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-area-card.border-verde {
+            border-left-color: var(--estado-ok);
+        }
+
+        .dashboard-area-card.border-naranja {
+            border-left-color: var(--estado-alerta);
+        }
+
+        .dashboard-area-card.border-rojo {
+            border-left-color: var(--estado-critico);
+        }
+
+        .dashboard-area-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-area-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--chocolate-bubaru);
+        }
+
+        .dashboard-area-icon {
+            font-size: 1.5rem;
+        }
+
+        .dashboard-area-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-area-stat {
+            flex: 1;
+        }
+
+        .dashboard-area-stat .stat-label {
+            font-size: 0.75rem;
+            color: var(--chocolate-mutado);
+            font-weight: 600;
+        }
+
+        .dashboard-area-stat .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--chocolate-bubaru);
+        }
+
+        .dashboard-area-stat .stat-value.critico {
+            color: var(--estado-critico);
+        }
+
+        .dashboard-area-stat .stat-value.bajo {
+            color: var(--estado-alerta);
+        }
+
+        .dashboard-area-bar {
+            height: 6px;
+            background-color: var(--bg-intermedio);
+            border-radius: 3px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .dashboard-area-bar-fill {
+            height: 100%;
+            background-color: var(--estado-ok);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .dashboard-area-bar-fill.critico {
+            background-color: var(--estado-critico);
+        }
+
+        .dashboard-area-bar-fill.bajo {
+            background-color: var(--estado-alerta);
+        }
+
+        .btn-ver-area {
+            background-color: var(--morado-bubaru);
+            color: var(--bg-tarjetas);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn-ver-area:hover {
+            background-color: var(--morado-hover);
+        }
+
+        /* ===============================================
+           SIDE PANEL (SLIDE-IN)
+           =============================================== */
+
+        .side-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 380px;
+            height: 100vh;
+            background-color: var(--bg-tarjetas);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 150;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-panel.visible {
+            transform: translateX(0);
+        }
+
+        .side-panel-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--bg-intermedio);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .side-panel-header h3 {
+            color: var(--chocolate-bubaru);
+            font-size: 1.1rem;
+        }
+
+        .side-panel-body {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .side-panel-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-solicitudes-area-container {
+            margin-bottom: 12px;
+        }
+
+        .filtro-solicitudes-area-container label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--chocolate-mutado);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .filtro-solicitudes-area-container select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--chocolate-bubaru);
+            background-color: var(--bg-tarjetas);
+            outline: none;
+        }
+
+        .filtro-solicitudes-area-container select:focus {
+            border-color: var(--morado-bubaru);
+        }
+
+        .filtro-solicitudes-count {
+            font-size: 0.78rem;
+            color: var(--chocolate-mutado);
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filtro-solicitudes-count a {
+            color: var(--morado-bubaru);
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .filtro-solicitudes-count a:hover {
+            text-decoration: underline;
+        }
+
+        .side-panel-tab {
+            padding: 8px 14px;
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            border-radius: 20px;
+            background-color: var(--bg-intermedio);
+            color: var(--chocolate-bubaru);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .side-panel-tab:hover {
+            background-color: color-mix(in srgb, var(--bg-intermedio) 78%, var(--chocolate-mutado));
+        }
+
+        .side-panel-tab.active {
+            background-color: var(--morado-bubaru);
+            color: var(--bg-tarjetas);
+            border-color: var(--morado-bubaru);
+        }
+
+        .side-panel-card {
+            background-color: var(--bg-principal);
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 10%, transparent);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--estado-ok);
+        }
+
+        .side-panel-card.urgencia-normal {
+            border-left-color: var(--estado-ok);
+        }
+
+        .side-panel-card.urgencia-urgente {
+            border-left-color: var(--estado-alerta);
+        }
+
+        .side-panel-card.urgencia-critico {
+            border-left-color: var(--estado-critico);
+        }
+
+        .side-panel-card h4 {
+            color: var(--chocolate-bubaru);
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .side-panel-meta {
+            color: var(--chocolate-mutado);
+            font-size: 0.84rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .side-panel-notas {
+            color: var(--chocolate-mutado);
+            font-size: 0.82rem;
+            font-style: italic;
+            margin-top: 6px;
+        }
+
+        .side-panel-timestamp {
+            color: var(--chocolate-mutado);
+            font-size: 0.78rem;
+            margin-top: 8px;
+        }
+
+        .side-panel-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: 140;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .side-panel-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ===============================================
+           TOAST NOTIFICATIONS
+           =============================================== */
+
+        #toast-container {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            min-width: 300px;
+            max-width: 420px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(120%);
+            transition: transform 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.visible {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background-color: var(--estado-ok);
+            color: var(--bg-tarjetas);
+        }
+
+        .toast.error {
+            background-color: var(--estado-critico);
+            color: var(--bg-tarjetas);
+        }
+
+        .toast.warning {
+            background-color: var(--estado-alerta);
+            color: var(--bg-tarjetas);
+        }
+
+        .toast-icon {
+            font-size: 1.3rem;
+        }
+
+        /* ===============================================
+           BITÁCORA MODAL
+           =============================================== */
+
+        .bitacora-filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .bitacora-filter {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .bitacora-filter label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--chocolate-mutado);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .bitacora-filter select,
+        .bitacora-filter input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 20%, transparent);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--chocolate-bubaru);
+            background-color: var(--bg-tarjetas);
+            outline: none;
+        }
+
+        .bitacora-filter select:focus,
+        .bitacora-filter input:focus {
+            border-color: var(--morado-bubaru);
+        }
+
+        .bitacora-diferencia {
+            font-weight: bold;
+        }
+
+        .bitacora-diferencia.positivo {
+            color: var(--estado-ok);
+        }
+
+        .bitacora-diferencia.negativo {
+            color: var(--estado-critico);
+        }
+
+        .badge-tipo {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-tipo.alta,
+        .badge-tipo.incremento {
+            background-color: var(--estado-ok-bg);
+            color: var(--estado-ok);
+        }
+
+        .badge-tipo.baja,
+        .badge-tipo.decremento {
+            background-color: var(--estado-critico-bg);
+            color: var(--estado-critico);
+        }
+
+        .badge-tipo.edicion {
+            background-color: color-mix(in srgb, var(--morado-bubaru) 15%, transparent);
+            color: var(--morado-bubaru);
+        }
+
+        .badge-tipo.ajuste {
+            background-color: var(--estado-alerta-bg);
+            color: var(--estado-alerta);
+        }
+
+        .badge-tipo.transferencia {
+            background-color: color-mix(in srgb, var(--menta-destacado) 15%, transparent);
+            color: var(--menta-destacado);
+        }
+
+        .badge-tipo.seguridad {
+            background-color: color-mix(in srgb, var(--chocolate-mutado) 15%, transparent);
+            color: var(--chocolate-mutado);
+        }
+
+        .bitacora-punto-nuevo {
+            width: 8px;
+            height: 8px;
+            background-color: var(--estado-ok);
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* ===============================================
+           TRANSFER MODAL
+           =============================================== */
+
+        .transfer-preview {
+            background-color: var(--bg-intermedio);
+            color: var(--chocolate-mutado);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .transfer-preview-text {
+            color: var(--chocolate-bubaru);
+        }
+
+        /* ===============================================
+           URGENCIAS SELECTOR
+           =============================================== */
+
+        .urgencia-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .btn-urgencia {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-urgencia.normal {
+            background-color: var(--estado-ok-bg);
+            color: var(--estado-ok);
+            border-color: var(--estado-ok-bg);
+        }
+
+        .btn-urgencia.normal:hover,
+        .btn-urgencia.normal.active {
+            background-color: var(--estado-ok);
+            color: var(--bg-tarjetas);
+            border-color: var(--estado-ok);
+        }
+
+        .btn-urgencia.urgente {
+            background-color: var(--estado-alerta-bg);
+            color: var(--estado-alerta);
+            border-color: var(--estado-alerta-bg);
+        }
+
+        .btn-urgencia.urgente:hover,
+        .btn-urgencia.urgente.active {
+            background-color: var(--estado-alerta);
+            color: var(--bg-tarjetas);
+            border-color: var(--estado-alerta);
+        }
+
+        .btn-urgencia.critico {
+            background-color: var(--estado-critico-bg);
+            color: var(--estado-critico);
+            border-color: var(--estado-critico-bg);
+        }
+
+        .btn-urgencia.critico:hover,
+        .btn-urgencia.critico.active {
+            background-color: var(--estado-critico);
+            color: var(--bg-tarjetas);
+            border-color: var(--estado-critico);
+        }
+
+        .notas-counter {
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--chocolate-mutado);
+            margin-top: 4px;
+        }
+
+        /* ===============================================
+           GESTIÓN DE PINES
+           =============================================== */
+
+        .gestion-pines-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--bg-intermedio);
+        }
+
+        .gestion-pines-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .gestion-pines-section h4 {
+            color: var(--chocolate-bubaru);
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* ===============================================
+           DISEÑO RESPONSIVO
+           =============================================== */
+
+        @media (max-width: 900px) {
+            .app-bar {
+                flex-wrap: wrap;
+            }
+
+            .busqueda-global {
+                order: 3;
+                max-width: none;
+                width: 100%;
+            }
+
+            .sidebar-areas {
+                width: 220px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            body {
+                overflow: auto;
+            }
+
+            .contenedor-dashboard {
+                flex-direction: column;
+                overflow: visible;
+            }
+
+            .sidebar-areas {
+                width: 100%;
+                overflow: visible;
+            }
+
+            .contenido-principal {
+                overflow: visible;
+            }
+
+            .tabla-header,
+            .tabla-acciones {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .info-estacion {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===============================================
+         BARRA SUPERIOR DE LA APLICACIÓN
+         =============================================== -->
+    <div class="app-bar">
+        <div class="marca">
+            <h1>B U B A R U</h1>
+            <p>Control Descentralizado de Inventarios</p>
+        </div>
+
+        <div class="busqueda-global">
+            <div class="busqueda-input-wrap">
+                <input type="text" id="busqueda-insumos" placeholder="🔍 Buscar insumo..." oninput="actualizarBusqueda(this.value)">
+                <button class="btn-limpiar-busqueda oculto" id="btn-limpiar-busqueda" onclick="limpiarBusqueda()" aria-label="Limpiar búsqueda">×</button>
+            </div>
+            <div class="busqueda-dropdown" id="busqueda-dropdown"></div>
+            <p class="contador-busqueda" id="contador-busqueda"></p>
+        </div>
+
+        <div class="info-estacion">
+            <h2 id="txt-area-activa">Área: Betun</h2>
+            <p class="subtxt" id="reloj">Sincronizando...</p>
+            <button class="btn-dark-mode" id="btn-dark-mode" onclick="toggleDarkMode()" aria-label="Cambiar modo oscuro">🌙</button>
+            <button class="btn-gestion-pines solo-admin" onclick="abrirModalGestionPines()">🔐 Gestión de PINs</button>
+            <button class="btn-cerrar-sesion" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
+        </div>
+    </div>
+
+    <!-- ===============================================
+         CONTENEDOR PRINCIPAL (Sidebar + Contenido)
+         =============================================== -->
+    <div class="contenedor-dashboard">
+
+        <!-- SIDEBAR: Lista de áreas/estaciones -->
+        <div class="sidebar-areas">
+            <div class="titulo-seccion">Vista General</div>
+            <button class="btn-area activo" data-area="Dashboard" onclick="mostrarDashboard(this)">🏠 Dashboard</button>
+            <div class="titulo-seccion">Estaciones (Tablets)</div>
+            <button class="btn-area" data-area="Inventario" onclick="cambiarArea('Inventario', this)">Inventario <span class="badge-alerta" id="badge-Inventario">0</span></button>
+            <button class="btn-area" data-area="Butique" onclick="cambiarArea('Butique', this)">Boutique <span class="badge-alerta" id="badge-Butique">0</span></button>
+            <button class="btn-area" data-area="Betun" onclick="cambiarArea('Betun', this)">Betún <span class="badge-alerta" id="badge-Betun">0</span></button>
+            <button class="btn-area" data-area="Horno" onclick="cambiarArea('Horno', this)">Horno <span class="badge-alerta" id="badge-Horno">0</span></button>
+            <button class="btn-area" data-area="Pan" onclick="cambiarArea('Pan', this)">Panadería <span class="badge-alerta" id="badge-Pan">0</span></button>
+            <button class="btn-area" data-area="Admi" onclick="cambiarArea('Admi', this)">Administración <span class="badge-alerta" id="badge-Admi">0</span></button>
+
+            <div class="controles-modulos-sidebar">
+                <div class="titulo-seccion">Módulos</div>
+                <button class="btn-area btn-modulo" onclick="abrirModalBitacora()">📋 Bitácora</button>
+                <button class="btn-area btn-modulo" onclick="abrirPanelSolicitudes()">📬 Solicitudes <span class="badge-alerta" id="badge-solicitudes">0</span></button>
+            </div>
+
+            <button class="btn-reiniciar-memoria solo-admin" id="btn-reiniciar-memoria" onclick="restablecerInventarioFabrica()">⚠️ Reiniciar Base de Datos</button>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="contenido-principal">
+
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboard-view">
+                <div class="dashboard-kpi-bar">
+                    <div class="dashboard-refresh-container">
+                        <button class="btn-actualizar-dashboard" id="btn-actualizar-dashboard" onclick="actualizarDashboardManual()">🔄 Actualizar</button>
+                    </div>
+                    <div class="dashboard-kpi-card">
+                        <div class="kpi-label">Total insumos críticos</div>
+                        <div class="kpi-value critico" id="dashboard-criticos">0</div>
+                    </div>
+                    <div class="dashboard-kpi-card">
+                        <div class="kpi-label">Costo total inventario</div>
+                        <div class="kpi-value dinero" id="dashboard-costo">$0.00</div>
+                    </div>
+                    <div class="dashboard-kpi-card">
+                        <div class="kpi-label">Alertas de seguridad</div>
+                        <div class="kpi-value" id="dashboard-seguridad" style="font-size: 1.2rem;">0 intentos fallidos</div>
+                    </div>
+                </div>
+                <p class="dashboard-ultima-actualizacion" id="dashboard-ultima-actualizacion">Última actualización: --:--:--</p>
+                <div class="dashboard-areas-grid" id="dashboard-areas-grid"></div>
+            </div>
+
+            <!-- FORMULARIO: Alta y edición de insumos -->
+            <div class="tarjeta-formulario solo-admin" id="tarjeta-form-registro">
+                <h4 id="titulo-form" style="color: var(--chocolate-bubaru);">+ Registrar Nuevo Insumo en esta Área</h4>
+                <div class="form-grid">
+                    <div class="campo-form">
+                        <label>Nombre del Insumo</label>
+                        <input type="text" id="insumo-nombre" placeholder="Ej. Chispas de chocolate">
+                        <span class="field-error" id="error-nombre"></span>
+                    </div>
+                    <div class="campo-form">
+                        <label>Cant. Inicial / Actual</label>
+                        <input type="number" id="insumo-actual" placeholder="0" min="0">
+                        <span class="field-error" id="error-actual"></span>
+                    </div>
+
+                    <div class="campo-form solo-inventario-form" id="contenedor-precio-form" style="display: none;">
+                        <label>Precio por Unidad ($)</label>
+                        <input type="number" id="insumo-precio-unitario" placeholder="0" min="0" step="0.01">
+                        <span class="field-error" id="error-precio"></span>
+                    </div>
+
+                    <div class="campo-form">
+                        <label>Stock Mínimo</label>
+                        <input type="number" id="insumo-min" placeholder="Ej. 5" min="0">
+                        <span class="field-error" id="error-min"></span>
+                    </div>
+                    <div class="campo-form">
+                        <label>Unidad</label>
+                        <select id="insumo-unidad">
+                            <option value="kg">kg</option>
+                            <option value="pzas">pzas</option>
+                            <option value="sacos">sacos</option>
+                            <option value="L">Litros</option>
+                            <option value="rollos">rollos</option>
+                            <option value="bloques">bloques</option>
+                            <option value="bultos">bultos</option>
+                        </select>
+                        <span class="field-error" id="error-unidad"></span>
+                    </div>
+                    <button class="btn-guardar" id="btn-ejecutar-form" onclick="agregarOEditarInsumo()">Agregar</button>
+                </div>
+            </div>
+
+            <!-- TARJETAS DE ESTADÍSTICAS RÁPIDAS -->
+            <div class="grid-resumen">
+                <div class="tarjeta-stat">
+                    <p>Insumos en esta Área</p>
+                    <div class="valor" id="lbl-total-insumos">0</div>
+                </div>
+                <div class="tarjeta-stat">
+                    <p>Alertas Críticas del Área</p>
+                    <div class="valor" style="color: var(--estado-critico);" id="lbl-alertas">0</div>
+                </div>
+                <div class="tarjeta-stat">
+                    <p>Módulo Costos</p>
+                    <div class="valor" style="font-size: 1.1rem; padding-top: 8px; color: var(--morado-bubaru);" id="lbl-tipo-modulo">Inactivo en Cocina</div>
+                </div>
+            </div>
+
+            <!-- TABLA DE INVENTARIO -->
+            <div class="contenedor-tabla">
+                <div class="tabla-header">
+                    <h3 id="titulo-tabla-insumos">Insumos Asignados</h3>
+                    <div class="tabla-acciones">
+                        <button class="btn-csv" onclick="exportarCsvActual()">⬇ CSV</button>
+                        <button class="btn-accion-urgente" onclick="notificarAdministracion()">Pedir al Almacén General</button>
+                    </div>
+                </div>
+
+                <div class="tabla-scroll">
+                    <table class="tabla-inventario">
+                        <thead id="encabezado-tabla"></thead>
+                        <tbody id="cuerpo-tabla-inventario"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===============================================
+         MODALES INLINE
+         =============================================== -->
+    <div class="modal-overlay fullscreen oculto" id="modal-bitacora" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-bitacora">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="titulo-modal-bitacora">📋 Bitácora de movimientos <span class="bitacora-punto-nuevo oculto" id="bitacora-punto-nuevo"></span></h3>
+                <div class="modal-acciones">
+                    <button class="btn-csv" id="btn-exportar-bitacora-csv" onclick="exportarCsvBitacora()">⬇ Exportar CSV</button>
+                    <button class="btn-peligro" onclick="limpiarHistorialBitacora()">🗑 Limpiar historial</button>
+                    <button class="btn-cerrar-modal" onclick="cerrarModal('modal-bitacora')" aria-label="Cerrar bitácora">×</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="bitacora-filters">
+                    <div class="bitacora-filter">
+                        <label>Área</label>
+                        <select id="filtro-bitacora-area" onchange="filtrarBitacora()">
+                            <option value="Todas">Todas</option>
+                            <option value="Inventario">Inventario</option>
+                            <option value="Butique">Boutique</option>
+                            <option value="Betun">Betún</option>
+                            <option value="Horno">Horno</option>
+                            <option value="Pan">Panadería</option>
+                            <option value="Admi">Administración</option>
+                        </select>
+                    </div>
+                    <div class="bitacora-filter">
+                        <label>Tipo</label>
+                        <select id="filtro-bitacora-tipo" onchange="filtrarBitacora()">
+                            <option value="Todas">Todos</option>
+                            <option value="Incremento">Incremento</option>
+                            <option value="Decremento">Decremento</option>
+                            <option value="Ajuste Manual">Ajuste Manual</option>
+                            <option value="Edición">Edición</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Baja">Baja</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Seguridad">Seguridad</option>
+                        </select>
+                    </div>
+                    <div class="bitacora-filter">
+                        <label>Fecha</label>
+                        <input type="date" id="filtro-bitacora-fecha" onchange="filtrarBitacora()">
+                    </div>
+                </div>
+                <div class="tabla-scroll">
+                    <table class="tabla-modal">
+                        <thead>
+                            <tr>
+                                <th>Fecha/Hora</th>
+                                <th>Rol</th>
+                                <th>Área</th>
+                                <th>Insumo</th>
+                                <th>Tipo</th>
+                                <th>Antes</th>
+                                <th>Después</th>
+                                <th>Diferencia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla-bitacora"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay oculto" id="modal-transferencia" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-transferencia">
+        <div class="modal-card modal-compacto">
+            <div class="modal-header">
+                <h3 id="titulo-modal-transferencia">↗ Transferir inventario</h3>
+                <button class="btn-cerrar-modal" onclick="cerrarModal('modal-transferencia')" aria-label="Cerrar transferencia">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info" id="transferencia-info">Selecciona destino y cantidad.</div>
+                <div class="transfer-preview" id="transfer-preview">
+                    Se moverán <span class="transfer-preview-text" id="transfer-preview-text">0</span> de Inventario → <span id="transfer-preview-destino">-</span>
+                </div>
+                <div class="form-grid-modal">
+                    <div class="campo-form campo-amplio">
+                        <label>Área destino</label>
+                        <select id="transferencia-destino" onchange="actualizarPreviewTransferencia()"></select>
+                    </div>
+                    <div class="campo-form campo-amplio">
+                        <label>Cantidad</label>
+                        <input type="number" id="transferencia-cantidad" min="1" placeholder="0" oninput="actualizarPreviewTransferencia()">
+                    </div>
+                    <button class="btn-secundario campo-amplio" onclick="cerrarModal('modal-transferencia')">Cancelar</button>
+                    <button class="btn-guardar campo-amplio" id="btn-confirmar-transferencia" onclick="confirmarTransferencia()" disabled>Confirmar transferencia</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay oculto" id="modal-solicitudes" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-solicitudes">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="titulo-modal-solicitudes">📬 Solicitudes de reabastecimiento</h3>
+                <button class="btn-cerrar-modal" onclick="cerrarModal('modal-solicitudes')" aria-label="Cerrar solicitudes">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="tarjeta-formulario">
+                    <h4 style="color: var(--chocolate-bubaru);">Nueva solicitud para <span id="solicitud-area-visible">esta área</span></h4>
+                    <div class="form-grid-modal">
+                        <div class="campo-form">
+                            <label>Nombre del insumo</label>
+                            <input type="text" id="solicitud-item" placeholder="Ej. Azúcar glass">
+                        </div>
+                        <div class="campo-form">
+                            <label>Cantidad necesaria</label>
+                            <input type="number" id="solicitud-cantidad" min="1" placeholder="0">
+                        </div>
+                        <div class="campo-form">
+                            <label>Urgencia</label>
+                            <select id="solicitud-urgencia">
+                                <option value="Normal">Normal</option>
+                                <option value="Urgente">Urgente</option>
+                                <option value="Crítico">Crítico</option>
+                            </select>
+                        </div>
+                        <div class="campo-form campo-amplio">
+                            <label>Notas</label>
+                            <textarea id="solicitud-notas" placeholder="Detalles para almacén general"></textarea>
+                        </div>
+                        <button class="btn-guardar" onclick="crearSolicitudReabastecimiento()">Crear solicitud</button>
+                    </div>
+                </div>
+
+                <div class="solicitudes-grid" id="contenedor-solicitudes"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notificacion-inline oculto" id="notificacion-inline"></div>
+    <button class="btn-deshacer" id="btn-deshacer" onclick="deshacerUltimaAccion()" aria-label="Deshacer última acción">↩ Deshacer</button>
+    <a id="descarga-csv" class="oculto"></a>
+    <div id="toast-container"></div>
+    <div class="side-panel-overlay" id="side-panel-overlay" onclick="cerrarPanelSolicitudes()"></div>
+    <div class="side-panel" id="panel-solicitudes">
+        <div class="side-panel-header">
+            <h3>📬 Solicitudes de reabastecimiento</h3>
+            <button class="btn-cerrar-modal" onclick="cerrarPanelSolicitudes()" aria-label="Cerrar">×</button>
+        </div>
+        <div class="side-panel-body">
+            <div class="filtro-solicitudes-area-container">
+                <label>Filtrar por área:</label>
+                <select id="filtro-solicitudes-area" onchange="filtrarSolicitudesPorArea(this.value)">
+                    <option value="Todas">Todas las áreas</option>
+                    <option value="Inventario">Inventario</option>
+                    <option value="Butique">Boutique</option>
+                    <option value="Betun">Betún</option>
+                    <option value="Horno">Horno</option>
+                    <option value="Pan">Panadería</option>
+                    <option value="Admi">Administración</option>
+                </select>
+            </div>
+            <div class="tarjeta-formulario">
+                <h4 style="color: var(--chocolate-bubaru);">Nueva solicitud para <span id="solicitud-area-visible-panel">esta área</span></h4>
+                <div class="form-grid-modal">
+                    <div class="campo-form campo-amplio">
+                        <label>Nombre del insumo</label>
+                        <input type="text" id="solicitud-item-panel" placeholder="Ej. Azúcar glass">
+                    </div>
+                    <div class="campo-form">
+                        <label>Cantidad necesaria</label>
+                        <input type="number" id="solicitud-cantidad-panel" min="1" placeholder="0">
+                    </div>
+                    <div class="campo-form campo-amplio">
+                        <label>Urgencia</label>
+                        <div class="urgencia-selector">
+                            <button class="btn-urgencia normal active" onclick="seleccionarUrgencia('Normal', this)">🟢 Normal</button>
+                            <button class="btn-urgencia urgente" onclick="seleccionarUrgencia('Urgente', this)">🟡 Urgente</button>
+                            <button class="btn-urgencia critico" onclick="seleccionarUrgencia('Crítico', this)">🔴 Crítico</button>
+                        </div>
+                    </div>
+                    <div class="campo-form campo-amplio">
+                        <label>Notas</label>
+                        <textarea id="solicitud-notas-panel" placeholder="Detalles para almacén general" maxlength="200" oninput="actualizarContadorNotas(this)"></textarea>
+                        <div class="notas-counter" id="notas-counter">0/200</div>
+                    </div>
+                    <button class="btn-guardar campo-amplio" onclick="crearSolicitudReabastecimientoPanel()">Enviar solicitud</button>
+                </div>
+            </div>
+
+            <div class="side-panel-tabs">
+                <button class="side-panel-tab active" onclick="filtrarSolicitudes('Todas', this)">Todas</button>
+                <button class="side-panel-tab" onclick="filtrarSolicitudes('Pendiente', this)">Pendiente</button>
+                <button class="side-panel-tab" onclick="filtrarSolicitudes('Atendida', this)">Atendida</button>
+                <button class="side-panel-tab" onclick="filtrarSolicitudes('Rechazada', this)">Rechazada</button>
+            </div>
+            <div class="filtro-solicitudes-count" id="filtro-solicitudes-count"></div>
+
+            <div id="contenedor-solicitudes-panel"></div>
+        </div>
+    </div>
+
+    <!-- ===============================================
+         LOCK SCREEN (AUTENTICACIÓN POR PIN)
+         =============================================== -->
+    <div id="lock-screen">
+        <div class="lock-screen-content">
+            <div class="lock-screen-logo">B U B A R U</div>
+            <p class="lock-screen-subtitle">Control Descentralizado de Inventarios</p>
+            
+            <!-- PANTALLA DE SELECCIÓN DE ROL -->
+            <div id="login-rol-selection" class="login-screen">
+                <h2 class="lock-screen-title">Selecciona tu rol</h2>
+                <div class="rol-selection-buttons">
+                    <button class="btn-rol-selection" onclick="seleccionarRol('operador')">
+                        <span class="rol-icon">👤</span>
+                        <span class="rol-name">Operador</span>
+                        <span class="rol-desc">Acceso para operadores de estaciones</span>
+                    </button>
+                    <button class="btn-rol-selection" onclick="seleccionarRol('admin')">
+                        <span class="rol-icon">🔑</span>
+                        <span class="rol-name">Administrador</span>
+                        <span class="rol-desc">Acceso para administradores</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PANTALLA DE SELECCIÓN DE ÁREA (SOLO OPERADOR) -->
+            <div id="login-area-selection" class="login-screen oculto">
+                <h2 class="lock-screen-title">Selecciona tu área</h2>
+                <p class="lock-screen-desc">¿En qué área estás trabajando?</p>
+                <div class="area-selection-buttons">
+                    <button class="btn-area-selection" onclick="seleccionarArea('Inventario')">
+                        <span class="area-icon">📦</span>
+                        <span class="area-name">Inventario</span>
+                    </button>
+                    <button class="btn-area-selection" onclick="seleccionarArea('Butique')">
+                        <span class="area-icon">🎂</span>
+                        <span class="area-name">Boutique</span>
+                    </button>
+                    <button class="btn-area-selection" onclick="seleccionarArea('Betun')">
+                        <span class="area-icon">🧁</span>
+                        <span class="area-name">Betún</span>
+                    </button>
+                    <button class="btn-area-selection" onclick="seleccionarArea('Horno')">
+                        <span class="area-icon">🔥</span>
+                        <span class="area-name">Horno</span>
+                    </button>
+                    <button class="btn-area-selection" onclick="seleccionarArea('Pan')">
+                        <span class="area-icon">🍞</span>
+                        <span class="area-name">Panadería</span>
+                    </button>
+                    <button class="btn-area-selection" onclick="seleccionarArea('Admi')">
+                        <span class="area-icon">🏢</span>
+                        <span class="area-name">Administración</span>
+                    </button>
+                </div>
+                <button class="btn-volver" onclick="volverARolSelection()">← Volver</button>
+            </div>
+
+            <!-- PANTALLA DE INGRESO DE PIN -->
+            <div id="login-pin-entry" class="login-screen oculto">
+                <h2 class="lock-screen-title" id="pin-entry-title">Ingresa tu PIN</h2>
+                <p class="lock-screen-desc" id="pin-entry-desc"></p>
+                <div class="pin-inputs">
+                    <input type="password" class="pin-box" id="pin-entry-0" maxlength="1" inputmode="numeric" autocomplete="off">
+                    <input type="password" class="pin-box" id="pin-entry-1" maxlength="1" inputmode="numeric" autocomplete="off">
+                    <input type="password" class="pin-box" id="pin-entry-2" maxlength="1" inputmode="numeric" autocomplete="off">
+                    <input type="password" class="pin-box" id="pin-entry-3" maxlength="1" inputmode="numeric" autocomplete="off">
+                </div>
+                <button class="btn-toggle-pin" id="toggle-pin-entry" onclick="toggleMostrarPinEntry()">👁 Mostrar</button>
+                <p class="pin-error" id="pin-error-entry"></p>
+                <p class="pin-bloqueado oculto" id="pin-bloqueado-entry"></p>
+                <button class="btn-volver" onclick="volverAPantallaAnterior()">← Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===============================================
+         MODAL DE CONFIRMACIÓN
+         =============================================== -->
+    <div class="modal-overlay oculto" id="modal-confirmacion" role="dialog" aria-modal="true">
+        <div class="modal-card modal-confirmacion-card">
+            <div class="modal-header">
+                <h3 id="confirmacion-titulo"></h3>
+                <button class="btn-cerrar-modal" onclick="cerrarModalConfirmacion()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-confirmacion-body">
+                <p id="confirmacion-mensaje"></p>
+                <div class="modal-confirmacion-checkbox oculto" id="confirmacion-checkbox-container">
+                    <input type="checkbox" id="confirmacion-checkbox">
+                    <label for="confirmacion-checkbox" id="confirmacion-checkbox-label"></label>
+                </div>
+            </div>
+            <div class="modal-confirmacion-footer">
+                <button class="btn-secundario" onclick="cerrarModalConfirmacion()">Cancelar</button>
+                <button class="btn-danger" id="confirmacion-btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===============================================
+         MODAL DE GESTIÓN DE PINs
+         =============================================== -->
+    <div class="modal-overlay oculto" id="modal-gestion-pines" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>🔐 Gestión de PINs</h3>
+                <button class="btn-cerrar-modal" onclick="cerrarModalGestionPines()" aria-label="Cerrar">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="gestion-pines-section">
+                    <h4>👤 PIN de Operador</h4>
+                    <div class="form-grid-modal">
+                        <div class="campo-form campo-amplio">
+                            <label>Nuevo PIN (4 dígitos)</label>
+                            <input type="text" id="nuevo-pin-operador" maxlength="4" inputmode="numeric" placeholder="0000">
+                        </div>
+                        <button class="btn-guardar" onclick="cambiarPin('operador')">Cambiar PIN Operador</button>
+                    </div>
+                </div>
+                <div class="gestion-pines-section">
+                    <h4>🔑 PIN de Administrador</h4>
+                    <div class="form-grid-modal">
+                        <div class="campo-form campo-amplio">
+                            <label>Nuevo PIN (4 dígitos)</label>
+                            <input type="text" id="nuevo-pin-admin" maxlength="4" inputmode="numeric" placeholder="0000">
+                        </div>
+                        <button class="btn-guardar" onclick="cambiarPin('admin')">Cambiar PIN Administrador</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ===============================================
+           MEJORAS IMPLEMENTADAS - ALTA PRIORIDAD
+           
+           1. ✅ VALIDACIÓN DE DUPLICADOS - No permite nombres repetidos en la misma área
+           2. ✅ PREVENCIÓN DE VALORES NEGATIVOS - Stock nunca baja de 0 (o 1 para Inventario)
+           3. ✅ SINCRONIZACIÓN MULTI-PESTAÑA - Cambios reflejados en tiempo real
+           4. ✅ CIERRE DE SESIÓN POR INACTIVIDAD - 30 minutos sin actividad
+           5. ✅ REGISTRO DE INTENTOS FALLIDOS DE PIN - En bitácora de seguridad
+           6. ✅ ORDENAMIENTO EN TABLA - Click en encabezados para ordenar
+           7. ✅ MEJOR VALIDACIÓN DE FORMULARIOS - Con mensajes de error específicos
+           =============================================== */
+
+        /* ===============================================
+           CONSTANTES DE AUTENTICACIÓN
+           =============================================== */
+        let PIN_OPERADOR = "0309";
+        let PIN_ADMIN = "3170";
+
+        /* ===============================================
+           DATOS DE INICIALIZACIÓN POR DEFECTO
+           =============================================== */
+        const datosPorDefecto = {
+            Admi: [
+                { nombre: "Cajas de Pastel Bubaru Gde", min: 100, actual: 450, unidad: "pzas" },
+                { nombre: "Impresiones de Tickets", min: 5, actual: 3, unidad: "rollos" }
+            ],
+            Pan: [
+                { nombre: "Harina de Trigo Extra Fina", min: 4, actual: 1, unidad: "sacos" },
+                { nombre: "Mantequilla Industrial Con Sal", min: 5, actual: 8, unidad: "bloques" }
+            ],
+            Betun: [
+                { nombre: "Queso Crema Premium", min: 6, actual: 12, unidad: "kg" },
+                { nombre: "Mantequilla Sin Sal (Barra)", min: 20, actual: 4, unidad: "pzas" },
+                { nombre: "Azúcar Glass Refinada", min: 3, actual: 3, unidad: "sacos" }
+            ],
+            Butique: [
+                { nombre: "Pastel Red Velvet Bubaru", min: 2, actual: 5, unidad: "pzas" }
+            ],
+            Horno: [
+                { nombre: "Charolas de Aluminio", min: 15, actual: 2, unidad: "pzas" }
+            ],
+            Inventario: [
+                { nombre: "Azúcar Estándar (Bulto)", min: 10, actual: 25, unidad: "bultos", precioUnitario: 50 },
+                { nombre: "Harina de Trigo (Bulto)", min: 15, actual: 40, unidad: "bultos", precioUnitario: 45 },
+                { nombre: "Cacao en Polvo Belga", min: 5, actual: 2, unidad: "kg", precioUnitario: 350 }
+            ]
+        };
+
+        /* ===============================================
+           VARIABLES GLOBALES DEL ESTADO DE LA APLICACIÓN
+           =============================================== */
+        let baseDatosInventario = {};
+        let areaSeleccionada = "Betun";
+        let indexInsumoEnEdicion = null;
+        let bitacoraMovimientos = [];
+        let solicitudesReabastecimiento = [];
+        let rolActual = "Administrador";
+        let terminoBusqueda = "";
+        let transferenciaIndice = null;
+        let temporizadorNotificacion = null;
+        let rolSeleccionadoParaPin = null;
+        let intentosFallidosPin = { operador: 0, admin: 0 };
+        let bloqueoPinActivo = { operador: false, admin: false };
+        let temporizadorBloqueoPin = { operador: null, admin: null };
+        let confirmacionCallback = null;
+        
+        // Variables para ordenamiento
+        let ordenActual = { columna: 'nombre', direccion: 'asc' };
+        
+        // Variables para inactividad
+        let temporizadorInactividad = null;
+        const TIEMPO_INACTIVIDAD = 30 * 60 * 1000; // 30 minutos
+
+        /* ===============================================
+           FUNCIONES DE PERSISTENCIA (localStorage)
+           =============================================== */
+
+        function guardarEnLocalStorage() {
+            localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
+            // Disparar evento para otras pestañas
+            localStorage.setItem("BUBARU_LAST_UPDATE", Date.now().toString());
+        }
+
+        function cargarDesdeLocalStorage() {
+            const datosGuardados = localStorage.getItem("BUBARU_INVENTARIO_DATA");
+            if (datosGuardados) {
+                try {
+                    baseDatosInventario = JSON.parse(datosGuardados);
+                } catch (error) {
+                    baseDatosInventario = JSON.parse(JSON.stringify(datosPorDefecto));
+                    guardarEnLocalStorage();
+                }
+            } else {
+                baseDatosInventario = JSON.parse(JSON.stringify(datosPorDefecto));
+                guardarEnLocalStorage();
+            }
+
+            Object.keys(datosPorDefecto).forEach(area => {
+                if (!baseDatosInventario[area]) {
+                    baseDatosInventario[area] = JSON.parse(JSON.stringify(datosPorDefecto[area]));
+                }
+            });
+        }
+
+        function guardarBitacora() {
+            localStorage.setItem("BUBARU_BITACORA", JSON.stringify(bitacoraMovimientos));
+        }
+
+        function cargarBitacora() {
+            const datosGuardados = localStorage.getItem("BUBARU_BITACORA");
+            if (!datosGuardados) {
+                bitacoraMovimientos = [];
+                return;
+            }
+
+            try {
+                bitacoraMovimientos = JSON.parse(datosGuardados) || [];
+            } catch (error) {
+                bitacoraMovimientos = [];
+                guardarBitacora();
+            }
+        }
+
+        function guardarSolicitudes() {
+            localStorage.setItem("BUBARU_SOLICITUDES", JSON.stringify(solicitudesReabastecimiento));
+        }
+
+        function cargarSolicitudes() {
+            const datosGuardados = localStorage.getItem("BUBARU_SOLICITUDES");
+            if (!datosGuardados) {
+                solicitudesReabastecimiento = [];
+                return;
+            }
+
+            try {
+                solicitudesReabastecimiento = JSON.parse(datosGuardados) || [];
+            } catch (error) {
+                solicitudesReabastecimiento = [];
+                guardarSolicitudes();
+            }
+        }
+
+        function guardarPines() {
+            localStorage.setItem("BUBARU_PIN_OPERADOR", PIN_OPERADOR);
+            localStorage.setItem("BUBARU_PIN_ADMIN", PIN_ADMIN);
+        }
+
+        function cargarPines() {
+            const pinOperadorGuardado = localStorage.getItem("BUBARU_PIN_OPERADOR");
+            const pinAdminGuardado = localStorage.getItem("BUBARU_PIN_ADMIN");
+            if (pinOperadorGuardado) PIN_OPERADOR = pinOperadorGuardado;
+            if (pinAdminGuardado) PIN_ADMIN = pinAdminGuardado;
+        }
+
+        /* ===============================================
+           SINCRONIZACIÓN MULTI-PESTAÑA
+           =============================================== */
+        
+        function inicializarSincronizacionMultiPestana() {
+            window.addEventListener("storage", (e) => {
+                if (e.key === "BUBARU_INVENTARIO_DATA") {
+                    cargarDesdeLocalStorage();
+                    renderizarInventario();
+                    if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                        renderizarDashboard();
+                    }
+                    mostrarToast("📡 Datos actualizados desde otra ventana", "warning");
+                }
+                if (e.key === "BUBARU_BITACORA") {
+                    cargarBitacora();
+                    renderizarBitacora();
+                }
+                if (e.key === "BUBARU_SOLICITUDES") {
+                    cargarSolicitudes();
+                    renderizarSolicitudesPanel(filtroSolicitudesActual);
+                    actualizarBadgeSolicitudes();
+                }
+            });
+        }
+
+        /* ===============================================
+           CIERRE DE SESIÓN POR INACTIVIDAD
+           =============================================== */
+        
+        function reiniciarTemporizadorInactividad() {
+            if (temporizadorInactividad) {
+                clearTimeout(temporizadorInactividad);
+            }
+            temporizadorInactividad = setTimeout(() => {
+                if (rolActual) {
+                    mostrarToast("⏰ Sesión cerrada por inactividad", "warning");
+                    cerrarSesion();
+                }
+            }, TIEMPO_INACTIVIDAD);
+        }
+
+        function iniciarMonitoreoInactividad() {
+            const eventos = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+            eventos.forEach(evento => {
+                document.addEventListener(evento, reiniciarTemporizadorInactividad);
+            });
+            reiniciarTemporizadorInactividad();
+        }
+
+        function detenerMonitoreoInactividad() {
+            if (temporizadorInactividad) {
+                clearTimeout(temporizadorInactividad);
+            }
+        }
+
+        /* ===============================================
+           UTILIDADES GENERALES
+           =============================================== */
+
+        function obtenerNombreAreaVisible(area) {
+            const nombres = {
+                Admi: "Administración",
+                Pan: "Panadería",
+                Betun: "Betún",
+                Butique: "Boutique",
+                Horno: "Horno",
+                Inventario: "Inventario"
+            };
+            return nombres[area] || area;
+        }
+
+        function escaparHtml(valor) {
+            if (valor === undefined || valor === null) return "";
+            return String(valor)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function normalizarTexto(valor) {
+            if (!valor) return "";
+            return String(valor)
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+        }
+
+        function obtenerEstadoInsumo(insumo) {
+            if (insumo.actual <= (insumo.min * 0.5)) {
+                return { clase: "critico", texto: "Crítico (Reordenar)" };
+            }
+            if (insumo.actual <= insumo.min) {
+                return { clase: "bajo", texto: "Stock Bajo" };
+            }
+            return { clase: "ok", texto: "Stock Óptimo" };
+        }
+
+        function formatearFecha(fechaIso) {
+            const fecha = new Date(fechaIso);
+            return fecha.toLocaleString("es-MX");
+        }
+
+        function obtenerFechaArchivo() {
+            const fecha = new Date();
+            const anio = fecha.getFullYear();
+            const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+            const dia = String(fecha.getDate()).padStart(2, "0");
+            return `${anio}-${mes}-${dia}`;
+        }
+
+        function mostrarNotificacion(mensaje, tipo = "alerta") {
+            const notificacion = document.getElementById("notificacion-inline");
+            notificacion.innerText = mensaje;
+            notificacion.className = `notificacion-inline ${tipo}`;
+            notificacion.classList.remove("oculto");
+
+            clearTimeout(temporizadorNotificacion);
+            temporizadorNotificacion = setTimeout(() => {
+                notificacion.classList.add("oculto");
+            }, 3200);
+        }
+
+        function mostrarToast(mensaje, tipo = "success") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = `toast ${tipo}`;
+
+            let icono = "";
+            if (tipo === "success") icono = "✅";
+            else if (tipo === "error") icono = "❌";
+            else if (tipo === "warning") icono = "⚠️";
+
+            toast.innerHTML = `<span class="toast-icon">${icono}</span><span>${escaparHtml(mensaje)}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add("visible"), 10);
+            setTimeout(() => {
+                toast.classList.remove("visible");
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function abrirModal(idModal) {
+            document.getElementById(idModal).classList.remove("oculto");
+        }
+
+        function cerrarModal(idModal) {
+            document.getElementById(idModal).classList.add("oculto");
+        }
+
+        /* ===============================================
+           SISTEMA DE AUTENTICACIÓN POR PIN
+           =============================================== */
+
+        let rolSeleccionadoLogin = null;
+        let areaSeleccionadaLogin = null;
+
+        function inicializarSistemaAutenticacion() {
+            cargarPines();
+            const rolGuardado = sessionStorage.getItem("BUBARU_ROL");
+            if (rolGuardado) {
+                rolActual = rolGuardado;
+                const areaGuardada = sessionStorage.getItem("BUBARU_AREA");
+                if (areaGuardada) {
+                    areaSeleccionada = areaGuardada;
+                }
+                ocultarLockScreen();
+                aplicarPermisosRol();
+                iniciarMonitoreoInactividad();
+            } else {
+                mostrarLockScreen();
+            }
+            configurarPinInputsEntry();
+            inicializarSincronizacionMultiPestana();
+        }
+
+        function mostrarLockScreen() {
+            detenerMonitoreoInactividad();
+            document.getElementById("lock-screen").classList.remove("oculto");
+            mostrarPantallaRolSelection();
+            limpiarPinInputsEntry();
+        }
+
+        function ocultarLockScreen() {
+            const lockScreen = document.getElementById("lock-screen");
+            lockScreen.style.transition = "opacity 0.5s";
+            lockScreen.style.opacity = "0";
+            setTimeout(() => {
+                lockScreen.classList.add("oculto");
+                lockScreen.style.opacity = "";
+                lockScreen.style.transition = "";
+            }, 500);
+            resetearTogglesPinesEntry();
+            iniciarMonitoreoInactividad();
+        }
+
+        function mostrarPantallaRolSelection() {
+            document.getElementById("login-rol-selection").classList.remove("oculto");
+            document.getElementById("login-area-selection").classList.add("oculto");
+            document.getElementById("login-pin-entry").classList.add("oculto");
+            rolSeleccionadoLogin = null;
+            areaSeleccionadaLogin = null;
+        }
+
+        function seleccionarRol(rol) {
+            rolSeleccionadoLogin = rol;
+            if (rol === "operador") {
+                mostrarPantallaAreaSelection();
+            } else {
+                mostrarPantallaPinEntry();
+            }
+        }
+
+        function mostrarPantallaAreaSelection() {
+            document.getElementById("login-rol-selection").classList.add("oculto");
+            document.getElementById("login-area-selection").classList.remove("oculto");
+            document.getElementById("login-pin-entry").classList.add("oculto");
+        }
+
+        function seleccionarArea(area) {
+            areaSeleccionadaLogin = area;
+            mostrarPantallaPinEntry();
+        }
+
+        function volverARolSelection() {
+            mostrarPantallaRolSelection();
+        }
+
+        function volverAPantallaAnterior() {
+            if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+                mostrarPantallaAreaSelection();
+                areaSeleccionadaLogin = null;
+            } else {
+                mostrarPantallaRolSelection();
+                rolSeleccionadoLogin = null;
+            }
+            limpiarPinInputsEntry();
+        }
+
+        function mostrarPantallaPinEntry() {
+            document.getElementById("login-rol-selection").classList.add("oculto");
+            document.getElementById("login-area-selection").classList.add("oculto");
+            document.getElementById("login-pin-entry").classList.remove("oculto");
+
+            const titulo = document.getElementById("pin-entry-title");
+            const desc = document.getElementById("pin-entry-desc");
+            
+            if (rolSeleccionadoLogin === "operador") {
+                titulo.innerText = `Ingresa tu PIN - ${obtenerNombreAreaVisible(areaSeleccionadaLogin)}`;
+                desc.innerText = "Operador de estación";
+            } else {
+                titulo.innerText = "Ingresa tu PIN";
+                desc.innerText = "Administrador";
+            }
+
+            document.getElementById("pin-entry-0").focus();
+        }
+
+        function configurarPinInputsEntry() {
+            for (let i = 0; i < 4; i++) {
+                const input = document.getElementById(`pin-entry-${i}`);
+                input.addEventListener("input", (e) => {
+                    const valor = e.target.value;
+                    if (!/^[0-9]$/.test(valor)) {
+                        e.target.value = "";
+                        return;
+                    }
+                    if (i < 3) {
+                        document.getElementById(`pin-entry-${i + 1}`).focus();
+                    } else {
+                        verificarPinEntry();
+                    }
+                });
+                input.addEventListener("keydown", (e) => {
+                    if (e.key === "Backspace" && e.target.value === "" && i > 0) {
+                        document.getElementById(`pin-entry-${i - 1}`).focus();
+                    }
+                });
+            }
+        }
+
+        function obtenerPinIngresadoEntry() {
+            let pin = "";
+            for (let i = 0; i < 4; i++) {
+                pin += document.getElementById(`pin-entry-${i}`).value;
+            }
+            return pin;
+        }
+
+        function limpiarPinInputsEntry() {
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`pin-entry-${i}`).value = "";
+            }
+            document.getElementById("pin-error-entry").innerText = "";
+        }
+
+        function registrarIntentoFallidoPin(rol, pinIngresado) {
+            const mensaje = `Intento fallido de PIN para ${rol} (PIN: ${pinIngresado})`;
+            bitacoraMovimientos.unshift({
+                id: `SEC-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                fecha: new Date().toISOString(),
+                area: "Sistema",
+                nombre: "Seguridad",
+                valorAnterior: 0,
+                valorNuevo: intentosFallidosPin[rol] + 1,
+                tipo: "Seguridad",
+                rol: "Sistema",
+                detalles: mensaje
+            });
+            
+            while (bitacoraMovimientos.length > 100) {
+                bitacoraMovimientos.pop();
+            }
+            guardarBitacora();
+        }
+
+        function verificarPinEntry() {
+            if (bloqueoPinActivo[rolSeleccionadoLogin]) return;
+
+            const pinIngresado = obtenerPinIngresadoEntry();
+            const pinEsperado = rolSeleccionadoLogin === "operador" ? PIN_OPERADOR : PIN_ADMIN;
+
+            if (pinIngresado === pinEsperado) {
+                rolActual = rolSeleccionadoLogin === "operador" ? "Operador" : "Administrador";
+                sessionStorage.setItem("BUBARU_ROL", rolActual);
+                
+                if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+                    areaSeleccionada = areaSeleccionadaLogin;
+                    sessionStorage.setItem("BUBARU_AREA", areaSeleccionada);
+                }
+                
+                intentosFallidosPin[rolSeleccionadoLogin] = 0;
+                ocultarLockScreen();
+                aplicarPermisosRol();
+                renderizarInventario();
+                
+                if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+                    const botonArea = document.querySelector(`.btn-area[data-area="${areaSeleccionada}"]`);
+                    cambiarArea(areaSeleccionada, botonArea);
+                }
+            } else {
+                intentosFallidosPin[rolSeleccionadoLogin]++;
+                registrarIntentoFallidoPin(rolSeleccionadoLogin, pinIngresado);
+                mostrarErrorPinEntry();
+                if (intentosFallidosPin[rolSeleccionadoLogin] >= 3) {
+                    activarBloqueoPinEntry();
+                } else {
+                    animarShakePinEntry();
+                }
+            }
+        }
+
+        function mostrarErrorPinEntry() {
+            const intentosRestantes = 3 - intentosFallidosPin[rolSeleccionadoLogin];
+            document.getElementById("pin-error-entry").innerHTML = `PIN incorrecto. Te quedan ${intentosRestantes} intento${intentosRestantes !== 1 ? 's' : ''}.`;
+        }
+
+        function animarShakePinEntry() {
+            for (let i = 0; i < 4; i++) {
+                const input = document.getElementById(`pin-entry-${i}`);
+                input.classList.add("pin-shake");
+                setTimeout(() => input.classList.remove("pin-shake"), 500);
+            }
+            setTimeout(() => limpiarPinInputsEntry(), 500);
+            setTimeout(() => document.getElementById("pin-entry-0").focus(), 600);
+        }
+
+        function activarBloqueoPinEntry() {
+            bloqueoPinActivo[rolSeleccionadoLogin] = true;
+            let segundosRestantes = 30;
+            const mensajeBloqueo = document.getElementById("pin-bloqueado-entry");
+            mensajeBloqueo.classList.remove("oculto");
+
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`pin-entry-${i}`).disabled = true;
+            }
+
+            function actualizarContador() {
+                mensajeBloqueo.innerText = `Bloqueado por ${segundosRestantes}s`;
+                if (segundosRestantes > 0) {
+                    segundosRestantes--;
+                    temporizadorBloqueoPin[rolSeleccionadoLogin] = setTimeout(actualizarContador, 1000);
+                } else {
+                    desactivarBloqueoPinEntry();
+                }
+            }
+            actualizarContador();
+        }
+
+        function desactivarBloqueoPinEntry() {
+            bloqueoPinActivo[rolSeleccionadoLogin] = false;
+            intentosFallidosPin[rolSeleccionadoLogin] = 0;
+            document.getElementById("pin-bloqueado-entry").classList.add("oculto");
+
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`pin-entry-${i}`).disabled = false;
+            }
+            limpiarPinInputsEntry();
+            document.getElementById("pin-entry-0").focus();
+        }
+
+        function toggleMostrarPinEntry() {
+            const nuevoTipo = document.getElementById("pin-entry-0").type === "password" ? "text" : "password";
+            const boton = document.getElementById("toggle-pin-entry");
+            
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`pin-entry-${i}`).type = nuevoTipo;
+            }
+            
+            boton.innerText = nuevoTipo === "text" ? "🙈 Ocultar" : "👁 Mostrar";
+            
+            if (nuevoTipo === "text") {
+                document.getElementById("pin-entry-0").focus();
+            }
+        }
+
+        function resetearTogglesPinesEntry() {
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`pin-entry-${i}`).type = "password";
+            }
+            document.getElementById("toggle-pin-entry").innerHTML = "👁 Mostrar";
+        }
+
+        function cerrarSesion() {
+            detenerMonitoreoInactividad();
+            sessionStorage.removeItem("BUBARU_ROL");
+            sessionStorage.removeItem("BUBARU_AREA");
+            rolActual = null;
+            areaSeleccionada = "Betun";
+            mostrarLockScreen();
+        }
+
+        /* ===============================================
+           DARK MODE OPTIMIZADO
+           =============================================== */
+
+        function inicializarDarkMode() {
+            const preferenciaGuardada = localStorage.getItem("BUBARU_DARK_MODE");
+            const btnDarkMode = document.getElementById("btn-dark-mode");
+            
+            if (preferenciaGuardada === "true") {
+                document.body.classList.add("dark-mode");
+                if (btnDarkMode) btnDarkMode.innerHTML = "☀️";
+            } else if (preferenciaGuardada === "false") {
+                document.body.classList.remove("dark-mode");
+                if (btnDarkMode) btnDarkMode.innerHTML = "🌙";
+            } else {
+                // Si no hay preferencia guardada, verificar del sistema operativo
+                const prefiereOscuro = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+                if (prefiereOscuro) {
+                    document.body.classList.add("dark-mode");
+                    if (btnDarkMode) btnDarkMode.innerHTML = "☀️";
+                } else {
+                    if (btnDarkMode) btnDarkMode.innerHTML = "🌙";
+                }
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+            const esDarkMode = document.body.classList.contains("dark-mode");
+            
+            const btnDarkMode = document.getElementById("btn-dark-mode");
+            if (btnDarkMode) {
+                btnDarkMode.innerHTML = esDarkMode ? "☀️" : "🌙";
+            }
+            
+            localStorage.setItem("BUBARU_DARK_MODE", esDarkMode ? "true" : "false");
+            mostrarToast(`Modo ${esDarkMode ? 'Oscuro' : 'Claro'} activado`, "success");
+        }
+
+        /* ===============================================
+           UNDO / DESHACER
+           =============================================== */
+
+        const pilaDeshacer = [];
+        const MAX_ACCIONES_DESHACER = 20;
+        let temporizadorOcultarDeshacer = null;
+
+        function agregarAccionDeshacer(accion) {
+            pilaDeshacer.push(accion);
+            if (pilaDeshacer.length > MAX_ACCIONES_DESHACER) {
+                pilaDeshacer.shift();
+            }
+            mostrarBotonDeshacer();
+        }
+
+        function mostrarBotonDeshacer() {
+            const boton = document.getElementById("btn-deshacer");
+            boton.classList.add("visible");
+            
+            if (temporizadorOcultarDeshacer) {
+                clearTimeout(temporizadorOcultarDeshacer);
+            }
+            
+            temporizadorOcultarDeshacer = setTimeout(() => {
+                boton.classList.remove("visible");
+            }, 5000);
+        }
+
+        function deshacerUltimaAccion() {
+            if (pilaDeshacer.length === 0) return;
+            
+            const accion = pilaDeshacer.pop();
+            
+            switch (accion.tipo) {
+                case "eliminarInsumo":
+                    baseDatosInventario[accion.area].splice(accion.indice, 0, accion.insumo);
+                    break;
+                case "editarInsumo":
+                    baseDatosInventario[accion.area][accion.indice] = accion.insumoAnterior;
+                    break;
+                case "cambiarCantidad":
+                    baseDatosInventario[accion.area][accion.indice].actual = accion.valorAnterior;
+                    break;
+                case "transferencia":
+                    baseDatosInventario[accion.origen][accion.indiceOrigen].actual += accion.cantidad;
+                    const indiceDestino = baseDatosInventario[accion.destino].findIndex(item => normalizarTexto(item.nombre) === normalizarTexto(accion.nombreInsumo));
+                    if (indiceDestino >= 0) {
+                        baseDatosInventario[accion.destino][indiceDestino].actual -= accion.cantidad;
+                    }
+                    break;
+            }
+            
+            guardarEnLocalStorage();
+            renderizarInventario();
+            actualizarBadgeSolicitudes();
+            
+            if (pilaDeshacer.length > 0) {
+                mostrarBotonDeshacer();
+            } else {
+                document.getElementById("btn-deshacer").classList.remove("visible");
+            }
+            
+            mostrarToast("✅ Acción deshecha", "success");
+        }
+
+        /* ===============================================
+           GESTIÓN DE PINs (ADMINISTRADOR)
+           =============================================== */
+
+        function abrirModalGestionPines() {
+            if (!tienePermiso("Administrador")) return;
+            document.getElementById("nuevo-pin-operador").value = "";
+            document.getElementById("nuevo-pin-admin").value = "";
+            abrirModal("modal-gestion-pines");
+        }
+
+        function cerrarModalGestionPines() {
+            cerrarModal("modal-gestion-pines");
+        }
+
+        function cambiarPin(rol) {
+            if (!tienePermiso("Administrador")) return;
+
+            const inputId = rol === "operador" ? "nuevo-pin-operador" : "nuevo-pin-admin";
+            const nuevoPin = document.getElementById(inputId).value.trim();
+
+            if (!/^[0-9]{4}$/.test(nuevoPin)) {
+                mostrarToast("El PIN debe ser de 4 dígitos numéricos.", "error");
+                return;
+            }
+
+            if (rol === "operador") {
+                PIN_OPERADOR = nuevoPin;
+            } else {
+                PIN_ADMIN = nuevoPin;
+            }
+
+            guardarPines();
+            mostrarToast(`PIN de ${rol === "operador" ? "Operador" : "Administrador"} actualizado correctamente.`, "success");
+            document.getElementById(inputId).value = "";
+        }
+
+        /* ===============================================
+           MODAL DE CONFIRMACIÓN PERSONALIZADO
+           =============================================== */
+
+        function mostrarModalConfirmacion(titulo, mensaje, onConfirm, opciones = {}) {
+            const modal = document.getElementById("modal-confirmacion");
+            const tituloEl = document.getElementById("confirmacion-titulo");
+            const mensajeEl = document.getElementById("confirmacion-mensaje");
+            const btnConfirmar = document.getElementById("confirmacion-btn-confirmar");
+            const checkboxContainer = document.getElementById("confirmacion-checkbox-container");
+            const checkbox = document.getElementById("confirmacion-checkbox");
+            const checkboxLabel = document.getElementById("confirmacion-checkbox-label");
+
+            tituloEl.innerText = titulo;
+            mensajeEl.innerText = mensaje;
+            confirmacionCallback = onConfirm;
+
+            if (opciones.checkboxTexto) {
+                checkboxContainer.classList.remove("oculto");
+                checkboxLabel.innerText = opciones.checkboxTexto;
+                checkbox.checked = false;
+                btnConfirmar.disabled = true;
+            } else {
+                checkboxContainer.classList.add("oculto");
+                btnConfirmar.disabled = false;
+            }
+
+            if (opciones.confirmTexto) {
+                btnConfirmar.innerText = opciones.confirmTexto;
+            } else {
+                btnConfirmar.innerText = "Confirmar";
+            }
+
+            if (opciones.confirmClase) {
+                btnConfirmar.className = opciones.confirmClase;
+            } else {
+                btnConfirmar.className = "btn-danger";
+            }
+
+            modal.classList.remove("oculto");
+        }
+
+        function cerrarModalConfirmacion() {
+            const modal = document.getElementById("modal-confirmacion");
+            modal.classList.add("oculto");
+            confirmacionCallback = null;
+        }
+
+        document.getElementById("confirmacion-btn-confirmar").addEventListener("click", () => {
+            if (confirmacionCallback) {
+                confirmacionCallback();
+            }
+            cerrarModalConfirmacion();
+        });
+
+        document.getElementById("confirmacion-checkbox").addEventListener("change", (e) => {
+            document.getElementById("confirmacion-btn-confirmar").disabled = !e.target.checked;
+        });
+
+        document.getElementById("modal-confirmacion").addEventListener("click", (e) => {
+            if (e.target.id === "modal-confirmacion") {
+                cerrarModalConfirmacion();
+            }
+        });
+
+        /* ===============================================
+           VALIDACIONES DE FORMULARIO MEJORADAS
+           =============================================== */
+
+        function validarCampo(campoId, valor, reglas) {
+            const campo = document.getElementById(campoId);
+            let error = null;
+
+            if (reglas.required && (valor === "" || valor === null || valor === undefined)) {
+                error = "Este campo es requerido";
+            } else if (reglas.minLength && valor.length < reglas.minLength) {
+                error = `Mínimo ${reglas.minLength} caracteres`;
+            } else if (reglas.maxLength && valor.length > reglas.maxLength) {
+                error = `Máximo ${reglas.maxLength} caracteres`;
+            } else if (reglas.pattern && !reglas.pattern.test(valor)) {
+                error = reglas.patternError || "Formato inválido";
+            } else if (reglas.number) {
+                const num = parseFloat(valor);
+                if (isNaN(num)) {
+                    error = "Debe ser un número";
+                } else if (reglas.min !== undefined && num < reglas.min) {
+                    error = `Mínimo: ${reglas.min}`;
+                } else if (reglas.max !== undefined && num > reglas.max) {
+                    error = `Máximo: ${reglas.max}`;
+                } else if (reglas.noDecimals && !Number.isInteger(num)) {
+                    error = "Sin decimales permitidos";
+                } else if (reglas.maxDecimals !== undefined) {
+                    const decimales = valor.toString().split(".")[1]?.length || 0;
+                    if (decimales > reglas.maxDecimals) {
+                        error = `Máximo ${reglas.maxDecimals} decimales`;
+                    }
+                }
+            } else if (reglas.customValidation && !reglas.customValidation(valor)) {
+                error = reglas.customError || "Valor inválido";
+            }
+
+            if (error) {
+                mostrarErrorCampo(campoId, error);
+                return false;
+            } else {
+                limpiarErrorCampo(campoId);
+                return true;
+            }
+        }
+
+        function mostrarErrorCampo(campoId, mensaje) {
+            const campo = document.getElementById(campoId);
+            campo.classList.add("input-invalid");
+            
+            let errorSpan = document.getElementById(`error-${campoId.replace("insumo-", "")}`);
+            if (!errorSpan) {
+                errorSpan = document.createElement("span");
+                errorSpan.className = "field-error";
+                errorSpan.id = `error-${campoId.replace("insumo-", "")}`;
+                campo.parentElement.appendChild(errorSpan);
+            }
+            errorSpan.innerText = mensaje;
+        }
+
+        function limpiarErrorCampo(campoId) {
+            const campo = document.getElementById(campoId);
+            campo.classList.remove("input-invalid");
+            const errorSpan = document.getElementById(`error-${campoId.replace("insumo-", "")}`);
+            if (errorSpan) {
+                errorSpan.innerText = "";
+            }
+        }
+
+        function limpiarTodosErrores() {
+            const camposConError = document.querySelectorAll(".input-invalid");
+            camposConError.forEach(campo => {
+                campo.classList.remove("input-invalid");
+            });
+            const errores = document.querySelectorAll(".field-error");
+            errores.forEach(error => error.innerText = "");
+        }
+
+        function hacerScrollAlPrimerError() {
+            const primerInvalido = document.querySelector(".input-invalid");
+            if (primerInvalido) {
+                primerInvalido.scrollIntoView({ behavior: "smooth", block: "center" });
+                primerInvalido.focus();
+            }
+        }
+
+        /* ===============================================
+           VALIDACIÓN DE DUPLICADOS
+           =============================================== */
+        
+        function existeInsumoDuplicado(nombre, area, indiceEdicion = null) {
+            const insumos = baseDatosInventario[area] || [];
+            const nombreNormalizado = normalizarTexto(nombre);
+            return insumos.some((insumo, idx) => 
+                normalizarTexto(insumo.nombre) === nombreNormalizado && 
+                idx !== indiceEdicion
+            );
+        }
+
+        /* ===============================================
+           SISTEMA DE ROLES
+           =============================================== */
+
+        function tienePermiso(rol) {
+            const rolSolicitado = normalizarTexto(rol);
+
+            if (rolSolicitado === "admin" || rolSolicitado === "administrador") {
+                return rolActual === "Administrador";
+            }
+
+            if (rolSolicitado === "operador") {
+                return rolActual === "Operador" || rolActual === "Administrador";
+            }
+
+            return false;
+        }
+
+        function aplicarPermisosRol() {
+            const esAdministrador = tienePermiso("Administrador");
+            document.body.classList.toggle("rol-operador", !esAdministrador);
+
+            const tarjetaFormulario = document.getElementById("tarjeta-form-registro");
+            tarjetaFormulario.style.display = esAdministrador ? "block" : "none";
+
+            const btnReiniciar = document.getElementById("btn-reiniciar-memoria");
+            if (btnReiniciar) btnReiniciar.style.display = esAdministrador ? "block" : "none";
+
+            actualizarInterfazArea();
+        }
+
+        /* ===============================================
+           BITÁCORA DE MOVIMIENTOS
+           =============================================== */
+
+        function registrarMovimiento(area, nombre, valorAnterior, valorNuevo, tipo, detalles = "") {
+            bitacoraMovimientos.unshift({
+                id: `MOV-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                fecha: new Date().toISOString(),
+                area,
+                nombre,
+                valorAnterior,
+                valorNuevo,
+                tipo,
+                rol: rolActual || "Administrador",
+                detalles
+            });
+
+            while (bitacoraMovimientos.length > 100) {
+                bitacoraMovimientos.pop();
+            }
+
+            guardarBitacora();
+            renderizarBitacora();
+            mostrarPuntoNuevoBitacora();
+        }
+
+        function mostrarPuntoNuevoBitacora() {
+            const punto = document.getElementById("bitacora-punto-nuevo");
+            if (punto) {
+                punto.classList.remove("oculto");
+                setTimeout(() => punto.classList.add("oculto"), 3000);
+            }
+        }
+
+        function abrirModalBitacora() {
+            renderizarBitacora();
+            abrirModal("modal-bitacora");
+        }
+
+        function obtenerMovimientosFiltrados() {
+            const filtroArea = document.getElementById("filtro-bitacora-area").value;
+            const filtroTipo = document.getElementById("filtro-bitacora-tipo").value;
+            const filtroFecha = document.getElementById("filtro-bitacora-fecha").value;
+
+            let movimientosFiltrados = [...bitacoraMovimientos];
+
+            if (filtroArea !== "Todas") {
+                movimientosFiltrados = movimientosFiltrados.filter(m => m.area === filtroArea);
+            }
+
+            if (filtroTipo !== "Todas") {
+                movimientosFiltrados = movimientosFiltrados.filter(m => m.tipo === filtroTipo);
+            }
+
+            if (filtroFecha) {
+                const fechaFiltro = new Date(filtroFecha).toDateString();
+                movimientosFiltrados = movimientosFiltrados.filter(m => new Date(m.fecha).toDateString() === fechaFiltro);
+            }
+
+            return movimientosFiltrados;
+        }
+
+        function filtrarBitacora() {
+            renderizarBitacora();
+        }
+
+        function renderizarBitacora() {
+            const tbody = document.getElementById("cuerpo-tabla-bitacora");
+            if (!tbody) return;
+
+            tbody.innerHTML = "";
+
+            const movimientosFiltrados = obtenerMovimientosFiltrados();
+
+            if (movimientosFiltrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="mensaje-vacio">No hay movimientos registrados.</td></tr>`;
+                return;
+            }
+
+            movimientosFiltrados.forEach(movimiento => {
+                const diferencia = movimiento.valorNuevo - movimiento.valorAnterior;
+                const fila = document.createElement("tr");
+                let claseTipo = normalizarTexto(movimiento.tipo);
+                if (claseTipo === "alta") claseTipo = "alta";
+                if (claseTipo === "baja") claseTipo = "baja";
+                if (claseTipo === "incremento") claseTipo = "incremento";
+                if (claseTipo === "decremento") claseTipo = "decremento";
+                if (claseTipo === "edición") claseTipo = "edicion";
+                if (claseTipo === "ajuste manual") claseTipo = "ajuste";
+                if (claseTipo === "transferencia") claseTipo = "transferencia";
+                if (claseTipo === "seguridad") claseTipo = "seguridad";
+                
+                fila.innerHTML = `
+                    <td>${escaparHtml(formatearFecha(movimiento.fecha))}</td>
+                    <td>${escaparHtml(movimiento.rol)}</
+                                             <td>${escaparHtml(obtenerNombreAreaVisible(movimiento.area))}</td>
+                     <td>${escaparHtml(movimiento.nombre)}</td>
+                     <td><span class="badge-tipo ${claseTipo}">${escaparHtml(movimiento.tipo)}</span></td>
+                     <td>${escaparHtml(movimiento.valorAnterior)}</td>
+                     <td>${escaparHtml(movimiento.valorNuevo)}</td>
+                     <td class="bitacora-diferencia ${diferencia >= 0 ? 'positivo' : 'negativo'}">${diferencia >= 0 ? '+' : ''}${diferencia}</td>
+                `;
+                tbody.appendChild(fila);
+            });
+        }
+
+        function exportarCsvBitacora() {
+            const movimientosFiltrados = obtenerMovimientosFiltrados();
+
+            if (movimientosFiltrados.length === 0) {
+                mostrarToast("No hay movimientos para exportar con los filtros actuales.", "warning");
+                return;
+            }
+
+            const filtroArea = document.getElementById("filtro-bitacora-area").value;
+            const filtroTipo = document.getElementById("filtro-bitacora-tipo").value;
+            const filtroFecha = document.getElementById("filtro-bitacora-fecha").value;
+
+            const areaArchivo = filtroArea === "Todas" ? "todas" : filtroArea;
+            const tipoArchivo = filtroTipo === "Todas" ? "todas" : filtroTipo;
+            const fechaArchivo = filtroFecha || obtenerFechaArchivo();
+
+            const columnas = ["Fecha/Hora", "Rol", "Área", "Insumo", "Tipo", "Antes", "Después", "Diferencia"];
+
+            const filas = movimientosFiltrados.map(movimiento => {
+                const diferencia = movimiento.valorNuevo - movimiento.valorAnterior;
+                const diferenciaStr = diferencia >= 0 ? `+${diferencia}` : `${diferencia}`;
+                return [
+                    formatearFecha(movimiento.fecha),
+                    movimiento.rol,
+                    obtenerNombreAreaVisible(movimiento.area),
+                    movimiento.nombre,
+                    movimiento.tipo,
+                    movimiento.valorAnterior,
+                    movimiento.valorNuevo,
+                    diferenciaStr
+                ].map(limpiarValorCsv).join(",");
+            });
+
+            const csv = "\uFEFF" + [columnas.join(","), ...filas].join("\n");
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const enlace = document.getElementById("descarga-csv");
+
+            enlace.href = url;
+            enlace.download = `bubaru_bitacora_${areaArchivo}_${tipoArchivo}_${fechaArchivo}.csv`;
+            enlace.click();
+            URL.revokeObjectURL(url);
+            mostrarToast(`Bitácora exportada: ${movimientosFiltrados.length} movimientos`, "success");
+        }
+
+        function limpiarHistorialBitacora() {
+            mostrarModalConfirmacion(
+                "⚠️ Limpiar historial",
+                "¿Deseas limpiar todo el historial de movimientos? Esta acción no se puede deshacer.",
+                () => {
+                    bitacoraMovimientos = [];
+                    guardarBitacora();
+                    renderizarBitacora();
+                    mostrarNotificacion("Historial limpiado.", "exito");
+                },
+                { confirmTexto: "Sí, limpiar" }
+            );
+        }
+
+        /* ===============================================
+           DASHBOARD GENERAL
+           =============================================== */
+
+        function mostrarDashboard(botonElemento) {
+            document.querySelectorAll(".btn-area[data-area]").forEach(btn => btn.classList.remove("activo"));
+            if (botonElemento) {
+                botonElemento.classList.add("activo");
+            }
+
+            document.getElementById("dashboard-view").classList.add("visible");
+            document.getElementById("tarjeta-form-registro").style.display = "none";
+            document.querySelector(".grid-resumen").style.display = "none";
+            document.querySelector(".contenedor-tabla").style.display = "none";
+            document.getElementById("txt-area-activa").innerText = "Vista: Dashboard";
+
+            renderizarDashboard();
+        }
+
+        function renderizarDashboard() {
+            const grid = document.getElementById("dashboard-areas-grid");
+            if (!grid) return;
+
+            grid.innerHTML = "";
+
+            let totalCriticos = 0;
+            let costoTotal = 0;
+            let intentosSeguridad = 0;
+
+            // Contar intentos fallidos de seguridad
+            intentosSeguridad = intentosFallidosPin.operador + intentosFallidosPin.admin;
+
+            Object.keys(baseDatosInventario).forEach(area => {
+                const insumos = baseDatosInventario[area] || [];
+                let criticosArea = 0;
+                let bajosArea = 0;
+
+                insumos.forEach(insumo => {
+                    const estado = obtenerEstadoInsumo(insumo);
+                    if (estado.clase === "critico") {
+                        criticosArea++;
+                        totalCriticos++;
+                    } else if (estado.clase === "bajo") {
+                        bajosArea++;
+                    }
+
+                    if (insumo.precioUnitario) {
+                        costoTotal += insumo.actual * insumo.precioUnitario;
+                    }
+                });
+
+                const borderClass = criticosArea === 0 ? "border-verde" : criticosArea <= 2 ? "border-naranja" : "border-rojo";
+                const icono = obtenerIconoArea(area);
+
+                const card = document.createElement("div");
+                card.className = `dashboard-area-card ${borderClass}`;
+                card.innerHTML = `
+                    <div class="dashboard-area-header">
+                        <div class="dashboard-area-title">${obtenerNombreAreaVisible(area)}</div>
+                        <div class="dashboard-area-icon">${icono}</div>
+                    </div>
+                    <div class="dashboard-area-stats">
+                        <div class="dashboard-area-stat">
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value">${insumos.length}</div>
+                            <div class="dashboard-area-bar">
+                                <div class="dashboard-area-bar-fill" style="width: ${Math.min(100, (insumos.length / 20) * 100)}%"></div>
+                            </div>
+                        </div>
+                        <div class="dashboard-area-stat">
+                            <div class="stat-label">Crítico</div>
+                            <div class="stat-value critico">${criticosArea}</div>
+                            <div class="dashboard-area-bar">
+                                <div class="dashboard-area-bar-fill critico" style="width: ${criticosArea > 0 ? Math.min(100, (criticosArea / insumos.length) * 100) : 0}%"></div>
+                            </div>
+                        </div>
+                        <div class="dashboard-area-stat">
+                            <div class="stat-label">Bajo</div>
+                            <div class="stat-value bajo">${bajosArea}</div>
+                            <div class="dashboard-area-bar">
+                                <div class="dashboard-area-bar-fill bajo" style="width: ${bajosArea > 0 ? Math.min(100, (bajosArea / insumos.length) * 100) : 0}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-ver-area" onclick="irAArea('${area}')">Ver área →</button>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById("dashboard-criticos").innerText = totalCriticos;
+            document.getElementById("dashboard-costo").innerText = `$${costoTotal.toFixed(2)}`;
+            document.getElementById("dashboard-seguridad").innerHTML = `${intentosSeguridad} intentos fallidos`;
+
+            const ahora = new Date();
+            const horas = String(ahora.getHours()).padStart(2, "0");
+            const minutos = String(ahora.getMinutes()).padStart(2, "0");
+            const segundos = String(ahora.getSeconds()).padStart(2, "0");
+            document.getElementById("dashboard-ultima-actualizacion").innerText = `Última actualización: ${horas}:${minutos}:${segundos}`;
+        }
+
+        function actualizarDashboardManual() {
+            renderizarDashboard();
+            mostrarToast("Dashboard actualizado", "success");
+        }
+
+        function obtenerIconoArea(area) {
+            const iconos = {
+                Admi: "🏢",
+                Pan: "🍞",
+                Betun: "🧁",
+                Butique: "🎂",
+                Horno: "🔥",
+                Inventario: "📦"
+            };
+            return iconos[area] || "📍";
+        }
+
+        function irAArea(area) {
+            const botonArea = document.querySelector(`.btn-area[data-area="${area}"]`);
+            cambiarArea(area, botonArea);
+        }
+
+        function ocultarDashboard() {
+            document.getElementById("dashboard-view").classList.remove("visible");
+            document.getElementById("tarjeta-form-registro").style.display = "";
+            document.querySelector(".grid-resumen").style.display = "";
+            document.querySelector(".contenedor-tabla").style.display = "";
+        }
+
+        /* ===============================================
+           ACTUALIZACIÓN DE BADGES
+           =============================================== */
+
+        function actualizarBadgesSidebar() {
+            Object.keys(baseDatosInventario).forEach(area => {
+                let contadorCriticos = 0;
+                baseDatosInventario[area].forEach(insumo => {
+                    if (insumo.actual <= (insumo.min * 0.5)) {
+                        contadorCriticos++;
+                    }
+                });
+
+                const badgeElemento = document.getElementById(`badge-${area}`);
+                if (badgeElemento) {
+                    if (contadorCriticos > 0) {
+                        badgeElemento.innerText = contadorCriticos;
+                        badgeElemento.style.display = "inline-block";
+                    } else {
+                        badgeElemento.style.display = "none";
+                    }
+                }
+            });
+
+            actualizarBadgeSolicitudes();
+        }
+
+        function actualizarBadgeSolicitudes() {
+            const badge = document.getElementById("badge-solicitudes");
+            const pendientes = solicitudesReabastecimiento.filter(solicitud => solicitud.status === "Pendiente").length;
+
+            if (pendientes > 0) {
+                badge.innerText = pendientes;
+                badge.style.display = "inline-block";
+            } else {
+                badge.style.display = "none";
+            }
+        }
+
+        /* ===============================================
+           BÚSQUEDA EN TIEMPO REAL
+           =============================================== */
+
+        function actualizarBusqueda(valor) {
+            terminoBusqueda = valor.trim();
+            document.getElementById("btn-limpiar-busqueda").classList.toggle("oculto", terminoBusqueda === "");
+            renderizarInventario();
+            actualizarBusquedaGlobal();
+        }
+
+        function limpiarBusqueda() {
+            terminoBusqueda = "";
+            document.getElementById("busqueda-insumos").value = "";
+            document.getElementById("btn-limpiar-busqueda").classList.add("oculto");
+            document.getElementById("contador-busqueda").innerText = "";
+            document.getElementById("busqueda-dropdown").classList.remove("visible");
+            renderizarInventario();
+        }
+
+        function resaltarCoincidencia(nombre) {
+            if (terminoBusqueda === "") {
+                return escaparHtml(nombre);
+            }
+
+            const nombreNormalizado = normalizarTexto(nombre);
+            const terminoNormalizado = normalizarTexto(terminoBusqueda);
+            const inicio = nombreNormalizado.indexOf(terminoNormalizado);
+
+            if (inicio === -1) {
+                return escaparHtml(nombre);
+            }
+
+            const fin = inicio + terminoBusqueda.length;
+            return `${escaparHtml(nombre.slice(0, inicio))}<mark>${escaparHtml(nombre.slice(inicio, fin))}</mark>${escaparHtml(nombre.slice(fin))}`;
+        }
+
+        function actualizarBusquedaGlobal() {
+            const dropdown = document.getElementById("busqueda-dropdown");
+            if (terminoBusqueda.length < 2) {
+                dropdown.classList.remove("visible");
+                dropdown.innerHTML = "";
+                return;
+            }
+
+            const terminoNormalizado = normalizarTexto(terminoBusqueda);
+            let resultadosPorArea = {};
+            let totalResultados = 0;
+
+            Object.keys(baseDatosInventario).forEach(area => {
+                if (area === areaSeleccionada) return;
+                const insumos = baseDatosInventario[area] || [];
+                const coincidencias = insumos.filter(insumo => 
+                    normalizarTexto(insumo.nombre).includes(terminoNormalizado)
+                );
+                if (coincidencias.length > 0) {
+                    resultadosPorArea[area] = coincidencias;
+                    totalResultados += coincidencias.length;
+                }
+            });
+
+            if (totalResultados === 0) {
+                dropdown.innerHTML = `<div class="busqueda-dropdown-item" style="cursor: default;"><span class="busqueda-dropdown-item-info">Sin resultados en otras áreas</span></div>`;
+            } else {
+                dropdown.innerHTML = "";
+                Object.keys(resultadosPorArea).forEach(area => {
+                    const header = document.createElement("div");
+                    header.className = "busqueda-dropdown-grupo-header";
+                    header.innerHTML = `${obtenerIconoArea(area)} ${obtenerNombreAreaVisible(area)}`;
+                    dropdown.appendChild(header);
+
+                    resultadosPorArea[area].forEach(insumo => {
+                        const item = document.createElement("div");
+                        item.className = "busqueda-dropdown-item";
+                        const estado = obtenerEstadoInsumo(insumo);
+                        item.innerHTML = `
+                            <span class="busqueda-dropdown-item-nombre">${escaparHtml(insumo.nombre)}</span>
+                            <span class="busqueda-dropdown-item-info">${insumo.actual} ${insumo.unidad} · <span class="badge-estado ${estado.clase}">${estado.texto}</span></span>
+                        `;
+                        item.onclick = () => {
+                            limpiarBusqueda();
+                            const botonArea = document.querySelector(`.btn-area[data-area="${area}"]`);
+                            cambiarArea(area, botonArea);
+                            terminoBusqueda = insumo.nombre;
+                            document.getElementById("busqueda-insumos").value = insumo.nombre;
+                            actualizarBusqueda(insumo.nombre);
+                        };
+                        dropdown.appendChild(item);
+                    });
+                });
+            }
+
+            dropdown.classList.add("visible");
+        }
+
+        document.addEventListener("click", (e) => {
+            const busquedaGlobal = document.querySelector(".busqueda-global");
+            if (!busquedaGlobal.contains(e.target)) {
+                document.getElementById("busqueda-dropdown").classList.remove("visible");
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                document.getElementById("busqueda-dropdown").classList.remove("visible");
+            }
+        });
+
+        /* ===============================================
+           RENDERIZADO PRINCIPAL DE LA TABLA CON ORDENAMIENTO
+           =============================================== */
+
+        let ordenColumnaActual = null;
+        let ordenDireccionActual = "asc";
+
+        function ordenarInsumos(insumos, columna, direccion) {
+            return [...insumos].sort((a, b) => {
+                let valA, valB;
+                
+                switch(columna) {
+                    case 'nombre':
+                        valA = normalizarTexto(a.nombre);
+                        valB = normalizarTexto(b.nombre);
+                        break;
+                    case 'minimo':
+                        valA = a.min;
+                        valB = b.min;
+                        break;
+                    case 'actual':
+                        valA = a.actual;
+                        valB = b.actual;
+                        break;
+                    case 'precio':
+                        valA = a.precioUnitario || 0;
+                        valB = b.precioUnitario || 0;
+                        break;
+                    case 'precioTotal':
+                        valA = (a.actual) * (a.precioUnitario || 0);
+                        valB = (b.actual) * (b.precioUnitario || 0);
+                        break;
+                    case 'estado':
+                        const pesoEstado = { critico: 0, bajo: 1, ok: 2 };
+                        valA = pesoEstado[obtenerEstadoInsumo(a).clase];
+                        valB = pesoEstado[obtenerEstadoInsumo(b).clase];
+                        break;
+                    default:
+                        valA = normalizarTexto(a.nombre);
+                        valB = normalizarTexto(b.nombre);
+                }
+                
+                if (direccion === 'asc') {
+                    return valA > valB ? 1 : valA < valB ? -1 : 0;
+                } else {
+                    return valA < valB ? 1 : valA > valB ? -1 : 0;
+                }
+            });
+        }
+
+        function setearOrdenamiento(columna) {
+            if (ordenColumnaActual === columna) {
+                ordenDireccionActual = ordenDireccionActual === 'asc' ? 'desc' : 'asc';
+            } else {
+                ordenColumnaActual = columna;
+                ordenDireccionActual = 'asc';
+            }
+            renderizarInventario();
+        }
+
+        function obtenerIndicadorOrden(columna) {
+            if (ordenColumnaActual === columna) {
+                return ordenDireccionActual === 'asc' ? ' ↑' : ' ↓';
+            }
+            return '';
+        }
+
+        function renderizarInventario() {
+            const insumos = baseDatosInventario[areaSeleccionada] || [];
+            const thead = document.getElementById("encabezado-tabla");
+            const tbody = document.getElementById("cuerpo-tabla-inventario");
+            const esInventario = areaSeleccionada === "Inventario";
+            const puedeVerCostos = esInventario && tienePermiso("Administrador");
+            const mostrarAcciones = tienePermiso("Administrador") || esInventario;
+
+            // Aplicar ordenamiento
+            let insumosOrdenados = [...insumos];
+            if (ordenColumnaActual) {
+                insumosOrdenados = ordenarInsumos(insumos, ordenColumnaActual, ordenDireccionActual);
+            }
+
+            tbody.innerHTML = "";
+            let alertasCriticasArea = 0;
+            let resultadosBusqueda = 0;
+
+            let encabezados = `
+                <tr>
+                    <th style="cursor: pointer;" onclick="setearOrdenamiento('nombre')">${esInventario ? "Nombre" : "Insumo / Ingrediente"}${obtenerIndicadorOrden('nombre')}</th>
+                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('minimo')">Mínimo${obtenerIndicadorOrden('minimo')}</th>
+                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('actual')">Cantidad${obtenerIndicadorOrden('actual')}</th>
+            `;
+
+            if (puedeVerCostos) {
+                encabezados += `
+                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('precio')">Precio por unidad${obtenerIndicadorOrden('precio')}</th>
+                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('precioTotal')">Precio Total${obtenerIndicadorOrden('precioTotal')}</th>
+                `;
+            }
+
+            encabezados += `<th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('estado')">Estado${obtenerIndicadorOrden('estado')}</th>`;
+
+            if (mostrarAcciones) {
+                encabezados += `<th style="text-align: center;">Acciones</th>`;
+            }
+
+            encabezados += `</tr>`;
+            thead.innerHTML = encabezados;
+
+            insumosOrdenados.forEach((insumo, indexOriginal) => {
+                // Encontrar el índice original para operaciones
+                const index = baseDatosInventario[areaSeleccionada].findIndex(i => i.nombre === insumo.nombre);
+                
+                const estado = obtenerEstadoInsumo(insumo);
+                if (estado.clase === "critico") {
+                    alertasCriticasArea++;
+                }
+
+                const coincideBusqueda = terminoBusqueda === "" || normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda));
+                if (!coincideBusqueda) {
+                    return;
+                }
+
+                resultadosBusqueda++;
+
+                const pUnitario = insumo.precioUnitario ? insumo.precioUnitario : 0;
+                const pTotal = insumo.actual * pUnitario;
+                const limiteMinimo = esInventario ? 1 : 0;
+                const fila = document.createElement("tr");
+
+                let celdas = `
+                    <td><span class="nombre-insumo">${resaltarCoincidencia(insumo.nombre)}</span></td>
+                    <td style="text-align: center; color: var(--chocolate-mutado); font-weight: 600;">${escaparHtml(insumo.min)} ${escaparHtml(insumo.unidad)}</td>
+                    <td style="text-align: center;">
+                        <div class="controles-stock">
+                            <button class="btn-control menos" onclick="modificarCantidad(${index}, -1)">-</button>
+                            <input type="number" class="input-stock-directo" value="${escaparHtml(insumo.actual)}" min="${limiteMinimo}" onchange="actualizarCantidadDirecta(${index}, this.value)">
+                            <span class="unidad-medida">${escaparHtml(insumo.unidad)}</span>
+                            <button class="btn-control mas" onclick="modificarCantidad(${index}, 1)">+</button>
+                        </div>
+                    </td>
+                `;
+
+                if (puedeVerCostos) {
+                    celdas += `
+                        <td style="text-align: center; font-weight: bold; color: var(--menta-destacado);">$ ${pUnitario.toFixed(2)}</td>
+                        <td style="text-align: center; font-weight: bold; color: var(--chocolate-bubaru);">$ ${pTotal.toFixed(2)}</td>
+                    `;
+                }
+
+                celdas += `<td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>`;
+
+                if (mostrarAcciones) {
+                    celdas += `<td style="text-align: center;"><div class="grupo-botones-acciones">`;
+
+                    if (esInventario) {
+                        celdas += `<button class="btn-transferencia" onclick="abrirModalTransferencia(${index})" title="Transferir">↗</button>`;
+                    }
+
+                    if (tienePermiso("Administrador")) {
+                        celdas += `
+                            <button class="btn-editar solo-admin" onclick="activarModoEdicion(${index})">✏️</button>
+                            <button class="btn-eliminar solo-admin" onclick="eliminarInsumo(${index})">🗑️</button>
+                        `;
+                    }
+
+                    celdas += `</div></td>`;
+                }
+
+                fila.innerHTML = celdas;
+                tbody.appendChild(fila);
+            });
+
+            if (resultadosBusqueda === 0) {
+                const columnas = thead.querySelectorAll("th").length || 5;
+                tbody.innerHTML = `<tr><td colspan="${columnas}" class="mensaje-vacio">No se encontraron insumos.</td></tr>`;
+            }
+
+            document.getElementById("lbl-total-insumos").innerText = insumos.length;
+            document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
+            document.getElementById("contador-busqueda").innerText = terminoBusqueda ? `${resultadosBusqueda} resultados` : "";
+            actualizarBadgesSidebar();
+        }
+
+        /* ===============================================
+           FUNCIONES DE MANIPULACIÓN DE CANTIDADES CON PREVENCIÓN DE NEGATIVOS
+           =============================================== */
+
+        function modificarCantidad(index, cambio) {
+            const insumo = baseDatosInventario[areaSeleccionada][index];
+            const limiteMinimo = areaSeleccionada === "Inventario" ? 1 : 0;
+            const valorAnterior = insumo.actual;
+            let nuevoValor = insumo.actual + cambio;
+            
+            // Prevenir valores negativos
+            if (nuevoValor < limiteMinimo) {
+                nuevoValor = limiteMinimo;
+                if (cambio < 0) {
+                    mostrarToast(`No se puede reducir por debajo de ${limiteMinimo}`, "warning");
+                    return;
+                }
+            }
+
+            if (nuevoValor !== valorAnterior) {
+                agregarAccionDeshacer({
+                    tipo: "cambiarCantidad",
+                    area: areaSeleccionada,
+                    indice: index,
+                    valorAnterior: valorAnterior
+                });
+                insumo.actual = nuevoValor;
+                registrarMovimiento(areaSeleccionada, insumo.nombre, valorAnterior, nuevoValor, cambio > 0 ? "Incremento" : "Decremento");
+                guardarEnLocalStorage();
+                renderizarInventario();
+                if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                    renderizarDashboard();
+                }
+            }
+        }
+
+        function actualizarCantidadDirecta(index, valor) {
+            let nuevaCantidad = parseInt(valor);
+            const limiteMinimo = areaSeleccionada === "Inventario" ? 1 : 0;
+            const insumo = baseDatosInventario[areaSeleccionada][index];
+            const valorAnterior = insumo.actual;
+            
+            // Validar y prevenir valores negativos
+            if (isNaN(nuevaCantidad)) {
+                nuevaCantidad = limiteMinimo;
+            }
+            if (nuevaCantidad < limiteMinimo) {
+                nuevaCantidad = limiteMinimo;
+                mostrarToast(`La cantidad no puede ser menor a ${limiteMinimo}`, "warning");
+            }
+
+            if (valorAnterior !== nuevaCantidad) {
+                agregarAccionDeshacer({
+                    tipo: "cambiarCantidad",
+                    area: areaSeleccionada,
+                    indice: index,
+                    valorAnterior: valorAnterior
+                });
+                insumo.actual = nuevaCantidad;
+                registrarMovimiento(areaSeleccionada, insumo.nombre, valorAnterior, nuevaCantidad, "Ajuste Manual");
+                guardarEnLocalStorage();
+                renderizarInventario();
+                if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                    renderizarDashboard();
+                }
+            }
+        }
+
+        /* ===============================================
+           EDICIÓN DE INSUMOS
+           =============================================== */
+
+        function activarModoEdicion(index) {
+            if (!tienePermiso("Administrador")) {
+                mostrarNotificacion("El rol Operador no puede editar insumos.", "error");
+                return;
+            }
+
+            const insumo = baseDatosInventario[areaSeleccionada][index];
+            indexInsumoEnEdicion = index;
+
+            document.getElementById("insumo-nombre").value = insumo.nombre;
+            document.getElementById("insumo-actual").value = insumo.actual;
+            document.getElementById("insumo-min").value = insumo.min;
+            document.getElementById("insumo-unidad").value = insumo.unidad;
+
+            if (areaSeleccionada === "Inventario") {
+                document.getElementById("insumo-precio-unitario").value = insumo.precioUnitario || 0;
+            }
+
+            document.getElementById("tarjeta-form-registro").classList.add("modo-edicion-activa");
+            document.getElementById("titulo-form").innerHTML = `✏️ Editando: ${insumo.nombre}`;
+
+            const btnEjecutar = document.getElementById("btn-ejecutar-form");
+            btnEjecutar.innerText = "Guardar";
+            btnEjecutar.classList.add("edicion");
+
+            document.querySelector(".contenido-principal").scrollTop = 0;
+        }
+
+        function limpiarFormularioModoRegistro() {
+            indexInsumoEnEdicion = null;
+
+            document.getElementById("insumo-nombre").value = "";
+            document.getElementById("insumo-actual").value = "";
+            document.getElementById("insumo-min").value = "";
+            const precioInput = document.getElementById("insumo-precio-unitario");
+            if (precioInput) precioInput.value = "";
+
+            document.getElementById("tarjeta-form-registro").classList.remove("modo-edicion-activa");
+            document.getElementById("titulo-form").innerHTML = `+ Registrar Nuevo Insumo en esta Área`;
+
+            const btnEjecutar = document.getElementById("btn-ejecutar-form");
+            btnEjecutar.innerText = "Agregar";
+            btnEjecutar.classList.remove("edicion");
+
+            limpiarTodosErrores();
+        }
+
+        /* ===============================================
+           ALTA Y EDICIÓN DE INSUMOS CON VALIDACIÓN DE DUPLICADOS
+           =============================================== */
+
+        function agregarOEditarInsumo() {
+            if (!tienePermiso("Administrador")) {
+                mostrarNotificacion("El rol Operador no puede agregar o editar insumos.", "error");
+                return;
+            }
+
+            const nombre = document.getElementById("insumo-nombre").value.trim();
+            const actualStr = document.getElementById("insumo-actual").value;
+            const minStr = document.getElementById("insumo-min").value;
+            const unidad = document.getElementById("insumo-unidad").value;
+            const precioUnitarioStr = document.getElementById("insumo-precio-unitario").value;
+
+            const actual = parseInt(actualStr);
+            const min = parseInt(minStr);
+            const precioUnitario = parseFloat(precioUnitarioStr);
+
+            let formularioValido = true;
+
+            // Validación de nombre
+            if (!nombre || nombre.length < 2) {
+                mostrarErrorCampo("insumo-nombre", "El nombre debe tener al menos 2 caracteres");
+                formularioValido = false;
+            } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-]+$/.test(nombre)) {
+                mostrarErrorCampo("insumo-nombre", "Solo letras, números, espacios y guiones");
+                formularioValido = false;
+            } else {
+                limpiarErrorCampo("insumo-nombre");
+            }
+
+            // Validación de cantidad actual
+            if (isNaN(actual) || actual < 0) {
+                mostrarErrorCampo("insumo-actual", "Cantidad inválida");
+                formularioValido = false;
+            } else {
+                limpiarErrorCampo("insumo-actual");
+            }
+
+            // Validación de stock mínimo
+            if (isNaN(min) || min < 0) {
+                mostrarErrorCampo("insumo-min", "Stock mínimo inválido");
+                formularioValido = false;
+            } else if (min > actual) {
+                mostrarErrorCampo("insumo-min", "El stock mínimo no puede ser mayor a la cantidad actual");
+                formularioValido = false;
+            } else {
+                limpiarErrorCampo("insumo-min");
+            }
+
+            // Validación de unidad
+            if (!unidad) {
+                mostrarErrorCampo("insumo-unidad", "Selecciona una unidad");
+                formularioValido = false;
+            } else {
+                limpiarErrorCampo("insumo-unidad");
+            }
+
+            // Validación de precio (solo para inventario)
+            if (areaSeleccionada === "Inventario") {
+                if (isNaN(precioUnitario) || precioUnitario < 0) {
+                    mostrarErrorCampo("insumo-precio-unitario", "Precio inválido");
+                    formularioValido = false;
+                } else {
+                    limpiarErrorCampo("insumo-precio-unitario");
+                }
+            }
+
+            // VALIDACIÓN DE DUPLICADOS (MEJORA CRÍTICA)
+            if (formularioValido && existeInsumoDuplicado(nombre, areaSeleccionada, indexInsumoEnEdicion)) {
+                mostrarToast(`Ya existe un insumo con el nombre "${nombre}" en esta área`, "error");
+                mostrarErrorCampo("insumo-nombre", "Ya existe un insumo con este nombre");
+                formularioValido = false;
+            }
+
+            if (!formularioValido) {
+                hacerScrollAlPrimerError();
+                return;
+            }
+
+            const itemEstructurado = {
+                nombre: nombre,
+                actual: actual,
+                min: min,
+                unidad: unidad
+            };
+
+            if (areaSeleccionada === "Inventario") {
+                itemEstructurado.precioUnitario = isNaN(precioUnitario) ? 0 : precioUnitario;
+            }
+
+            if (indexInsumoEnEdicion !== null) {
+                const insumoAnterior = baseDatosInventario[areaSeleccionada][indexInsumoEnEdicion];
+                agregarAccionDeshacer({
+                    tipo: "editarInsumo",
+                    area: areaSeleccionada,
+                    indice: indexInsumoEnEdicion,
+                    insumoAnterior: insumoAnterior
+                });
+                baseDatosInventario[areaSeleccionada][indexInsumoEnEdicion] = itemEstructurado;
+                registrarMovimiento(areaSeleccionada, itemEstructurado.nombre, insumoAnterior.actual, itemEstructurado.actual, "Edición");
+            } else {
+                baseDatosInventario[areaSeleccionada].unshift(itemEstructurado);
+                registrarMovimiento(areaSeleccionada, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta");
+            }
+
+            limpiarFormularioModoRegistro();
+            guardarEnLocalStorage();
+            renderizarInventario();
+            mostrarToast(`✅ ${indexInsumoEnEdicion !== null ? 'Editado' : 'Agregado'}: ${nombre}`, "success");
+        }
+
+        /* ===============================================
+           ELIMINACIÓN DE INSUMOS
+           =============================================== */
+
+        function eliminarInsumo(index) {
+            if (!tienePermiso("Administrador")) {
+                mostrarNotificacion("El rol Operador no puede eliminar insumos.", "error");
+                return;
+            }
+
+            if (indexInsumoEnEdicion === index) {
+                limpiarFormularioModoRegistro();
+            }
+
+            const insumoEliminado = baseDatosInventario[areaSeleccionada][index];
+            mostrarModalConfirmacion(
+                "⚠️ Eliminar insumo",
+                `¿Estás seguro de que deseas eliminar ${insumoEliminado.nombre}? Esta acción no se puede deshacer.`,
+                () => {
+                    agregarAccionDeshacer({
+                        tipo: "eliminarInsumo",
+                        area: areaSeleccionada,
+                        indice: index,
+                        insumo: insumoEliminado
+                    });
+                    baseDatosInventario[areaSeleccionada].splice(index, 1);
+                    registrarMovimiento(areaSeleccionada, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja");
+                    guardarEnLocalStorage();
+                    renderizarInventario();
+                },
+                { confirmTexto: "Sí, eliminar" }
+            );
+        }
+
+        /* ===============================================
+           TRANSFERENCIAS ENTRE ÁREAS
+           =============================================== */
+
+        function abrirModalTransferencia(index) {
+            if (areaSeleccionada !== "Inventario") return;
+
+            transferenciaIndice = index;
+            const insumo = baseDatosInventario.Inventario[index];
+            const selectDestino = document.getElementById("transferencia-destino");
+            const inputCantidad = document.getElementById("transferencia-cantidad");
+
+            selectDestino.innerHTML = "";
+            Object.keys(baseDatosInventario)
+                .filter(area => area !== "Inventario" && area !== areaSeleccionada)
+                .forEach(area => {
+                    const option = document.createElement("option");
+                    option.value = area;
+                    option.innerText = obtenerNombreAreaVisible(area);
+                    selectDestino.appendChild(option);
+                });
+
+            inputCantidad.value = "";
+            inputCantidad.max = insumo.actual;
+            document.getElementById("transferencia-info").innerHTML = `${insumo.nombre} disponible: ${insumo.actual} ${insumo.unidad}`;
+            document.getElementById("transfer-preview-text").innerHTML = `0 ${insumo.unidad}`;
+            document.getElementById("transfer-preview-destino").innerHTML = "-";
+            document.getElementById("btn-confirmar-transferencia").disabled = true;
+            abrirModal("modal-transferencia");
+        }
+
+        function actualizarPreviewTransferencia() {
+            const destino = document.getElementById("transferencia-destino").value;
+            const cantidad = parseInt(document.getElementById("transferencia-cantidad").value);
+            const insumo = baseDatosInventario.Inventario[transferenciaIndice];
+            const btnConfirmar = document.getElementById("btn-confirmar-transferencia");
+
+            if (!insumo) return;
+
+            const cantidadValida = !isNaN(cantidad) && cantidad > 0 && cantidad <= insumo.actual;
+            const destinoValido = destino && destino !== "";
+
+            if (cantidadValida && destinoValido) {
+                document.getElementById("transfer-preview-text").innerHTML = `${cantidad} ${insumo.unidad}`;
+                document.getElementById("transfer-preview-destino").innerHTML = obtenerNombreAreaVisible(destino);
+                btnConfirmar.disabled = false;
+            } else {
+                document.getElementById("transfer-preview-text").innerHTML = cantidadValida ? `${cantidad} ${insumo.unidad}` : `0 ${insumo.unidad}`;
+                document.getElementById("transfer-preview-destino").innerHTML = destinoValido ? obtenerNombreAreaVisible(destino) : "-";
+                btnConfirmar.disabled = true;
+            }
+        }
+
+        function confirmarTransferencia() {
+            const destino = document.getElementById("transferencia-destino").value;
+            const cantidad = parseInt(document.getElementById("transferencia-cantidad").value);
+            const insumoOrigen = baseDatosInventario.Inventario[transferenciaIndice];
+
+            if (!insumoOrigen) {
+                mostrarToast("No se encontró el insumo a transferir.", "error");
+                return;
+            }
+
+            if (isNaN(cantidad) || cantidad <= 0 || cantidad > insumoOrigen.actual) {
+                mostrarToast("La cantidad debe ser mayor a 0 y no exceder el stock actual.", "error");
+                return;
+            }
+
+            const valorAnteriorOrigen = insumoOrigen.actual;
+            insumoOrigen.actual -= cantidad;
+
+            const listaDestino = baseDatosInventario[destino];
+            const indiceDestino = listaDestino.findIndex(item => normalizarTexto(item.nombre) === normalizarTexto(insumoOrigen.nombre));
+            let valorAnteriorDestino = 0;
+            let valorNuevoDestino = cantidad;
+
+            if (indiceDestino >= 0) {
+                valorAnteriorDestino = listaDestino[indiceDestino].actual;
+                listaDestino[indiceDestino].actual += cantidad;
+                valorNuevoDestino = listaDestino[indiceDestino].actual;
+            } else {
+                listaDestino.unshift({
+                    nombre: insumoOrigen.nombre,
+                    min: 0,
+                    actual: cantidad,
+                    unidad: insumoOrigen.unidad
+                });
+            }
+
+            agregarAccionDeshacer({
+                tipo: "transferencia",
+                origen: "Inventario",
+                destino: destino,
+                indiceOrigen: transferenciaIndice,
+                nombreInsumo: insumoOrigen.nombre,
+                cantidad: cantidad
+            });
+
+            registrarMovimiento("Inventario", insumoOrigen.nombre, valorAnteriorOrigen, insumoOrigen.actual, "Transferencia");
+            registrarMovimiento(destino, insumoOrigen.nombre, valorAnteriorDestino, valorNuevoDestino, "Transferencia");
+
+            guardarEnLocalStorage();
+            cerrarModal("modal-transferencia");
+            renderizarInventario();
+            mostrarToast(`✅ Transferencia completada: ${cantidad} ${insumoOrigen.unidad} de ${insumoOrigen.nombre} → ${obtenerNombreAreaVisible(destino)}`, "success");
+            if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                renderizarDashboard();
+            }
+        }
+
+        /* ===============================================
+           CAMBIO DE ÁREA / ESTACIÓN DE TRABAJO
+           =============================================== */
+
+        function cambiarArea(nombreArea, botonElemento) {
+            limpiarFormularioModoRegistro();
+            limpiarBusqueda();
+            
+            // Resetear ordenamiento al cambiar de área
+            ordenColumnaActual = null;
+            ordenDireccionActual = "asc";
+
+            document.getElementById("insumo-nombre").value = "";
+            document.getElementById("insumo-min").value = "";
+
+            areaSeleccionada = nombreArea;
+            document.getElementById("txt-area-activa").innerHTML = `Área: ${obtenerNombreAreaVisible(nombreArea)}`;
+
+            document.querySelectorAll(".btn-area[data-area]").forEach(btn => btn.classList.remove("activo"));
+            if (botonElemento) {
+                botonElemento.classList.add("activo");
+            }
+
+            ocultarDashboard();
+            actualizarInterfazArea();
+            renderizarInventario();
+        }
+
+        function actualizarInterfazArea() {
+            const contenedorPrecio = document.getElementById("contenedor-precio-form");
+            const lblTipoModulo = document.getElementById("lbl-tipo-modulo");
+            const tituloTabla = document.getElementById("titulo-tabla-insumos");
+            const esInventario = areaSeleccionada === "Inventario";
+            const puedeVerCostos = esInventario && tienePermiso("Administrador");
+
+            contenedorPrecio.style.display = puedeVerCostos ? "flex" : "none";
+
+            if (esInventario) {
+                lblTipoModulo.innerText = puedeVerCostos ? "Costos Activos" : "Costos Ocultos";
+                lblTipoModulo.style.color = puedeVerCostos ? "var(--menta-destacado)" : "var(--morado-bubaru)";
+                tituloTabla.innerText = puedeVerCostos ? "Control de Almacén General y Precios" : "Control de Almacén General";
+            } else {
+                lblTipoModulo.innerText = "Inactivo en Cocina";
+                lblTipoModulo.style.color = "var(--morado-bubaru)";
+                tituloTabla.innerText = "Insumos Asignados a la Estación";
+            }
+        }
+
+        /* ===============================================
+           REINICIO COMPLETO DEL SISTEMA
+           =============================================== */
+
+        function restablecerInventarioFabrica() {
+            if (!tienePermiso("Administrador")) {
+                mostrarNotificacion("Solo Administrador puede restablecer el inventario.", "error");
+                return;
+            }
+
+            mostrarModalConfirmacion(
+                "⚠️ Restablecer inventario",
+                `Esto eliminará TODOS los cambios del área ${obtenerNombreAreaVisible(areaSeleccionada)} y restaurará los valores de fábrica. ¿Continuar?`,
+                () => {
+                    localStorage.removeItem("BUBARU_INVENTARIO_DATA");
+                    limpiarFormularioModoRegistro();
+                    document.getElementById("insumo-nombre").value = "";
+                    document.getElementById("insumo-min").value = "";
+                    cargarDesdeLocalStorage();
+                    renderizarInventario();
+                    mostrarToast("Inventario restablecido a valores de fábrica", "success");
+                },
+                {
+                    checkboxTexto: "Entiendo que perderé todos los datos",
+                    confirmTexto: "Sí, restablecer"
+                }
+            );
+        }
+
+        /* ===============================================
+           SOLICITUDES DE REABASTECIMIENTO
+           =============================================== */
+
+        function notificarAdministracion() {
+            abrirPanelSolicitudes();
+        }
+
+        function abrirPanelSolicitudes() {
+            document.getElementById("solicitud-area-visible-panel").innerHTML = obtenerNombreAreaVisible(areaSeleccionada);
+            document.getElementById("solicitud-item-panel").value = "";
+            document.getElementById("filtro-solicitudes-area").value = areaSeleccionada;
+            filtroSolicitudesArea = areaSeleccionada;
+            renderizarSolicitudesPanel("Todas");
+            document.getElementById("panel-solicitudes").classList.add("visible");
+            document.getElementById("side-panel-overlay").classList.add("visible");
+        }
+
+        function cerrarPanelSolicitudes() {
+            document.getElementById("panel-solicitudes").classList.remove("visible");
+            document.getElementById("side-panel-overlay").classList.remove("visible");
+        }
+
+        let urgenciaSeleccionada = "Normal";
+
+        function seleccionarUrgencia(urgencia, boton) {
+            urgenciaSeleccionada = urgencia;
+            document.querySelectorAll(".btn-urgencia").forEach(btn => btn.classList.remove("active"));
+            boton.classList.add("active");
+        }
+
+        function actualizarContadorNotas(textarea) {
+            const contador = document.getElementById("notas-counter");
+            if (contador) {
+                contador.innerText = `${textarea.value.length}/200`;
+            }
+        }
+
+        function crearSolicitudReabastecimientoPanel() {
+            const item = document.getElementById("solicitud-item-panel").value.trim();
+            const quantity = parseInt(document.getElementById("solicitud-cantidad-panel").value);
+            const notes = document.getElementById("solicitud-notas-panel").value.trim();
+
+            if (item === "") {
+                mostrarToast("Escribe el nombre del insumo solicitado.", "error");
+                return;
+            }
+
+            if (isNaN(quantity) || quantity <= 0) {
+                mostrarToast("La cantidad solicitada debe ser mayor a 0.", "error");
+                return;
+            }
+
+            solicitudesReabastecimiento.unshift({
+                id: `SOL-${Date.now()}`,
+                area: areaSeleccionada,
+                item: item,
+                quantity: quantity,
+                urgency: urgenciaSeleccionada,
+                notes: notes,
+                status: "Pendiente",
+                timestamp: new Date().toISOString()
+            });
+
+            guardarSolicitudes();
+            actualizarBadgeSolicitudes();
+            renderizarSolicitudesPanel("Todas");
+
+            document.getElementById("solicitud-item-panel").value = "";
+            document.getElementById("solicitud-cantidad-panel").value = "";
+            document.getElementById("solicitud-notas-panel").value = "";
+            document.getElementById("notas-counter").innerText = "0/200";
+            seleccionarUrgencia("Normal", document.querySelector(".btn-urgencia.normal"));
+
+            mostrarToast("✅ Solicitud registrada.", "success");
+        }
+
+        let filtroSolicitudesActual = "Todas";
+        let filtroSolicitudesArea = "Todas";
+
+        function filtrarSolicitudes(filtro, boton) {
+            filtroSolicitudesActual = filtro;
+            document.querySelectorAll(".side-panel-tab").forEach(btn => btn.classList.remove("active"));
+            boton.classList.add("active");
+            renderizarSolicitudesPanel(filtro);
+        }
+
+        function filtrarSolicitudesPorArea(area) {
+            filtroSolicitudesArea = area;
+            renderizarSolicitudesPanel(filtroSolicitudesActual);
+        }
+
+        function renderizarSolicitudesPanel(filtro) {
+            const contenedor = document.getElementById("contenedor-solicitudes-panel");
+            if (!contenedor) return;
+
+            contenedor.innerHTML = "";
+
+            let solicitudesFiltradas = solicitudesReabastecimiento;
+            if (filtro !== "Todas") {
+                solicitudesFiltradas = solicitudesReabastecimiento.filter(s => s.status === filtro);
+            }
+            if (filtroSolicitudesArea !== "Todas") {
+                solicitudesFiltradas = solicitudesFiltradas.filter(s => s.area === filtroSolicitudesArea);
+            }
+
+            const countElement = document.getElementById("filtro-solicitudes-count");
+            if (countElement) {
+                const verTodasLink = filtroSolicitudesArea !== "Todas" 
+                    ? ` · <a onclick="filtrarSolicitudesPorArea('Todas')">Ver todas</a>` 
+                    : "";
+                countElement.innerHTML = `${solicitudesFiltradas.length} solicitudes${verTodasLink}`;
+            }
+
+            if (solicitudesFiltradas.length === 0) {
+                contenedor.innerHTML = `<div class="mensaje-vacio">No hay solicitudes ${filtro.toLowerCase()}.</div>`;
+                return;
+            }
+
+            solicitudesFiltradas.forEach(solicitud => {
+                const card = document.createElement("div");
+                card.className = `side-panel-card urgencia-${normalizarTexto(solicitud.urgency)}`;
+                const claseEstado = normalizarTexto(solicitud.status);
+                const badgeEstado = tienePermiso("Administrador")
+                    ? `<button class="badge-solicitud ${claseEstado}" onclick="ciclarEstadoSolicitud('${solicitud.id}')">${escaparHtml(solicitud.status)}</button>`
+                    : `<span class="badge-solicitud ${claseEstado}">${escaparHtml(solicitud.status)}</span>`;
+
+                card.innerHTML = `
+                    <div class="solicitud-badges">
+                        ${badgeEstado}
+                    </div>
+                    <h4>${escaparHtml(solicitud.item)}</h4>
+                    <p class="side-panel-meta">Área: ${escaparHtml(obtenerNombreAreaVisible(solicitud.area))}</p>
+                    <p class="side-panel-meta">Cantidad: ${escaparHtml(solicitud.quantity)}</p>
+                    ${solicitud.notes ? `<p class="side-panel-notas">${escaparHtml(solicitud.notes)}</p>` : ""}
+                    <p class="side-panel-timestamp">${formatearTiempoRelativo(solicitud.timestamp)}</p>
+                `;
+
+                contenedor.appendChild(card);
+            });
+        }
+
+        function formatearTiempoRelativo(fechaIso) {
+            const fecha = new Date(fechaIso);
+            const ahora = new Date();
+            const diferenciaMs = ahora - fecha;
+            const diferenciaSegundos = Math.floor(diferenciaMs / 1000);
+            const diferenciaMinutos = Math.floor(diferenciaSegundos / 60);
+            const diferenciaHoras = Math.floor(diferenciaMinutos / 60);
+            const diferenciaDias = Math.floor(diferenciaHoras / 24);
+
+            if (diferenciaSegundos < 60) return "hace un momento";
+            if (diferenciaMinutos < 60) return `hace ${diferenciaMinutos} minuto${diferenciaMinutos !== 1 ? 's' : ''}`;
+            if (diferenciaHoras < 24) return `hace ${diferenciaHoras} hora${diferenciaHoras !== 1 ? 's' : ''}`;
+            if (diferenciaDias < 7) return `hace ${diferenciaDias} día${diferenciaDias !== 1 ? 's' : ''}`;
+            return formatearFecha(fechaIso);
+        }
+
+        function ciclarEstadoSolicitud(id) {
+            if (!tienePermiso("Administrador")) return;
+
+            const solicitud = solicitudesReabastecimiento.find(item => item.id === id);
+            if (!solicitud) return;
+
+            const flujo = ["Pendiente", "Atendida", "Rechazada"];
+            const indiceActual = flujo.indexOf(solicitud.status);
+            solicitud.status = flujo[(indiceActual + 1) % flujo.length];
+            guardarSolicitudes();
+            renderizarSolicitudesPanel(filtroSolicitudesActual);
+            actualizarBadgeSolicitudes();
+        }
+
+        /* ===============================================
+           EXPORTAR CSV
+           =============================================== */
+
+        function limpiarValorCsv(valor) {
+            return `"${String(valor).replace(/"/g, '""')}"`;
+        }
+
+        function exportarCsvActual() {
+            const insumos = baseDatosInventario[areaSeleccionada] || [];
+            const esInventario = areaSeleccionada === "Inventario";
+            const puedeVerCostos = esInventario && tienePermiso("Administrador");
+            const columnas = puedeVerCostos
+                ? ["Nombre", "Cantidad", "Mínimo", "Unidad", "Precio Unitario", "Precio Total", "Estado"]
+                : ["Nombre", "Cantidad", "Mínimo", "Unidad", "Estado"];
+
+            const filas = insumos.map(insumo => {
+                const estado = obtenerEstadoInsumo(insumo).texto;
+                const precioUnitario = insumo.precioUnitario ? insumo.precioUnitario : 0;
+                const valores = [
+                    insumo.nombre,
+                    insumo.actual,
+                    insumo.min,
+                    insumo.unidad
+                ];
+
+                if (puedeVerCostos) {
+                    valores.push(precioUnitario.toFixed(2), (precioUnitario * insumo.actual).toFixed(2));
+                }
+
+                valores.push(estado);
+                return valores.map(limpiarValorCsv).join(",");
+            });
+
+            const csv = "\uFEFF" + [columnas.join(","), ...filas].join("\n");
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const enlace = document.getElementById("descarga-csv");
+
+            enlace.href = url;
+            enlace.download = `bubaru_${areaSeleccionada}_${obtenerFechaArchivo()}.csv`;
+            enlace.click();
+            URL.revokeObjectURL(url);
+            mostrarNotificacion("CSV exportado correctamente.", "exito");
+        }
+
+        /* ===============================================
+           INICIALIZACIÓN DE LA APLICACIÓN
+           =============================================== */
+
+        document.addEventListener("DOMContentLoaded", () => {
+            inicializarDarkMode();
+            cargarDesdeLocalStorage();
+            cargarBitacora();
+            cargarSolicitudes();
+            
+            inicializarSistemaAutenticacion();
+            const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
+            mostrarDashboard(dashboardBtn);
+            renderizarBitacora();
+
+            setInterval(() => {
+                const ahora = new Date();
+                document.getElementById("reloj").innerHTML = `Sincronizado: ${ahora.toLocaleTimeString()}`;
+                if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                    renderizarDashboard();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
