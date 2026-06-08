@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bubaru - Inventario Eficiente con Limpieza Selectiva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         /* ===============================================
            ESTILOS GLOBALES Y VARIABLES CSS
@@ -113,14 +116,58 @@
         }
 
         /* ===============================================
-           ESTRUCTURA PRINCIPAL DEL LAYOUT
+           ESTILOS PARA LA TABLA MODAL DE LA BITÁCORA
+           =============================================== */
+        .tabla-modal {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 1.1rem !important; /* Ajuste para que la letra grande de pastelería respire */
+        }
+
+        .tabla-modal th {
+            background-color: var(--bg-intermedio);
+            color: var(--chocolate-bubaru);
+            padding: 14px 12px;
+            font-weight: 700;
+            text-align: left;
+            border-bottom: 3px solid color-mix(in srgb, var(--chocolate-bubaru) 15%, transparent);
+        }
+
+        .tabla-modal td {
+            padding: 14px 12px; /* Más espacio entre filas y columnas */
+            border-bottom: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 8%, transparent);
+            white-space: nowrap; /* Evita que los textos largos se encimen o se corten de golpe */
+        }
+
+        /* Anchos fijos por columna para que se organicen perfectamente en horizontal */
+        .tabla-modal th:nth-child(1), .tabla-modal td:nth-child(1) { width: 22%; } /* Fecha/Hora */
+        .tabla-modal th:nth-child(2), .tabla-modal td:nth-child(2) { width: 12%; } /* Rol */
+        .tabla-modal th:nth-child(3), .tabla-modal td:nth-child(3) { width: 15%; } /* Área */
+        .tabla-modal th:nth-child(4), .tabla-modal td:nth-child(4) { width: 18%; } /* Insumo */
+        .tabla-modal th:nth-child(5), .tabla-modal td:nth-child(5) { width: 10%; text-align: center; } /* Tipo */
+        .tabla-modal th:nth-child(6), .tabla-modal td:nth-child(6) { width: 8%; text-align: center; }  /* Antes */
+        .tabla-modal th:nth-child(7), .tabla-modal td:nth-child(7) { width: 8%; text-align: center; }  /* Después */
+        .tabla-modal th:nth-child(8), .tabla-modal td:nth-child(8) { width: 7%; text-align: center; }  /* Diferencia */
+
+        .tabla-modal td:nth-child(5), 
+        .tabla-modal td:nth-child(6), 
+        .tabla-modal td:nth-child(7), 
+        .tabla-modal td:nth-child(8) {
+            text-align: center;
+        }
+
+        /* ===============================================
+           ESTRUCTURA PRINCIPAL DEL LAYOUT (ACTUALIZADO)
            =============================================== */
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* FUENTE REDONDEADA */
+            font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            font-weight: 900; /* Cambio de letra */
         }
 
         body {
@@ -130,6 +177,7 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
+            font-size: 1.30rem; /* Hace que toda la letra de la página sea más grande */
         }
 
         button,
@@ -2109,7 +2157,31 @@
             .info-estacion {
                 text-align: left;
             }
+            
         }
+
+        /* --- COLORES SEMÁFORO DE PEDIDOS (ESTILO DIDI FOOD) --- */
+        .badge-solicitud.en-horno {
+            background: linear-gradient(135deg, #FF9800, #F44336) !important;
+            color: white !important;
+            border: none !important;
+        }
+        .badge-solicitud.listo-para-decorar {
+            background: linear-gradient(135deg, #2ABEC2, #009688) !important;
+            color: white !important;
+            border: none !important;
+        }
+        .badge-solicitud.en-decoracion {
+            background: linear-gradient(135deg, #A960BD, #914FA5) !important;
+            color: white !important;
+            border: none !important;
+        }
+        .badge-solicitud.terminado {
+            background: linear-gradient(135deg, #4CAF50, #16A34A) !important;
+            color: white !important;
+            border: none !important;
+        }
+        
     </style>
 </head>
 <body>
@@ -2135,7 +2207,6 @@
         <div class="info-estacion">
             <h2 id="txt-area-activa">Área: Betun</h2>
             <p class="subtxt" id="reloj">Sincronizando...</p>
-            <button class="btn-dark-mode" id="btn-dark-mode" onclick="toggleDarkMode()" aria-label="Cambiar modo oscuro">🌙</button>
             <button class="btn-gestion-pines solo-admin" onclick="abrirModalGestionPines()">🔐 Gestión de PINs</button>
             <button class="btn-cerrar-sesion" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
         </div>
@@ -2146,17 +2217,18 @@
          =============================================== -->
     <div class="contenedor-dashboard">
 
-        <!-- SIDEBAR: Lista de áreas/estaciones -->
+        <!-- SIDEBAR: Lista de áreas/estaciones (Con IDs agregados) -->
         <div class="sidebar-areas">
-            <div class="titulo-seccion">Vista General</div>
-            <button class="btn-area activo" data-area="Dashboard" onclick="mostrarDashboard(this)">🏠 Dashboard</button>
-            <div class="titulo-seccion">Estaciones (Tablets)</div>
-            <button class="btn-area" data-area="Inventario" onclick="cambiarArea('Inventario', this)">Inventario <span class="badge-alerta" id="badge-Inventario">0</span></button>
-            <button class="btn-area" data-area="Butique" onclick="cambiarArea('Butique', this)">Boutique <span class="badge-alerta" id="badge-Butique">0</span></button>
-            <button class="btn-area" data-area="Betun" onclick="cambiarArea('Betun', this)">Betún <span class="badge-alerta" id="badge-Betun">0</span></button>
-            <button class="btn-area" data-area="Horno" onclick="cambiarArea('Horno', this)">Horno <span class="badge-alerta" id="badge-Horno">0</span></button>
-            <button class="btn-area" data-area="Pan" onclick="cambiarArea('Pan', this)">Panadería <span class="badge-alerta" id="badge-Pan">0</span></button>
-            <button class="btn-area" data-area="Admi" onclick="cambiarArea('Admi', this)">Administración <span class="badge-alerta" id="badge-Admi">0</span></button>
+            <div class="titulo-seccion" id="titulo-vista-general">Vista General</div>
+            <button class="btn-area activo" id="btn-nav-Dashboard" data-area="Dashboard" onclick="mostrarDashboard(this)">🏠 Dashboard</button>
+            
+            <div class="titulo-seccion" id="titulo-estaciones">Estaciones (Tablets)</div>
+            <button class="btn-area" id="btn-nav-Inventario" data-area="Inventario" onclick="cambiarArea('Inventario', this)">Inventario <span class="badge-alerta" id="badge-Inventario">0</span></button>
+            <button class="btn-area" id="btn-nav-Butique" data-area="Butique" onclick="cambiarArea('Butique', this)">Boutique <span class="badge-alerta" id="badge-Butique">0</span></button>
+            <button class="btn-area" id="btn-nav-Betun" data-area="Betun" onclick="cambiarArea('Betun', this)">Betún <span class="badge-alerta" id="badge-Betun">0</span></button>
+            <button class="btn-area" id="btn-nav-Horno" data-area="Horno" onclick="cambiarArea('Horno', this)">Horno <span class="badge-alerta" id="badge-Horno">0</span></button>
+            <button class="btn-area" id="btn-nav-Pan" data-area="Pan" onclick="cambiarArea('Pan', this)">Papelería <span class="badge-alerta" id="badge-Pan">0</span></button>
+            <button class="btn-area" id="btn-nav-Admi" data-area="Admi" onclick="cambiarArea('Admi', this)">Administración <span class="badge-alerta" id="badge-Admi">0</span></button>
 
             <div class="controles-modulos-sidebar">
                 <div class="titulo-seccion">Módulos</div>
@@ -2259,6 +2331,7 @@
                     <div class="tabla-acciones">
                         <button class="btn-csv" onclick="exportarCsvActual()">⬇ CSV</button>
                         <button class="btn-accion-urgente" onclick="notificarAdministracion()">Pedir al Almacén General</button>
+                        <button class="btn-accion-urgente" style="background: linear-gradient(135deg, var(--pastel-menta), var(--morado-bubaru));" onclick="abrirModalNuevaComanda()">🎂 Crear Nueva Orden / Comanda</button>
                     </div>
                 </div>
 
@@ -2275,6 +2348,31 @@
     <!-- ===============================================
          MODALES INLINE
          =============================================== -->
+
+         <!-- MODAL INTEGRADO PARA COLOCAR ÓRDENES DESDE BOUTIQUE -->
+    <div class="modal-overlay oculto" id="modal-comanda-operador" role="dialog" aria-modal="true">
+        <div class="modal-card modal-compacto">
+            <div class="modal-header">
+                <h3>🍰 Nueva Orden de Producción</h3>
+                <button class="btn-cerrar-modal" onclick="cerrarModal('modal-comanda-operador')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid-modal">
+                    <div class="campo-form campo-amplio">
+                        <label>¿Qué producto se va a producir?</label>
+                        <input type="text" id="comanda-producto-nombre" placeholder="Ej. Pastel Red Velvet">
+                    </div>
+                    <div class="campo-form campo-amplio">
+                        <label>Cantidad de piezas</label>
+                        <input type="number" id="comanda-producto-cantidad" min="1" value="1">
+                    </div>
+                    <button class="btn-secundario campo-amplio" onclick="cerrarModal('modal-comanda-operador')">Cancelar</button>
+                    <button class="btn-guardar campo-amplio" onclick="crearComandaSecuencial()">🚀 Lanzar Orden</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay fullscreen oculto" id="modal-bitacora" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-bitacora">
         <div class="modal-card">
             <div class="modal-header">
@@ -2515,12 +2613,9 @@
                         <span class="area-name">Horno</span>
                     </button>
                     <button class="btn-area-selection" onclick="seleccionarArea('Pan')">
-                        <span class="area-icon">🍞</span>
-                        <span class="area-name">Panadería</span>
+                        <span class="area-icon">✏️</span>
+                        <span class="area-name">Papeleria</span>
                     </button>
-                    <button class="btn-area-selection" onclick="seleccionarArea('Admi')">
-                        <span class="area-icon">🏢</span>
-                        <span class="area-name">Administración</span>
                     </button>
                 </div>
                 <button class="btn-volver" onclick="volverARolSelection()">← Volver</button>
@@ -3518,11 +3613,49 @@
             const esAdministrador = tienePermiso("Administrador");
             document.body.classList.toggle("rol-operador", !esAdministrador);
 
+            // Control de visibilidad del formulario de registro
             const tarjetaFormulario = document.getElementById("tarjeta-form-registro");
-            tarjetaFormulario.style.display = esAdministrador ? "block" : "none";
+            if (tarjetaFormulario) {
+                tarjetaFormulario.style.display = esAdministrador ? "block" : "none";
+            }
 
+            // Control de visibilidad del botón de reinicio de base de datos
             const btnReiniciar = document.getElementById("btn-reiniciar-memoria");
-            if (btnReiniciar) btnReiniciar.style.display = esAdministrador ? "block" : "none";
+            if (btnReiniciar) {
+                btnReiniciar.style.display = esAdministrador ? "block" : "none";
+            }
+
+            // --- LÓGICA DE FILTRADO DE ESTACIONES EN BARRA LATERAL ---
+            const titulosGral = document.getElementById("titulo-vista-general");
+            const titulosEst = document.getElementById("titulo-estaciones");
+            const listaEstaciones = ["Dashboard", "Inventario", "Butique", "Betun", "Horno", "Pan", "Admi"];
+
+            if (esAdministrador) {
+                // El administrador ve absolutamente todos los títulos y botones de la barra lateral
+                if (titulosGral) titulosGral.style.display = "block";
+                if (titulosEst) titulosEst.style.display = "block";
+                
+                listaEstaciones.forEach(estacion => {
+                    const botonNav = document.getElementById(`btn-nav-${estacion}`);
+                    if (botonNav) botonNav.style.display = "flex";
+                });
+            } else {
+                // El operador NO ve el Dashboard ni los títulos generales de navegación
+                if (titulosGral) titulosGral.style.display = "none";
+                if (titulosEst) titulosEst.style.display = "none";
+
+                listaEstaciones.forEach(estacion => {
+                    const botonNav = document.getElementById(`btn-nav-${estacion}`);
+                    if (botonNav) {
+                        // Compara si la estación de la barra lateral coincide con la que el operador eligió en el login
+                        if (estacion === areaSeleccionada) {
+                            botonNav.style.display = "flex"; // Deja visible sólo su estación asignada
+                        } else {
+                            botonNav.style.display = "none"; // Oculta todas las demás por completo
+                        }
+                    }
+                });
+            }
 
             actualizarInterfazArea();
         }
@@ -3621,13 +3754,13 @@
                 
                 fila.innerHTML = `
                     <td>${escaparHtml(formatearFecha(movimiento.fecha))}</td>
-                    <td>${escaparHtml(movimiento.rol)}</
-                                             <td>${escaparHtml(obtenerNombreAreaVisible(movimiento.area))}</td>
-                     <td>${escaparHtml(movimiento.nombre)}</td>
-                     <td><span class="badge-tipo ${claseTipo}">${escaparHtml(movimiento.tipo)}</span></td>
-                     <td>${escaparHtml(movimiento.valorAnterior)}</td>
-                     <td>${escaparHtml(movimiento.valorNuevo)}</td>
-                     <td class="bitacora-diferencia ${diferencia >= 0 ? 'positivo' : 'negativo'}">${diferencia >= 0 ? '+' : ''}${diferencia}</td>
+                    <td>${escaparHtml(movimiento.rol)}</td>
+                    <td>${escaparHtml(obtenerNombreAreaVisible(movimiento.area))}</td>
+                    <td>${escaparHtml(movimiento.nombre)}</td>
+                    <td><span class="badge-tipo ${claseTipo}">${escaparHtml(movimiento.tipo)}</span></td>
+                    <td>${escaparHtml(movimiento.valorAnterior)}</td>
+                    <td>${escaparHtml(movimiento.valorNuevo)}</td>
+                    <td class="bitacora-diferencia ${diferencia >= 0 ? 'positivo' : 'negativo'}">${diferencia >= 0 ? '+' : ''}${diferencia}</td>
                 `;
                 tbody.appendChild(fila);
             });
@@ -3800,7 +3933,7 @@
         function obtenerIconoArea(area) {
             const iconos = {
                 Admi: "🏢",
-                Pan: "🍞",
+                Papeleria: "✏️",
                 Betun: "🧁",
                 Butique: "🎂",
                 Horno: "🔥",
@@ -4036,119 +4169,98 @@
         }
 
         function renderizarInventario() {
-            const insumos = baseDatosInventario[areaSeleccionada] || [];
             const thead = document.getElementById("encabezado-tabla");
             const tbody = document.getElementById("cuerpo-tabla-inventario");
             const esInventario = areaSeleccionada === "Inventario";
-            const puedeVerCostos = esInventario && tienePermiso("Administrador");
-            const mostrarAcciones = tienePermiso("Administrador") || esInventario;
+            const esAdmi = areaSeleccionada === "Admi";
 
-            // Aplicar ordenamiento
-            let insumosOrdenados = [...insumos];
-            if (ordenColumnaActual) {
-                insumosOrdenados = ordenarInsumos(insumos, ordenColumnaActual, ordenDireccionActual);
-            }
-
+            if (!tbody || !thead) return;
             tbody.innerHTML = "";
-            let alertasCriticasArea = 0;
-            let resultadosBusqueda = 0;
 
-            let encabezados = `
-                <tr>
-                    <th style="cursor: pointer;" onclick="setearOrdenamiento('nombre')">${esInventario ? "Nombre" : "Insumo / Ingrediente"}${obtenerIndicadorOrden('nombre')}</th>
-                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('minimo')">Mínimo${obtenerIndicadorOrden('minimo')}</th>
-                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('actual')">Cantidad${obtenerIndicadorOrden('actual')}</th>
-            `;
-
-            if (puedeVerCostos) {
-                encabezados += `
-                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('precio')">Precio por unidad${obtenerIndicadorOrden('precio')}</th>
-                    <th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('precioTotal')">Precio Total${obtenerIndicadorOrden('precioTotal')}</th>
-                `;
-            }
-
-            encabezados += `<th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('estado')">Estado${obtenerIndicadorOrden('estado')}</th>`;
-
-            if (mostrarAcciones) {
-                encabezados += `<th style="text-align: center;">Acciones</th>`;
-            }
-
-            encabezados += `</tr>`;
-            thead.innerHTML = encabezados;
-
-            insumosOrdenados.forEach((insumo, indexOriginal) => {
-                // Encontrar el índice original para operaciones
-                const index = baseDatosInventario[areaSeleccionada].findIndex(i => i.nombre === insumo.nombre);
+            // --- ESCENARIO A: ADMINISTRADOR, INVENTARIO O ADMI (MATERIALES ESTÁTICOS) ---
+            if (tienePermiso("Administrador") || esInventario || esAdmi) {
+                const insumos = baseDatosInventario[areaSeleccionada] || [];
                 
-                const estado = obtenerEstadoInsumo(insumo);
-                if (estado.clase === "critico") {
-                    alertasCriticasArea++;
+                // Corrección de variables de ordenamiento originales de tu archivo
+                let insumosOrdenados = [...insumos];
+                if (ordenActual && ordenActual.columna) {
+                    insumosOrdenados = ordenarInsumos(insumos, ordenActual.columna, ordenActual.direccion);
                 }
+                
+                let alertasCriticasArea = 0;
+                let resultadosBusqueda = 0;
 
-                const coincideBusqueda = terminoBusqueda === "" || normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda));
-                if (!coincideBusqueda) {
-                    return;
-                }
+                thead.innerHTML = `
+                    <tr>
+                        <th>Insumo / Ingrediente</th>
+                        <th style="text-align: center;">Mínimo</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th style="text-align: center;">Estado</th>
+                    </tr>`;
 
-                resultadosBusqueda++;
+                insumosOrdenados.forEach((insumo) => {
+                    const estado = obtenerEstadoInsumo(insumo);
+                    if (estado.clase === "critico") alertasCriticasArea++;
+                    if (terminoBusqueda !== "" && !normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda))) return;
 
-                const pUnitario = insumo.precioUnitario ? insumo.precioUnitario : 0;
-                const pTotal = insumo.actual * pUnitario;
-                const limiteMinimo = esInventario ? 1 : 0;
+                    resultadosBusqueda++;
+                    const fila = document.createElement("tr");
+                    fila.innerHTML = `
+                        <td><span class="nombre-insumo">${resaltarCoincidencia(insumo.nombre)}</span></td>
+                        <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
+                        <td style="text-align: center;">${insumo.actual} ${insumo.unidad}</td>
+                        <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
+                    `;
+                    tbody.appendChild(fila);
+                });
+
+                document.getElementById("lbl-total-insumos").innerText = insumos.length;
+                document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
+                if (resultadosBusqueda === 0) tbody.innerHTML = `<tr><td colspan="4" class="mensaje-vacio">No se encontraron insumos.</td></tr>`;
+                return;
+            }
+
+            // --- ESCENARIO B: RECEPTOR DE COMANDAS DIGITALES (BOUTIQUE, HORNO, BETÚN) ---
+            thead.innerHTML = `
+                <tr>
+                    <th>Orden / Producto</th>
+                    <th style="text-align: center;">Cantidad</th>
+                    <th style="text-align: center;">Estado Actual</th>
+                    <th style="text-align: center;">Acción Comanda</th>
+                </tr>`;
+
+            const ordenesEstacion = solicitudesReabastecimiento.filter(s => s.area === areaSeleccionada);
+            
+            if (ordenesEstacion.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="mensaje-vacio">No hay pedidos en la cola de esta estación.</td></tr>`;
+                document.getElementById("lbl-total-insumos").innerText = "0";
+                document.getElementById("lbl-alertas").innerText = "0";
+                return;
+            }
+
+            ordenesEstacion.forEach(orden => {
                 const fila = document.createElement("tr");
+                let claseBadge = "";
+                let textoBoton = "";
 
-                let celdas = `
-                    <td><span class="nombre-insumo">${resaltarCoincidencia(insumo.nombre)}</span></td>
-                    <td style="text-align: center; color: var(--chocolate-mutado); font-weight: 600;">${escaparHtml(insumo.min)} ${escaparHtml(insumo.unidad)}</td>
+                if (orden.status === "En Horno") { claseBadge = "en-horno"; textoBoton = "🔥 Terminar Horneado"; }
+                if (orden.status === "Listo para Decorar") { claseBadge = "listo-para-decorar"; textoBoton = "👨‍🍳 Empezar Decoración"; }
+                if (orden.status === "En Decoración") { claseBadge = "en-decoracion"; textoBoton = "🧁 Terminar Decoración"; }
+                if (orden.status === "Terminado") { claseBadge = "terminado"; textoBoton = "🎁 Entregar / Archivar"; }
+
+                fila.innerHTML = `
+                    <td><span class="nombre-insumo">🎂 ${escaparHtml(orden.item)}</span></td>
+                    <td style="text-align: center; font-weight: bold;">${orden.quantity} pzas</td>
+                    <td style="text-align: center;"><span class="badge-solicitud ${claseBadge}">${orden.status}</span></td>
                     <td style="text-align: center;">
-                        <div class="controles-stock">
-                            <button class="btn-control menos" onclick="modificarCantidad(${index}, -1)">-</button>
-                            <input type="number" class="input-stock-directo" value="${escaparHtml(insumo.actual)}" min="${limiteMinimo}" onchange="actualizarCantidadDirecta(${index}, this.value)">
-                            <span class="unidad-medida">${escaparHtml(insumo.unidad)}</span>
-                            <button class="btn-control mas" onclick="modificarCantidad(${index}, 1)">+</button>
-                        </div>
+                        <button class="btn-guardar" style="padding: 6px 16px; height: auto;" onclick="avanzarFlujoComanda('${orden.id}')">${textoBoton}</button>
                     </td>
                 `;
-
-                if (puedeVerCostos) {
-                    celdas += `
-                        <td style="text-align: center; font-weight: bold; color: var(--menta-destacado);">$ ${pUnitario.toFixed(2)}</td>
-                        <td style="text-align: center; font-weight: bold; color: var(--chocolate-bubaru);">$ ${pTotal.toFixed(2)}</td>
-                    `;
-                }
-
-                celdas += `<td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>`;
-
-                if (mostrarAcciones) {
-                    celdas += `<td style="text-align: center;"><div class="grupo-botones-acciones">`;
-
-                    if (esInventario) {
-                        celdas += `<button class="btn-transferencia" onclick="abrirModalTransferencia(${index})" title="Transferir">↗</button>`;
-                    }
-
-                    if (tienePermiso("Administrador")) {
-                        celdas += `
-                            <button class="btn-editar solo-admin" onclick="activarModoEdicion(${index})">✏️</button>
-                            <button class="btn-eliminar solo-admin" onclick="eliminarInsumo(${index})">🗑️</button>
-                        `;
-                    }
-
-                    celdas += `</div></td>`;
-                }
-
-                fila.innerHTML = celdas;
                 tbody.appendChild(fila);
             });
 
-            if (resultadosBusqueda === 0) {
-                const columnas = thead.querySelectorAll("th").length || 5;
-                tbody.innerHTML = `<tr><td colspan="${columnas}" class="mensaje-vacio">No se encontraron insumos.</td></tr>`;
-            }
-
-            document.getElementById("lbl-total-insumos").innerText = insumos.length;
-            document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
-            document.getElementById("contador-busqueda").innerText = terminoBusqueda ? `${resultadosBusqueda} resultados` : "";
-            actualizarBadgesSidebar();
+            document.getElementById("lbl-total-insumos").innerText = ordenesEstacion.length;
+            document.getElementById("lbl-alertas").innerText = ordenesEstacion.filter(o => o.urgency === "Urgente").length;
         }
 
         /* ===============================================
@@ -4763,18 +4875,111 @@
             return formatearFecha(fechaIso);
         }
 
-        function ciclarEstadoSolicitud(id) {
-            if (!tienePermiso("Administrador")) return;
+        // --- MOTOR LOGICO DE MOVIMIENTO DE ORDENES (ESTILO DIDI FOOD) ---
+        let indexBoutiquePedido = null;
 
-            const solicitud = solicitudesReabastecimiento.find(item => item.id === id);
-            if (!solicitud) return;
+        function abrirModalPedidoBoutique(index) {
+            indexBoutiquePedido = index;
+            const producto = baseDatosInventario[areaSeleccionada][index];
+            document.getElementById("boutique-pedido-info").innerText = `Iniciar orden para: ${producto.nombre}`;
+            document.getElementById("boutique-pedido-cantidad").value = "1";
+            document.getElementById("boutique-pedido-notas").value = "";
+            abrirModal("modal-pedido-boutique");
+        }
 
-            const flujo = ["Pendiente", "Atendida", "Rechazada"];
-            const indiceActual = flujo.indexOf(solicitud.status);
-            solicitud.status = flujo[(indiceActual + 1) % flujo.length];
+        function registrarFlujoOrdenBoutique() {
+            const producto = baseDatosInventario[areaSeleccionada][indexBoutiquePedido];
+            const cantidad = parseInt(document.getElementById("boutique-pedido-cantidad").value);
+            const notas = document.getElementById("boutique-pedido-notas").value.trim();
+
+            if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
+
+            // Nace la orden asignada inicialmente a HORNO
+            solicitudesReabastecimiento.unshift({
+                id: `ORD-${Date.now()}`,
+                origen: "Butique",
+                area: "Horno", // Dueño actual de la tarjeta
+                item: producto.nombre,
+                quantity: cantidad,
+                urgency: "Urgente",
+                notes: notas ? notas : "Sin notas de comanda",
+                status: "En Horno", // Estado inicial
+                timestamp: new Date().toISOString()
+            });
+
             guardarSolicitudes();
-            renderizarSolicitudesPanel(filtroSolicitudesActual);
             actualizarBadgeSolicitudes();
+            if (typeof renderizarSolicitudesPanel === "function") renderizarSolicitudesPanel(filtroSolicitudesActual);
+            cerrarModal("modal-pedido-boutique");
+            mostrarToast("👨‍🍳 Comanda enviada a la cola de Horno", "success");
+        }
+
+        function abrirModalNuevaComanda() {
+            if (areaSeleccionada !== "Butique" && areaSeleccionada !== "Boutique") {
+                mostrarToast("Solo Boutique puede iniciar nuevas órdenes de pasteles", "warning");
+                return;
+            }
+            document.getElementById("comanda-producto-nombre").value = "";
+            document.getElementById("comanda-producto-cantidad").value = "1";
+            abrirModal("modal-comanda-operador");
+        }
+
+        function crearComandaSecuencial() {
+            const nombre = document.getElementById("comanda-producto-nombre").value.trim();
+            const cantidad = parseInt(document.getElementById("comanda-producto-cantidad").value);
+
+            if (!nombre) { mostrarToast("Digita el nombre del pastel", "error"); return; }
+            if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
+
+            // PASO 1: Nace la comanda y aparece directo en la tabla de HORNO
+            solicitudesReabastecimiento.unshift({
+                id: `ORD-${Date.now()}`,
+                item: nombre,
+                quantity: cantidad,
+                area: "Horno", // Va para la tabla de Horno
+                status: "En Horno",
+                urgency: "Urgente",
+                timestamp: new Date().toISOString()
+            });
+
+            guardarSolicitudes();
+            cerrarModal("modal-comanda-operador");
+            renderInventario();
+            mostrarToast("🔥 ¡Orden mandada directo a la cocina de Horno!", "success");
+        }
+
+        function avanzarFlujoComanda(id) {
+            const orden = solicitudesReabastecimiento.find(o => o.id === id);
+            if (!orden) return;
+
+            if (orden.status === "En Horno") {
+                // PASO 2: Horno termina y manda el pastel a la tabla de BETÚN
+                orden.status = "Listo para Decorar";
+                orden.area = "Betun";
+                mostrarToast("🧁 ¡Horneado listo! Pasó a la estación de Betún.", "success");
+
+            } else if (orden.status === "Listo para Decorar") {
+                // El decorador acepta la orden
+                orden.status = "En Decoración";
+                mostrarToast("🎨 Decorador trabajando en el diseño...", "success");
+
+            } else if (orden.status === "En Decoración") {
+                // PASO 3: Betún termina y manda el pastel a la tabla de BOUTIQUE
+                orden.status = "Terminado";
+                orden.area = "Butique"; // Regresa a Boutique
+                
+                // Disparamos alerta local en memoria por si Boutique está en otra tablet
+                localStorage.setItem("BUBARU_ALERTA_BOUTIQUE", `🔔 ¡Pedido Terminado! Tu comanda de "${orden.item}" está lista en vitrina.`);
+                mostrarToast("✅ ¡Orden completada! Regresó a Boutique.", "success");
+
+            } else if (orden.status === "Terminado") {
+                // PASO 4: Boutique entrega el pastel y limpia su tabla
+                solicitudesReabastecimiento = solicitudesReabastecimiento.filter(o => o.id !== id);
+                mostrarToast("🎁 ¡Pastel entregado al cliente con éxito!", "success");
+            }
+
+            guardarSolicitudes();
+            renderizarInventario();
         }
 
         /* ===============================================
@@ -4824,28 +5029,51 @@
         }
 
         /* ===============================================
-           INICIALIZACIÓN DE LA APLICACIÓN
+           INICIALIZACIÓN DE LA APLICACIÓN (CORREGIDO)
            =============================================== */
-
         document.addEventListener("DOMContentLoaded", () => {
-            inicializarDarkMode();
             cargarDesdeLocalStorage();
             cargarBitacora();
             cargarSolicitudes();
             
+            // 1. Validamos los PINs y los roles primero
             inicializarSistemaAutenticacion();
-            const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
-            mostrarDashboard(dashboardBtn);
+            
+            // 2. Evaluamos qué pantalla mostrar según el rol que inició sesión
+            const esAdministrador = tienePermiso("Administrador");
+            
+            if (esAdministrador) {
+                // Si es Admin, entra directo al Dashboard general con todas las estaciones
+                const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
+                mostrarDashboard(dashboardBtn);
+            } else {
+                // Si es Operador, forzamos que entre directo a la tabla de su área asignada
+                // Esto oculta los bloques negros del Dashboard de inmediato
+                const botonOperador = document.getElementById(`btn-nav-${areaSeleccionada}`);
+                cambiarArea(areaSeleccionada, botonOperador);
+            }
+            
             renderizarBitacora();
 
+            // Modifica este bloque al final de tu archivo para que quede así:
             setInterval(() => {
                 const ahora = new Date();
                 document.getElementById("reloj").innerHTML = `Sincronizado: ${ahora.toLocaleTimeString()}`;
+                
+                // --- AQUÍ QUEDA EN MEDIO EL PASO 5 ---
+                const alertaBoutique = localStorage.getItem("BUBARU_ALERTA_BOUTIQUE");
+                if (alertaBoutique && areaSeleccionada === "Butique") {
+                    mostrarToast(alertaBoutique, "success");
+                    mostrarNotificacion(alertaBoutique, "exito");
+                    localStorage.removeItem("BUBARU_ALERTA_BOUTIQUE"); // Limpia el canal para que no se repita
+                }
+
                 if (document.getElementById("dashboard-view").classList.contains("visible")) {
                     renderizarDashboard();
                 }
             }, 1000);
         });
+
     </script>
 </body>
 </html>
