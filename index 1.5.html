@@ -2620,6 +2620,9 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <script>
         /* ===============================================
         MEJORAS IMPLEMENTADAS - ALTA PRIORIDAD
@@ -2633,6 +2636,22 @@
         7. ✅ MEJOR VALIDACIÓN DE FORMULARIOS - Con mensajes de error específicos
            =============================================== */
 
+// 2. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVepSR8_cIldD1hmxNKsOQJ5dsIIsFpts", // Clave real de tu consola
+            authDomain: "bubaru-e23fb.firebaseapp.com",
+            databaseURL: "https://bubaru-e23fb-default-rtdb.firebaseio.com",
+            projectId: "bubaru-e23fb",
+            storageBucket: "bubaru-e23fb.firebasestorage.app",
+            messagingSenderId: "626454980696",
+            appId: "1:626454980696:web:d36df638013fc785bfc22d",
+            measurementId: "G-5QKVQNEJ47"
+        };
+
+        // Encendemos el motor de enlace en la nube
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
         /* ===============================================
         CONSTANTES DE AUTENTICACIÓN
            =============================================== */
@@ -2702,7 +2721,34 @@
             localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
             // Disparar evento para otras pestañas
             localStorage.setItem("BUBARU_LAST_UPDATE", Date.now().toString());
+
+            // Sincroniza el inventario con Firebase al instante
+    database.ref('inventario').set(baseDatosInventario);
         }
+
+        function escucharCambiosEnNube() {
+    // Escucha actualizaciones del inventario de materiales
+    database.ref('inventario').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            baseDatosInventario = data;
+            renderizarInventario();
+        }
+    });
+
+    // Escucha la cola de pedidos e hilos de comanda
+    database.ref('comandas').on('value', (snapshot) => {
+        const data = snapshot.val();
+        const listadoTemporal = [];
+        if (data) {
+            Object.keys(data).forEach(key => {
+                listadoTemporal.push({ id: key, ...data[key] });
+            });
+        }
+        solicitudesReabastecimiento = listadoTemporal.reverse();
+        renderizarInventario();
+    });
+}
 
         function cargarDesdeLocalStorage() {
             const datosGuardados = localStorage.getItem("BUBARU_INVENTARIO_DATA");
@@ -3101,20 +3147,23 @@
             const pinEsperado = rolSeleccionadoLogin === "operador" ? PIN_OPERADOR : PIN_ADMIN;
 
             if (pinIngresado === pinEsperado) {
-                rolActual = rolSeleccionadoLogin === "operador" ? "Operador" : "Administrador";
-                sessionStorage.setItem("BUBARU_ROL", rolActual);
-                
-                if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
-                    areaSeleccionada = areaSeleccionadaLogin;
-                    sessionStorage.setItem("BUBARU_AREA", areaSeleccionada);
-                }
-                
-                intentosFallidosPin[rolSeleccionadoLogin] = 0;
-                ocultarLockScreen();
-                aplicarPermisosRol();
-                renderizarInventario();
-                
-                if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+            rolActual = rolSeleccionadoLogin === "operador" ? "Operador" : "Administrador";
+            sessionStorage.setItem("BUBARU_ROL", rolActual);
+            
+            if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+                areaSeleccionada = areaSeleccionadaLogin;
+                sessionStorage.setItem("BUBARU_AREA", areaSeleccionada);
+            }
+            
+            intentosFallidosPin[rolSeleccionadoLogin] = 0;
+            ocultarLockScreen();
+            aplicarPermisosRol();
+            
+            // 🔥 AQUÍ QUEDA INYECTADO EL ACTIVADOR DE LA NUBE:
+            escucharCambiosEnNube();
+            renderizarInventario();
+            
+            if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
                     const botonArea = document.querySelector(`.btn-area[data-area="${areaSeleccionada}"]`);
                     cambiarArea(areaSeleccionada, botonArea);
                 }
@@ -4810,62 +4859,48 @@
         }
 
         function crearComandaSecuencial() {
-            const nombre = document.getElementById("comanda-producto-nombre").value.trim();
-            const cantidad = parseInt(document.getElementById("comanda-producto-cantidad").value);
+    const nombre = document.getElementById("comanda-producto-nombre").value.trim();
+    const cantidad = parseInt(document.getElementById("comanda-producto-cantidad").value);
 
-            if (!nombre) { mostrarToast("Digita el nombre del pastel", "error"); return; }
-            if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
+    if (!nombre) { mostrarToast("Digita el nombre del pastel", "error"); return; }
+    if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
 
-            // PASO 1: Nace la comanda y aparece directo en la tabla de HORNO
-            solicitudesReabastecimiento.unshift({
-                id: `ORD-${Date.now()}`,
-                item: nombre,
-                quantity: cantidad,
-                area: "Horno", // Va para la tabla de Horno
-                status: "En Horno",
-                urgency: "Urgente",
-                timestamp: new Date().toISOString()
-            });
+    const nuevaComanda = {
+        item: nombre,
+        quantity: cantidad,
+        area: "Horno",
+        status: "En Horno",
+        urgency: "Urgente",
+        timestamp: new Date().toISOString()
+    };
 
-            guardarSolicitudes();
-            cerrarModal("modal-comanda-operador");
-            renderInventario();
-            mostrarToast("🔥 ¡Orden mandada directo a la cocina de Horno!", "success");
-        }
+    // Mandar directo a la nube
+    database.ref('comandas').push(nuevaComanda);
+    cerrarModal("modal-comanda-operador");
+    mostrarToast("🔥 ¡Orden mandada directo a la cocina de Horno!", "success");
+}
 
-        function avanzarFlujoComanda(id) {
-            const orden = solicitudesReabastecimiento.find(o => o.id === id);
-            if (!orden) return;
+function avanzarFlujoComanda(id) {
+    const orden = solicitudesReabastecimiento.find(o => o.id === id);
+    if (!orden) return;
 
-            if (orden.status === "En Horno") {
-                // PASO 2: Horno termina y manda el pastel a la tabla de BETÚN
-                orden.status = "Listo para Decorar";
-                orden.area = "Betun";
-                mostrarToast("🧁 ¡Horneado listo! Pasó a la estación de Betún.", "success");
+    const referenciaComanda = database.ref(`comandas/${id}`);
 
-            } else if (orden.status === "Listo para Decorar") {
-                // El decorador acepta la orden
-                orden.status = "En Decoración";
-                mostrarToast("🎨 Decorador trabajando en el diseño...", "success");
-
-            } else if (orden.status === "En Decoración") {
-                // PASO 3: Betún termina y manda el pastel a la tabla de BOUTIQUE
-                orden.status = "Terminado";
-                orden.area = "Butique"; // Regresa a Boutique
-                
-                // Disparamos alerta local en memoria por si Boutique está en otra tablet
-                localStorage.setItem("BUBARU_ALERTA_BOUTIQUE", `🔔 ¡Pedido Terminado! Tu comanda de "${orden.item}" está lista en vitrina.`);
-                mostrarToast("✅ ¡Orden completada! Regresó a Boutique.", "success");
-
-            } else if (orden.status === "Terminado") {
-                // PASO 4: Boutique entrega el pastel y limpia su tabla
-                solicitudesReabastecimiento = solicitudesReabastecimiento.filter(o => o.id !== id);
-                mostrarToast("🎁 ¡Pastel entregado al cliente con éxito!", "success");
-            }
-
-            guardarSolicitudes();
-            renderizarInventario();
-        }
+    if (orden.status === "En Horno") {
+        referenciaComanda.update({ status: "Listo para Decorar", area: "Betun" });
+        mostrarToast("🧁 ¡Horneado listo! Pasó a la estación de Betún.", "success");
+    } else if (orden.status === "Listo para Decorar") {
+        referenciaComanda.update({ status: "En Decoración" });
+        mostrarToast("🎨 Decorador trabajando en el diseño...", "success");
+    } else if (orden.status === "En Decoración") {
+        referenciaComanda.update({ status: "Terminado", area: "Butique" });
+        localStorage.setItem("BUBARU_ALERTA_BOUTIQUE", `🔔 ¡Pedido Terminado! Tu comanda de "${orden.item}" está lista en vitrina.`);
+        mostrarToast("✅ ¡Orden completada! Regresó a Boutique.", "success");
+    } else if (orden.status === "Terminado") {
+        referenciaComanda.remove(); // Borra de Firebase al entregarse al cliente
+        mostrarToast("🎁 ¡Pastel entregado al cliente con éxito!", "success");
+    }
+}
 
         /* ===============================================
         EXPORTAR CSV
