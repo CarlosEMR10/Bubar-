@@ -9,8 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         /* ===============================================
-           ESTILOS GLOBALES Y VARIABLES CSS
-           Hola mundo
+        .CSS
+        ESTILOS GLOBALES Y VARIABLES CSS
            =============================================== */
 
         /* 1. MODO CLARO */
@@ -39,85 +39,8 @@
             --estado-critico: #DC2626;
         }
 
-        /* 2. MODO OSCURO AUTOMÁTICO (Tu paleta oscura original sin cambios) */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-principal: #1A2A3A;
-                --bg-tarjetas: #2A3A4A;
-                --bg-intermedio: #3A4A5A;
-                --chocolate-bubaru: #E6F3FF;
-                --chocolate-mutado: #B3D9FF;
-                --menta-destacado: #87CEEB;
-                --morado-bubaru: #5BA3C6;
-                --morado-hover: #7BB8D6;
-                
-                --pastel-rosa: #4A6B8C;
-                --pastel-vainilla: #3A5A7A;
-                --pastel-menta: #2A4A6A;
-                --pastel-lavanda: #3A5A8A;
-                --pastel-crema: #2A4A6A;
-
-                --estado-ok-bg: rgba(91, 163, 198, 0.2);
-                --estado-ok: #5BA3C6;
-                --estado-alerta-bg: rgba(255, 152, 0, 0.2);
-                --estado-alerta: #FF9800;
-                --estado-critico-bg: rgba(244, 67, 54, 0.2);
-                --estado-critico: #F44336;
-            }
-        }
-
-        /* 3. MODO OSCURO MANUAL (Tu paleta oscura original sin cambios) */
-        body.dark-mode {
-            --bg-principal: #1A2A3A;
-            --bg-tarjetas: #2A3A4A;
-            --bg-intermedio: #3A4A5A;
-            --chocolate-bubaru: #E6F3FF;
-            --chocolate-mutado: #B3D9FF;
-            --menta-destacado: #87CEEB;
-            --morado-bubaru: #5BA3C6;
-            --morado-hover: #7BB8D6;
-            
-            --pastel-rosa: #4A6B8C;
-            --pastel-vainilla: #3A5A7A;
-            --pastel-menta: #2A4A6A;
-            --pastel-lavanda: #3A5A8A;
-            --pastel-crema: #2A4A6A;
-
-            --estado-ok-bg: rgba(91, 163, 198, 0.2);
-            --estado-ok: #5BA3C6;
-            --estado-alerta-bg: rgba(255, 152, 0, 0.2);
-            --estado-alerta: #FF9800;
-            --estado-critico-bg: rgba(244, 67, 54, 0.2);
-            --estado-critico: #F44336;
-        }
-
-        /* 4. FORZAR MODO CLARO (Evita que el sistema operativo rompa el cambio) */
-        body:not(.dark-mode) {
-            --bg-principal: #E2FAFA;
-            --bg-tarjetas: #FFFFFF;
-            --bg-intermedio: #F5EFEB;
-            --chocolate-bubaru: #3E200C;
-            --chocolate-mutado: #6E4A35;
-            --menta-destacado: #2ABEC2;
-            --morado-bubaru: #A960BD;
-            --morado-hover: #914FA5;
-
-            --pastel-rosa: #B3D9FF;
-            --pastel-vainilla: #FFFFFF;
-            --pastel-menta: #E0F2FF;
-            --pastel-lavanda: #D1E8FF;
-            --pastel-crema: #F0F8FF;
-
-            --estado-ok-bg: rgba(22, 163, 74, 0.1);
-            --estado-ok: #16A34A;
-            --estado-alerta-bg: rgba(234, 88, 12, 0.1);
-            --estado-alerta: #EA580C;
-            --estado-critico-bg: rgba(220, 38, 38, 0.1);
-            --estado-critico: #DC2626;
-        }
-
         /* ===============================================
-           ESTILOS PARA LA TABLA MODAL DE LA BITÁCORA
+        ESTILOS PARA LA TABLA MODAL DE LA BITÁCORA
            =============================================== */
         .tabla-modal {
             width: 100%;
@@ -159,7 +82,7 @@
         }
 
         /* ===============================================
-           ESTRUCTURA PRINCIPAL DEL LAYOUT (ACTUALIZADO)
+        ESTRUCTURA PRINCIPAL DEL acomodo de lo visible de pagina
            =============================================== */
 
         * {
@@ -193,7 +116,7 @@
         }
 
         /* ===============================================
-           BARRA SUPERIOR (APP BAR)
+        BARRA SUPERIOR (APP BAR)
            =============================================== */
 
         .app-bar {
@@ -360,7 +283,7 @@
         }
 
         /* ===============================================
-           CONTENEDOR DASHBOARD (Sidebar + Principal)
+        CONTENEDOR DASHBOARD (Sidebar + Principal)
            =============================================== */
 
         .contenedor-dashboard {
@@ -370,7 +293,7 @@
         }
 
         /* ===============================================
-           SELECCIÓN DE ÁREAS
+        SELECCIÓN DE ÁREAS
            =============================================== */
 
         .sidebar-areas {
@@ -460,7 +383,7 @@
         }
 
         /* ===============================================
-           CONTENIDO PRINCIPAL
+        CONTENIDO PRINCIPAL
            =============================================== */
 
         .contenido-principal {
@@ -474,7 +397,7 @@
         }
 
         /* ===============================================
-           FORMULARIO DE REGISTRO/EDICIÓN
+        FORMULARIO DE REGISTRO/EDICIÓN
            =============================================== */
 
         .tarjeta-formulario {
@@ -566,7 +489,7 @@
         }
 
         /* ===============================================
-           TARJETAS DE RESUMEN (KPI's)
+        TARJETAS DE RESUMEN (KPI's)
            =============================================== */
 
         .grid-resumen {
@@ -594,7 +517,7 @@
         }
 
         /* ===============================================
-           TABLA DE INVENTARIO
+        TABLA DE INVENTARIO
            =============================================== */
 
         .contenedor-tabla {
@@ -672,7 +595,7 @@
         }
 
         /* ===============================================
-           CONTROLES DE STOCK
+        CONTROLES DE STOCK
            =============================================== */
 
         .controles-stock {
@@ -739,7 +662,7 @@
         }
 
         /* ===============================================
-           BOTONES DE ACCIONES
+        BOTONES DE ACCIONES
            =============================================== */
 
         .grupo-botones-acciones {
@@ -845,7 +768,7 @@
         }
 
         /* ===============================================
-           BADGES DE ESTADO
+        BADGES DE ESTADO
            =============================================== */
 
         .badge-estado,
@@ -887,7 +810,7 @@
         }
 
         /* ===============================================
-           MODALES Y PANELES
+        MODALES Y PANELES
            =============================================== */
 
         .modal-overlay {
@@ -1057,7 +980,7 @@
         }
 
         /* ===============================================
-           RESTRICCIONES VISUALES POR ROL
+        RESTRICCIONES VISUALES POR ROL
            =============================================== */
 
         body.rol-operador .solo-admin {
@@ -1065,7 +988,7 @@
         }
 
         /* ===============================================
-           LOCK SCREEN (AUTENTICACIÓN POR PIN)
+        LOCK SCREEN (AUTENTICACIÓN POR PIN)
            =============================================== */
 
         #lock-screen {
@@ -1370,7 +1293,7 @@
         }
 
         /* ===============================================
-           VALIDACIÓN VISUAL DE FORMULARIOS
+        VALIDACIÓN VISUAL DE FORMULARIOS
            =============================================== */
 
         .campo-form.error input,
@@ -1393,7 +1316,7 @@
         }
 
         /* ===============================================
-           MODAL DE CONFIRMACIÓN
+        MODAL DE CONFIRMACIÓN
            =============================================== */
 
         #modal-confirmacion {
@@ -1467,7 +1390,7 @@
         }
 
         /* ===============================================
-           DASHBOARD GENERAL
+        DASHBOARD GENERAL
            =============================================== */
 
         #dashboard-view {
@@ -1662,7 +1585,7 @@
         }
 
         /* ===============================================
-           SIDE PANEL (SLIDE-IN)
+        SIDE PANEL (SLIDE-IN)
            =============================================== */
 
         .side-panel {
@@ -1843,7 +1766,7 @@
         }
 
         /* ===============================================
-           TOAST NOTIFICATIONS
+        TOAST NOTIFICATIONS
            =============================================== */
 
         #toast-container {
@@ -1894,7 +1817,7 @@
         }
 
         /* ===============================================
-           BITÁCORA MODAL
+        BITÁCORA MODAL
            =============================================== */
 
         .bitacora-filters {
@@ -2003,7 +1926,7 @@
         }
 
         /* ===============================================
-           TRANSFER MODAL
+        TRANSFER MODAL
            =============================================== */
 
         .transfer-preview {
@@ -2021,7 +1944,7 @@
         }
 
         /* ===============================================
-           URGENCIAS SELECTOR
+        URGENCIAS SELECTOR
            =============================================== */
 
         .urgencia-selector {
@@ -2088,7 +2011,7 @@
         }
 
         /* ===============================================
-           GESTIÓN DE PINES
+        GESTIÓN DE PINES
            =============================================== */
 
         .gestion-pines-section {
@@ -2111,7 +2034,7 @@
         }
 
         /* ===============================================
-           DISEÑO RESPONSIVO
+        DISEÑO RESPONSIVO
            =============================================== */
 
         @media (max-width: 900px) {
@@ -2161,7 +2084,7 @@
             
         }
 
-        /* --- COLORES SEMÁFORO DE PEDIDOS (ESTILO DIDI FOOD) --- */
+        /* --- COLORES SEMÁFORO DE PEDIDOS --- */
         .badge-solicitud.en-horno {
             background: linear-gradient(135deg, #FF9800, #F44336) !important;
             color: white !important;
@@ -2188,8 +2111,8 @@
 <body>
 
     <!-- ===============================================
-         BARRA SUPERIOR DE LA APLICACIÓN
-         =============================================== -->
+        BARRA SUPERIOR DE LA APLICACIÓN
+        =============================================== -->
     <div class="app-bar">
         <div class="marca">
             <h1>B U B A R U</h1>
@@ -2214,8 +2137,8 @@
     </div>
 
     <!-- ===============================================
-         CONTENEDOR PRINCIPAL (Sidebar + Contenido)
-         =============================================== -->
+        CONTENEDOR PRINCIPAL (Sidebar + Contenido)
+        =============================================== -->
     <div class="contenedor-dashboard">
 
         <!-- SIDEBAR: Lista de áreas/estaciones (Con IDs agregados) -->
@@ -2347,10 +2270,10 @@
     </div>
 
     <!-- ===============================================
-         MODALES INLINE
-         =============================================== -->
+        MODALES INLINE
+        =============================================== -->
 
-         <!-- MODAL INTEGRADO PARA COLOCAR ÓRDENES DESDE BOUTIQUE -->
+        <!-- MODAL INTEGRADO PARA COLOCAR ÓRDENES DESDE BOUTIQUE -->
     <div class="modal-overlay oculto" id="modal-comanda-operador" role="dialog" aria-modal="true">
         <div class="modal-card modal-compacto">
             <div class="modal-header">
@@ -2568,8 +2491,8 @@
     </div>
 
     <!-- ===============================================
-         LOCK SCREEN (AUTENTICACIÓN POR PIN)
-         =============================================== -->
+        LOCK SCREEN (AUTENTICACIÓN POR PIN)
+        =============================================== -->
     <div id="lock-screen">
         <div class="lock-screen-content">
             <div class="lock-screen-logo">B U B A R U</div>
@@ -2641,8 +2564,8 @@
     </div>
 
     <!-- ===============================================
-         MODAL DE CONFIRMACIÓN
-         =============================================== -->
+        MODAL DE CONFIRMACIÓN
+        =============================================== -->
     <div class="modal-overlay oculto" id="modal-confirmacion" role="dialog" aria-modal="true">
         <div class="modal-card modal-confirmacion-card">
             <div class="modal-header">
@@ -2664,8 +2587,8 @@
     </div>
 
     <!-- ===============================================
-         MODAL DE GESTIÓN DE PINs
-         =============================================== -->
+        MODAL DE GESTIÓN DE PINs
+        =============================================== -->
     <div class="modal-overlay oculto" id="modal-gestion-pines" role="dialog" aria-modal="true">
         <div class="modal-card">
             <div class="modal-header">
@@ -2699,25 +2622,25 @@
 
     <script>
         /* ===============================================
-           MEJORAS IMPLEMENTADAS - ALTA PRIORIDAD
-           
-           1. ✅ VALIDACIÓN DE DUPLICADOS - No permite nombres repetidos en la misma área
-           2. ✅ PREVENCIÓN DE VALORES NEGATIVOS - Stock nunca baja de 0 (o 1 para Inventario)
-           3. ✅ SINCRONIZACIÓN MULTI-PESTAÑA - Cambios reflejados en tiempo real
-           4. ✅ CIERRE DE SESIÓN POR INACTIVIDAD - 30 minutos sin actividad
-           5. ✅ REGISTRO DE INTENTOS FALLIDOS DE PIN - En bitácora de seguridad
-           6. ✅ ORDENAMIENTO EN TABLA - Click en encabezados para ordenar
-           7. ✅ MEJOR VALIDACIÓN DE FORMULARIOS - Con mensajes de error específicos
+        MEJORAS IMPLEMENTADAS - ALTA PRIORIDAD
+        
+        1. ✅ VALIDACIÓN DE DUPLICADOS - No permite nombres repetidos en la misma área
+        2. ✅ PREVENCIÓN DE VALORES NEGATIVOS - Stock nunca baja de 0 (o 1 para Inventario)
+        3. ✅ SINCRONIZACIÓN MULTI-PESTAÑA - Cambios reflejados en tiempo real
+        4. ✅ CIERRE DE SESIÓN POR INACTIVIDAD - 30 minutos sin actividad
+        5. ✅ REGISTRO DE INTENTOS FALLIDOS DE PIN - En bitácora de seguridad
+        6. ✅ ORDENAMIENTO EN TABLA - Click en encabezados para ordenar
+        7. ✅ MEJOR VALIDACIÓN DE FORMULARIOS - Con mensajes de error específicos
            =============================================== */
 
         /* ===============================================
-           CONSTANTES DE AUTENTICACIÓN
+        CONSTANTES DE AUTENTICACIÓN
            =============================================== */
         let PIN_OPERADOR = "0309";
         let PIN_ADMIN = "3170";
 
         /* ===============================================
-           DATOS DE INICIALIZACIÓN POR DEFECTO
+        DATOS DE INICIALIZACIÓN POR DEFECTO
            =============================================== */
         const datosPorDefecto = {
             Admi: [
@@ -2747,7 +2670,7 @@
         };
 
         /* ===============================================
-           VARIABLES GLOBALES DEL ESTADO DE LA APLICACIÓN
+        VARIABLES GLOBALES DEL ESTADO DE LA APLICACIÓN
            =============================================== */
         let baseDatosInventario = {};
         let areaSeleccionada = "Betun";
@@ -2772,7 +2695,7 @@
         const TIEMPO_INACTIVIDAD = 30 * 60 * 1000; // 30 minutos
 
         /* ===============================================
-           FUNCIONES DE PERSISTENCIA (localStorage)
+        FUNCIONES DE PERSISTENCIA (localStorage)
            =============================================== */
 
         function guardarEnLocalStorage() {
@@ -2853,7 +2776,7 @@
         }
 
         /* ===============================================
-           SINCRONIZACIÓN MULTI-PESTAÑA
+        SINCRONIZACIÓN MULTI-PESTAÑA
            =============================================== */
         
         function inicializarSincronizacionMultiPestana() {
@@ -2879,7 +2802,7 @@
         }
 
         /* ===============================================
-           CIERRE DE SESIÓN POR INACTIVIDAD
+        CIERRE DE SESIÓN POR INACTIVIDAD
            =============================================== */
         
         function reiniciarTemporizadorInactividad() {
@@ -2909,7 +2832,7 @@
         }
 
         /* ===============================================
-           UTILIDADES GENERALES
+        UTILIDADES GENERALES
            =============================================== */
 
         function obtenerNombreAreaVisible(area) {
@@ -3006,7 +2929,7 @@
         }
 
         /* ===============================================
-           SISTEMA DE AUTENTICACIÓN POR PIN
+        SISTEMA DE AUTENTICACIÓN POR PIN
            =============================================== */
 
         let rolSeleccionadoLogin = null;
@@ -3288,46 +3211,7 @@
         }
 
         /* ===============================================
-           DARK MODE OPTIMIZADO
-           =============================================== */
-
-        function inicializarDarkMode() {
-            const preferenciaGuardada = localStorage.getItem("BUBARU_DARK_MODE");
-            const btnDarkMode = document.getElementById("btn-dark-mode");
-            
-            if (preferenciaGuardada === "true") {
-                document.body.classList.add("dark-mode");
-                if (btnDarkMode) btnDarkMode.innerHTML = "☀️";
-            } else if (preferenciaGuardada === "false") {
-                document.body.classList.remove("dark-mode");
-                if (btnDarkMode) btnDarkMode.innerHTML = "🌙";
-            } else {
-                // Si no hay preferencia guardada, verificar del sistema operativo
-                const prefiereOscuro = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-                if (prefiereOscuro) {
-                    document.body.classList.add("dark-mode");
-                    if (btnDarkMode) btnDarkMode.innerHTML = "☀️";
-                } else {
-                    if (btnDarkMode) btnDarkMode.innerHTML = "🌙";
-                }
-            }
-        }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle("dark-mode");
-            const esDarkMode = document.body.classList.contains("dark-mode");
-            
-            const btnDarkMode = document.getElementById("btn-dark-mode");
-            if (btnDarkMode) {
-                btnDarkMode.innerHTML = esDarkMode ? "☀️" : "🌙";
-            }
-            
-            localStorage.setItem("BUBARU_DARK_MODE", esDarkMode ? "true" : "false");
-            mostrarToast(`Modo ${esDarkMode ? 'Oscuro' : 'Claro'} activado`, "success");
-        }
-
-        /* ===============================================
-           UNDO / DESHACER
+        UNDO / DESHACER
            =============================================== */
 
         const pilaDeshacer = [];
@@ -3393,7 +3277,7 @@
         }
 
         /* ===============================================
-           GESTIÓN DE PINs (ADMINISTRADOR)
+        GESTIÓN DE PINs (ADMINISTRADOR)
            =============================================== */
 
         function abrirModalGestionPines() {
@@ -3430,7 +3314,7 @@
         }
 
         /* ===============================================
-           MODAL DE CONFIRMACIÓN PERSONALIZADO
+        MODAL DE CONFIRMACIÓN PERSONALIZADO
            =============================================== */
 
         function mostrarModalConfirmacion(titulo, mensaje, onConfirm, opciones = {}) {
@@ -3495,7 +3379,7 @@
         });
 
         /* ===============================================
-           VALIDACIONES DE FORMULARIO MEJORADAS
+        VALIDACIONES DE FORMULARIO MEJORADAS
            =============================================== */
 
         function validarCampo(campoId, valor, reglas) {
@@ -3580,7 +3464,7 @@
         }
 
         /* ===============================================
-           VALIDACIÓN DE DUPLICADOS
+        VALIDACIÓN DE DUPLICADOS
            =============================================== */
         
         function existeInsumoDuplicado(nombre, area, indiceEdicion = null) {
@@ -3593,7 +3477,7 @@
         }
 
         /* ===============================================
-           SISTEMA DE ROLES
+        SISTEMA DE ROLES
            =============================================== */
 
         function tienePermiso(rol) {
@@ -3662,7 +3546,7 @@
         }
 
         /* ===============================================
-           BITÁCORA DE MOVIMIENTOS
+        BITÁCORA DE MOVIMIENTOS
            =============================================== */
 
         function registrarMovimiento(area, nombre, valorAnterior, valorNuevo, tipo, detalles = "") {
@@ -3827,7 +3711,7 @@
         }
 
         /* ===============================================
-           DASHBOARD GENERAL
+        DASHBOARD GENERAL
            =============================================== */
 
         function mostrarDashboard(botonElemento) {
@@ -3956,7 +3840,7 @@
         }
 
         /* ===============================================
-           ACTUALIZACIÓN DE BADGES
+        ACTUALIZACIÓN DE BADGES
            =============================================== */
 
         function actualizarBadgesSidebar() {
@@ -3995,7 +3879,7 @@
         }
 
         /* ===============================================
-           BÚSQUEDA EN TIEMPO REAL
+        BÚSQUEDA EN TIEMPO REAL
            =============================================== */
 
         function actualizarBusqueda(valor) {
@@ -4103,7 +3987,7 @@
         });
 
         /* ===============================================
-           RENDERIZADO PRINCIPAL DE LA TABLA CON ORDENAMIENTO
+        RENDERIZADO PRINCIPAL DE LA TABLA CON ORDENAMIENTO
            =============================================== */
 
         let ordenColumnaActual = null;
@@ -4265,7 +4149,7 @@
         }
 
         /* ===============================================
-           FUNCIONES DE MANIPULACIÓN DE CANTIDADES CON PREVENCIÓN DE NEGATIVOS
+        FUNCIONES DE MANIPULACIÓN DE CANTIDADES CON PREVENCIÓN DE NEGATIVOS
            =============================================== */
 
         function modificarCantidad(index, cambio) {
@@ -4333,7 +4217,7 @@
         }
 
         /* ===============================================
-           EDICIÓN DE INSUMOS
+        EDICIÓN DE INSUMOS
            =============================================== */
 
         function activarModoEdicion(index) {
@@ -4384,7 +4268,7 @@
         }
 
         /* ===============================================
-           ALTA Y EDICIÓN DE INSUMOS CON VALIDACIÓN DE DUPLICADOS
+        ALTA Y EDICIÓN DE INSUMOS CON VALIDACIÓN DE DUPLICADOS
            =============================================== */
 
         function agregarOEditarInsumo() {
@@ -4498,7 +4382,7 @@
         }
 
         /* ===============================================
-           ELIMINACIÓN DE INSUMOS
+        ELIMINACIÓN DE INSUMOS
            =============================================== */
 
         function eliminarInsumo(index) {
@@ -4532,7 +4416,7 @@
         }
 
         /* ===============================================
-           TRANSFERENCIAS ENTRE ÁREAS
+        TRANSFERENCIAS ENTRE ÁREAS
            =============================================== */
 
         function abrirModalTransferencia(index) {
@@ -4642,7 +4526,7 @@
         }
 
         /* ===============================================
-           CAMBIO DE ÁREA / ESTACIÓN DE TRABAJO
+        CAMBIO DE ÁREA / ESTACIÓN DE TRABAJO
            =============================================== */
 
         function cambiarArea(nombreArea, botonElemento) {
@@ -4690,7 +4574,7 @@
         }
 
         /* ===============================================
-           REINICIO COMPLETO DEL SISTEMA
+        REINICIO COMPLETO DEL SISTEMA
            =============================================== */
 
         function restablecerInventarioFabrica() {
@@ -4719,7 +4603,7 @@
         }
 
         /* ===============================================
-           SOLICITUDES DE REABASTECIMIENTO
+        SOLICITUDES DE REABASTECIMIENTO
            =============================================== */
 
         function notificarAdministracion() {
@@ -4984,7 +4868,7 @@
         }
 
         /* ===============================================
-           EXPORTAR CSV
+        EXPORTAR CSV
            =============================================== */
 
         function limpiarValorCsv(valor) {
@@ -5030,7 +4914,7 @@
         }
 
         /* ===============================================
-           INICIALIZACIÓN DE LA APLICACIÓN (CORREGIDO)
+        INICIALIZACIÓN DE LA APLICACIÓN
            =============================================== */
         document.addEventListener("DOMContentLoaded", () => {
             cargarDesdeLocalStorage();
