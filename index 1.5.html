@@ -858,178 +858,268 @@
         </div>
     </div>
 
+   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <script>
+        // 2. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyAs7zK6p...", 
+            authDomain: "bubaru-e23fb.firebaseapp.com",
+            databaseURL: "https://bubaru-e23fb-default-rtdb.firebaseio.com",
+            projectId: "bubaru-e23fb",
+            storageBucket: "bubaru-e23fb.appspot.com",
+            messagingSenderId: "542268710363",
+            appId: "1:542268710363:web:0da7089b21f37e1634bda7"
+        };
+
+        // Conectar con la nube
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         let PIN_OPERADOR = "0309";
         let PIN_ADMIN = "3170";
 
+        // Estructura base si la base de datos de Firebase está vacía en el primer inicio
         const datosPorDefecto = {
-            Admi: [{ nombre: "Cajas de Pastel Bubaru Gde", min: 100, actual: 450, unidad: "pzas" }, { nombre: "Impresiones de Tickets", min: 5, actual: 3, unidad: "rollos" }],
-            Pan: [{ nombre: "Harina de Trigo Extra Fina", min: 4, actual: 1, unidad: "sacos" }, { nombre: "Mantequilla Industrial Con Sal", min: 5, actual: 8, unidad: "bloques" }],
-            Betun: [{ nombre: "Queso Crema Premium", min: 6, actual: 12, unidad: "kg" }, { nombre: "Mantequilla Sin Sal (Barra)", min: 20, actual: 4, unidad: "pzas" }, { nombre: "Azúcar Glass Refinada", min: 3, actual: 3, unidad: "sacos" }],
+            Admi: [{ nombre: "Cajas de Pastel Bubaru Gde", min: 100, actual: 450, unidad: "pzas" }],
+            Pan: [{ nombre: "Harina de Trigo Extra Fina", min: 4, actual: 1, unidad: "sacos" }],
+            Betun: [{ nombre: "Queso Cream Premium", min: 6, actual: 12, unidad: "kg" }],
             Butique: [{ nombre: "Pastel Red Velvet Bubaru", min: 2, actual: 5, unidad: "pzas" }],
             Horno: [{ nombre: "Charolas de Aluminio", min: 15, actual: 2, unidad: "pzas" }],
-            Inventario: [{ nombre: "Azúcar Estándar (Bulto)", min: 10, actual: 25, unidad: "bultos", precioUnitario: 50 }, { nombre: "Harina de Trigo (Bulto)", min: 15, actual: 40, unidad: "bultos", precioUnitario: 45 }, { nombre: "Cacao en Polvo Belga", min: 5, actual: 2, unidad: "kg", precioUnitario: 350 }]
+            Inventario: [{ nombre: "Azúcar Estándar (Bulto)", min: 10, actual: 25, unidad: "bultos" }]
         };
 
         let baseDatosInventario = {};
         let areaSeleccionada = "Betun";
-        let indexInsumoEnEdicion = null;
-        let bitacoraMovimientos = [];
-        let solicitudesReabastecimiento = [];
+        let solicitudesReabastecimiento = []; 
         let rolActual = "Administrador";
-        let terminoBusqueda = "";
-        let transferenciaIndice = null;
-        let temporizadorNotificacion = null;
-        let rolSeleccionadoParaPin = null;
-        let intentosFallidosPin = { operador: 0, admin: 0 };
-        let bloqueoPinActivo = { operador: false, admin: false };
-        let temporizadorBloqueoPin = { operador: null, admin: null };
-        let confirmacionCallback = null;
-        let ordenColumnaActual = null;
-        let ordenDireccionActual = "asc";
-        let temporizadorInactividad = null;
-        const TIEMPO_INACTIVIDAD = 30 * 60 * 1000;
         let rolSeleccionadoLogin = null;
         let areaSeleccionadaLogin = null;
-        const pilaDeshacer = [];
-        let urgenciaSeleccionada = "Normal";
-        let filtroSolicitudesActual = "Todas";
-        let filtroSolicitudesArea = "Todas";
 
-        function guardarEnLocalStorage() { localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario)); localStorage.setItem("BUBARU_LAST_UPDATE", Date.now().toString()); }
-        function cargarDesdeLocalStorage() { const datosGuardados = localStorage.getItem("BUBARU_INVENTARIO_DATA"); if (datosGuardados) { try { baseDatosInventario = JSON.parse(datosGuardados); } catch(e) { baseDatosInventario = JSON.parse(JSON.stringify(datosPorDefecto)); guardarEnLocalStorage(); } } else { baseDatosInventario = JSON.parse(JSON.stringify(datosPorDefecto)); guardarEnLocalStorage(); } Object.keys(datosPorDefecto).forEach(area => { if (!baseDatosInventario[area]) baseDatosInventario[area] = JSON.parse(JSON.stringify(datosPorDefecto[area])); }); }
-        function guardarBitacora() { localStorage.setItem("BUBARU_BITACORA", JSON.stringify(bitacoraMovimientos)); }
-        function cargarBitacora() { const datosGuardados = localStorage.getItem("BUBARU_BITACORA"); if (!datosGuardados) { bitacoraMovimientos = []; return; } try { bitacoraMovimientos = JSON.parse(datosGuardados) || []; } catch(e) { bitacoraMovimientos = []; guardarBitacora(); } }
-        function guardarSolicitudes() { localStorage.setItem("BUBARU_SOLICITUDES", JSON.stringify(solicitudesReabastecimiento)); }
-        function cargarSolicitudes() { const datosGuardados = localStorage.getItem("BUBARU_SOLICITUDES"); if (!datosGuardados) { solicitudesReabastecimiento = []; return; } try { solicitudesReabastecimiento = JSON.parse(datosGuardados) || []; } catch(e) { solicitudesReabastecimiento = []; guardarSolicitudes(); } }
-        function guardarPines() { localStorage.setItem("BUBARU_PIN_OPERADOR", PIN_OPERADOR); localStorage.setItem("BUBARU_PIN_ADMIN", PIN_ADMIN); }
-        function cargarPines() { const pinOperadorGuardado = localStorage.getItem("BUBARU_PIN_OPERADOR"); const pinAdminGuardado = localStorage.getItem("BUBARU_PIN_ADMIN"); if (pinOperadorGuardado) PIN_OPERADOR = pinOperadorGuardado; if (pinAdminGuardado) PIN_ADMIN = pinAdminGuardado; }
+        // ======================================================================
+        // ESCUCHADORES EN TIEMPO REAL (SINCRONIZACIÓN AUTOMÁTICA EN LA NUBE)
+        // ======================================================================
+        function escucharCambiosEnNube() {
+            database.ref('inventario').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    baseDatosInventario = data;
+                } else {
+                    baseDatosInventario = JSON.parse(JSON.stringify(datosPorDefecto));
+                    database.ref('inventario').set(baseDatosInventario);
+                }
+                renderizarInventario();
+            });
 
-        function reiniciarTemporizadorInactividad() { if (temporizadorInactividad) clearTimeout(temporizadorInactividad); temporizadorInactividad = setTimeout(() => { if (rolActual) { mostrarToast("⏰ Sesión cerrada por inactividad", "warning"); cerrarSesion(); } }, TIEMPO_INACTIVIDAD); }
-        function iniciarMonitoreoInactividad() { const eventos = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']; eventos.forEach(evento => document.addEventListener(evento, reiniciarTemporizadorInactividad)); reiniciarTemporizadorInactividad(); }
-        function detenerMonitoreoInactividad() { if (temporizadorInactividad) clearTimeout(temporizadorInactividad); }
+            database.ref('comandas').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const listadoTemporal = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        listadoTemporal.push({ id: key, ...data[key] });
+                    });
+                }
+                solicitudesReabastecimiento = listadoTemporal.reverse();
+                renderizarInventario();
+            });
 
-        function obtenerNombreAreaVisible(area) { const nombres = { Admi: "Administración", Pan: "Panadería", Betun: "Betún", Butique: "Boutique", Horno: "Horno", Inventario: "Inventario" }; return nombres[area] || area; }
-        function escaparHtml(valor) { if (valor === undefined || valor === null) return ""; return String(valor).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-        function normalizarTexto(valor) { if (!valor) return ""; return String(valor).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
-        function obtenerEstadoInsumo(insumo) { if (insumo.actual <= (insumo.min * 0.5)) return { clase: "critico", texto: "Crítico (Reordenar)" }; if (insumo.actual <= insumo.min) return { clase: "bajo", texto: "Stock Bajo" }; return { clase: "ok", texto: "Stock Óptimo" }; }
-        function formatearFecha(fechaIso) { const fecha = new Date(fechaIso); return fecha.toLocaleString("es-MX"); }
-        function obtenerFechaArchivo() { const fecha = new Date(); return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`; }
-        function mostrarNotificacion(mensaje, tipo = "alerta") { const notificacion = document.getElementById("notificacion-inline"); notificacion.innerText = mensaje; notificacion.className = `notificacion-inline ${tipo}`; notificacion.classList.remove("oculto"); clearTimeout(temporizadorNotificacion); temporizadorNotificacion = setTimeout(() => notificacion.classList.add("oculto"), 3200); }
-        function mostrarToast(mensaje, tipo = "success") { const container = document.getElementById("toast-container"); const toast = document.createElement("div"); toast.className = `toast ${tipo}`; let icono = tipo === "success" ? "✅" : (tipo === "error" ? "❌" : "⚠️"); toast.innerHTML = `<span class="toast-icon">${icono}</span><span>${escaparHtml(mensaje)}</span>`; container.appendChild(toast); setTimeout(() => toast.classList.add("visible"), 10); setTimeout(() => { toast.classList.remove("visible"); setTimeout(() => toast.remove(), 300); }, 3000); }
-        function abrirModal(idModal) { document.getElementById(idModal).classList.remove("oculto"); }
-        function cerrarModal(idModal) { document.getElementById(idModal).classList.add("oculto"); }
+            database.ref('alertas/boutique').on('value', (snapshot) => {
+                const mensaje = snapshot.val();
+                if (mensaje && areaSeleccionada === "Butique") {
+                    mostrarToast(mensaje);
+                    database.ref('alertas/boutique').set(null);
+                }
+            });
+        }
 
-        function inicializarSistemaAutenticacion() { cargarPines(); const rolGuardado = sessionStorage.getItem("BUBARU_ROL"); if (rolGuardado) { rolActual = rolGuardado; const areaGuardada = sessionStorage.getItem("BUBARU_AREA"); if (areaGuardada) areaSeleccionada = areaGuardada; ocultarLockScreen(); aplicarPermisosRol(); iniciarMonitoreoInactividad(); } else { mostrarLockScreen(); } configurarPinInputsEntry(); }
-        function mostrarLockScreen() { detenerMonitoreoInactividad(); document.getElementById("lock-screen").classList.remove("oculto"); mostrarPantallaRolSelection(); limpiarPinInputsEntry(); }
-        function ocultarLockScreen() { const lockScreen = document.getElementById("lock-screen"); lockScreen.style.transition = "opacity 0.5s"; lockScreen.style.opacity = "0"; setTimeout(() => { lockScreen.classList.add("oculto"); lockScreen.style.opacity = ""; lockScreen.style.transition = ""; }, 500); resetearTogglesPinesEntry(); iniciarMonitoreoInactividad(); }
-        function mostrarPantallaRolSelection() { document.getElementById("login-rol-selection").classList.remove("oculto"); document.getElementById("login-area-selection").classList.add("oculto"); document.getElementById("login-pin-entry").classList.add("oculto"); rolSeleccionadoLogin = null; areaSeleccionadaLogin = null; }
-        function seleccionarRol(rol) { rolSeleccionadoLogin = rol; if (rol === "operador") mostrarPantallaAreaSelection(); else mostrarPantallaPinEntry(); }
-        function mostrarPantallaAreaSelection() { document.getElementById("login-rol-selection").classList.add("oculto"); document.getElementById("login-area-selection").classList.remove("oculto"); document.getElementById("login-pin-entry").classList.add("oculto"); }
-        function seleccionarArea(area) { areaSeleccionadaLogin = area; mostrarPantallaPinEntry(); }
-        function volverARolSelection() { mostrarPantallaRolSelection(); }
-        function volverAPantallaAnterior() { if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) { mostrarPantallaAreaSelection(); areaSeleccionadaLogin = null; } else { mostrarPantallaRolSelection(); rolSeleccionadoLogin = null; } limpiarPinInputsEntry(); }
-        function mostrarPantallaPinEntry() { document.getElementById("login-rol-selection").classList.add("oculto"); document.getElementById("login-area-selection").classList.add("oculto"); document.getElementById("login-pin-entry").classList.remove("oculto"); const titulo = document.getElementById("pin-entry-title"); const desc = document.getElementById("pin-entry-desc"); if (rolSeleccionadoLogin === "operador") { titulo.innerText = `Ingresa tu PIN - ${obtenerNombreAreaVisible(areaSeleccionadaLogin)}`; desc.innerText = "Operador de estación"; } else { titulo.innerText = "Ingresa tu PIN"; desc.innerText = "Administrador"; } document.getElementById("pin-entry-0").focus(); }
-        function configurarPinInputsEntry() { for (let i = 0; i < 4; i++) { const input = document.getElementById(`pin-entry-${i}`); input.addEventListener("input", (e) => { const valor = e.target.value; if (!/^[0-9]$/.test(valor)) { e.target.value = ""; return; } if (i < 3) document.getElementById(`pin-entry-${i + 1}`).focus(); else verificarPinEntry(); }); input.addEventListener("keydown", (e) => { if (e.key === "Backspace" && e.target.value === "" && i > 0) document.getElementById(`pin-entry-${i - 1}`).focus(); }); } }
-        function obtenerPinIngresadoEntry() { let pin = ""; for (let i = 0; i < 4; i++) pin += document.getElementById(`pin-entry-${i}`).value; return pin; }
-        function limpiarPinInputsEntry() { for (let i = 0; i < 4; i++) document.getElementById(`pin-entry-${i}`).value = ""; document.getElementById("pin-error-entry").innerText = ""; }
-        function registrarIntentoFallidoPin(rol, pinIngresado) { bitacoraMovimientos.unshift({ id: `SEC-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`, fecha: new Date().toISOString(), area: "Sistema", nombre: "Seguridad", valorAnterior: 0, valorNuevo: intentosFallidosPin[rol] + 1, tipo: "Seguridad", rol: "Sistema", detalles: `Intento fallido de PIN para ${rol} (PIN: ${pinIngresado})` }); while (bitacoraMovimientos.length > 100) bitacoraMovimientos.pop(); guardarBitacora(); }
-        function verificarPinEntry() { if (bloqueoPinActivo[rolSeleccionadoLogin]) return; const pinIngresado = obtenerPinIngresadoEntry(); const pinEsperado = rolSeleccionadoLogin === "operador" ? PIN_OPERADOR : PIN_ADMIN; if (pinIngresado === pinEsperado) { rolActual = rolSeleccionadoLogin === "operador" ? "Operador" : "Administrador"; sessionStorage.setItem("BUBARU_ROL", rolActual); if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) { areaSeleccionada = areaSeleccionadaLogin; sessionStorage.setItem("BUBARU_AREA", areaSeleccionada); } intentosFallidosPin[rolSeleccionadoLogin] = 0; ocultarLockScreen(); aplicarPermisosRol(); renderizarInventario(); if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) { const botonArea = document.querySelector(`.btn-area[data-area="${areaSeleccionada}"]`); cambiarArea(areaSeleccionada, botonArea); } } else { intentosFallidosPin[rolSeleccionadoLogin]++; registrarIntentoFallidoPin(rolSeleccionadoLogin, pinIngresado); mostrarErrorPinEntry(); if (intentosFallidosPin[rolSeleccionadoLogin] >= 3) activarBloqueoPinEntry(); else animarShakePinEntry(); } }
-        function mostrarErrorPinEntry() { const intentosRestantes = 3 - intentosFallidosPin[rolSeleccionadoLogin]; document.getElementById("pin-error-entry").innerHTML = `PIN incorrecto. Te quedan ${intentosRestantes} intento${intentosRestantes !== 1 ? 's' : ''}.`; }
-        function animarShakePinEntry() { for (let i = 0; i < 4; i++) { const input = document.getElementById(`pin-entry-${i}`); input.classList.add("pin-shake"); setTimeout(() => input.classList.remove("pin-shake"), 500); } setTimeout(() => limpiarPinInputsEntry(), 500); setTimeout(() => document.getElementById("pin-entry-0").focus(), 600); }
-        function activarBloqueoPinEntry() { bloqueoPinActivo[rolSeleccionadoLogin] = true; let segundosRestantes = 30; const mensajeBloqueo = document.getElementById("pin-bloqueado-entry"); mensajeBloqueo.classList.remove("oculto"); for (let i = 0; i < 4; i++) document.getElementById(`pin-entry-${i}`).disabled = true; function actualizarContador() { mensajeBloqueo.innerText = `Bloqueado por ${segundosRestantes}s`; if (segundosRestantes > 0) { segundosRestantes--; temporizadorBloqueoPin[rolSeleccionadoLogin] = setTimeout(actualizarContador, 1000); } else desactivarBloqueoPinEntry(); } actualizarContador(); }
-        function desactivarBloqueoPinEntry() { bloqueoPinActivo[rolSeleccionadoLogin] = false; intentosFallidosPin[rolSeleccionadoLogin] = 0; document.getElementById("pin-bloqueado-entry").classList.add("oculto"); for (let i = 0; i < 4; i++) document.getElementById(`pin-entry-${i}`).disabled = false; limpiarPinInputsEntry(); document.getElementById("pin-entry-0").focus(); }
-        function toggleMostrarPinEntry() { const nuevoTipo = document.getElementById("pin-entry-0").type === "password" ? "text" : "password"; const boton = document.getElementById("toggle-pin-entry"); for (let i = 0; i < 4; i++) document.getElementById(`pin-entry-${i}`).type = nuevoTipo; boton.innerText = nuevoTipo === "text" ? "🙈 Ocultar" : "👁 Mostrar"; if (nuevoTipo === "text") document.getElementById("pin-entry-0").focus(); }
-        function resetearTogglesPinesEntry() { for (let i = 0; i < 4; i++) document.getElementById(`pin-entry-${i}`).type = "password"; document.getElementById("toggle-pin-entry").innerHTML = "👁 Mostrar"; }
-        function cerrarSesion() { detenerMonitoreoInactividad(); sessionStorage.removeItem("BUBARU_ROL"); sessionStorage.removeItem("BUBARU_AREA"); rolActual = null; areaSeleccionada = "Betun"; mostrarLockScreen(); }
+        function guardarInventarioEnNube() {
+            database.ref('inventario').set(baseDatosInventario);
+        }
 
-        function abrirModalGestionPines() { if (!tienePermiso("Administrador")) return; document.getElementById("nuevo-pin-operador").value = ""; document.getElementById("nuevo-pin-admin").value = ""; abrirModal("modal-gestion-pines"); }
-        function cerrarModalGestionPines() { cerrarModal("modal-gestion-pines"); }
-        function cambiarPin(rol) { if (!tienePermiso("Administrador")) return; const inputId = rol === "operador" ? "nuevo-pin-operador" : "nuevo-pin-admin"; const nuevoPin = document.getElementById(inputId).value.trim(); if (!/^[0-9]{4}$/.test(nuevoPin)) { mostrarToast("El PIN debe ser de 4 dígitos numéricos.", "error"); return; } if (rol === "operador") PIN_OPERADOR = nuevoPin; else PIN_ADMIN = nuevoPin; guardarPines(); mostrarToast(`PIN de ${rol === "operador" ? "Operador" : "Administrador"} actualizado correctamente.`, "success"); document.getElementById(inputId).value = ""; }
+        // ======================================================================
+        // MOTOR DE RENDERIZADO DE TABLAS COMPATIBLE
+        // ======================================================================
+        function renderizarInventario() {
+            const thead = document.getElementById("encabezado-tabla");
+            const tbody = document.getElementById("cuerpo-tabla-inventario");
+            if (!tbody || !thead) return;
+            tbody.innerHTML = "";
 
-        function mostrarModalConfirmacion(titulo, mensaje, onConfirm, opciones = {}) { const modal = document.getElementById("modal-confirmacion"); const tituloEl = document.getElementById("confirmacion-titulo"); const mensajeEl = document.getElementById("confirmacion-mensaje"); const btnConfirmar = document.getElementById("confirmacion-btn-confirmar"); const checkboxContainer = document.getElementById("confirmacion-checkbox-container"); const checkbox = document.getElementById("confirmacion-checkbox"); const checkboxLabel = document.getElementById("confirmacion-checkbox-label"); tituloEl.innerText = titulo; mensajeEl.innerText = mensaje; confirmacionCallback = onConfirm; if (opciones.checkboxTexto) { checkboxContainer.classList.remove("oculto"); checkboxLabel.innerText = opciones.checkboxTexto; checkbox.checked = false; btnConfirmar.disabled = true; } else { checkboxContainer.classList.add("oculto"); btnConfirmar.disabled = false; } btnConfirmar.innerText = opciones.confirmTexto || "Confirmar"; btnConfirmar.className = opciones.confirmClase || "btn-danger"; modal.classList.remove("oculto"); }
-        function cerrarModalConfirmacion() { document.getElementById("modal-confirmacion").classList.add("oculto"); confirmacionCallback = null; }
-        document.getElementById("confirmacion-btn-confirmar").addEventListener("click", () => { if (confirmacionCallback) confirmacionCallback(); cerrarModalConfirmacion(); });
-        document.getElementById("confirmacion-checkbox").addEventListener("change", (e) => { document.getElementById("confirmacion-btn-confirmar").disabled = !e.target.checked; });
-        document.getElementById("modal-confirmacion").addEventListener("click", (e) => { if (e.target.id === "modal-confirmacion") cerrarModalConfirmacion(); });
+            const esInventario = areaSeleccionada === "Inventario";
+            const esAdmi = areaSeleccionada === "Admi";
 
-        function mostrarErrorCampo(campoId, mensaje) { const campo = document.getElementById(campoId); campo.classList.add("input-invalid"); let errorSpan = document.getElementById(`error-${campoId.replace("insumo-", "")}`); if (!errorSpan) { errorSpan = document.createElement("span"); errorSpan.className = "field-error"; errorSpan.id = `error-${campoId.replace("insumo-", "")}`; campo.parentElement.appendChild(errorSpan); } errorSpan.innerText = mensaje; }
-        function limpiarErrorCampo(campoId) { const campo = document.getElementById(campoId); campo.classList.remove("input-invalid"); const errorSpan = document.getElementById(`error-${campoId.replace("insumo-", "")}`); if (errorSpan) errorSpan.innerText = ""; }
-        function hacerScrollAlPrimerError() { const primerInvalido = document.querySelector(".input-invalid"); if (primerInvalido) { primerInvalido.scrollIntoView({ behavior: "smooth", block: "center" }); primerInvalido.focus(); } }
+            if (tienePermiso("Administrador") || esInventario || esAdmi) {
+                const insumos = baseDatosInventario[areaSeleccionada] || [];
+                thead.innerHTML = `<tr><th>Insumo / Ingrediente</th><th style="text-align: center;">Mínimo</th><th style="text-align: center;">Cantidad</th><th style="text-align: center;">Estado</th></tr>`;
+
+                insumos.forEach((insumo, index) => {
+                    const estado = obtenerEstadoInsumo(insumo);
+                    const fila = document.createElement("tr");
+                    fila.innerHTML = `
+                        <td><span class="nombre-insumo">${insumo.nombre}</span></td>
+                        <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
+                        <td style="text-align: center;">
+                            <div class="controles-stock">
+                                <button class="btn-control menos" onclick="modificarCantidad(${index}, -1)">-</button>
+                                <input type="number" class="input-stock-directo" value="${insumo.actual}" onchange="actualizarCantidadDirecta(${index}, this.value)">
+                                <span class="unidad-medida">${insumo.unidad}</span>
+                                <button class="btn-control mas" onclick="modificarCantidad(${index}, 1)">+</button>
+                            </div>
+                        </td>
+                        <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
+                    `;
+                    tbody.appendChild(fila);
+                });
+                document.getElementById("lbl-total-insumos").innerText = insumos.length;
+                return;
+            }
+
+            thead.innerHTML = `<tr><th>Orden / Producto</th><th style="text-align: center;">Cantidad</th><th style="text-align: center;">Estado Actual</th><th style="text-align: center;">Acción Comanda</th></tr>`;
+            const ordenesEstacion = solicitudesReabastecimiento.filter(s => s.area === areaSeleccionada);
+            
+            if (ordenesEstacion.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="mensaje-vacio" style="text-align:center; padding:30px;">No hay pedidos en la cola de esta estación.</td></tr>`;
+                document.getElementById("lbl-total-insumos").innerText = "0";
+                return;
+            }
+
+            ordenesEstacion.forEach(orden => {
+                const fila = document.createElement("tr");
+                let claseBadge = "", textoBoton = "";
+                if (orden.status === "En Horno") { claseBadge = "en-horno"; textoBoton = "🔥 Terminar Horneado"; }
+                if (orden.status === "Listo para Decorar") { claseBadge = "listo-para-decorar"; textoBoton = "👨‍🍳 Empezar Decoración"; }
+                if (orden.status === "En Decoración") { claseBadge = "en-decoracion"; textoBoton = "🧁 Terminar Decoración"; }
+                if (orden.status === "Terminado") { claseBadge = "terminado"; textoBoton = "🎁 Entregar Pedido"; }
+
+                fila.innerHTML = `
+                    <td><span class="nombre-insumo">🎂 ${orden.item}</span></td>
+                    <td style="text-align: center; font-weight: bold;">${orden.quantity} pzas</td>
+                    <td style="text-align: center;"><span class="badge-solicitud ${claseBadge}">${orden.status}</span></td>
+                    <td style="text-align: center;"><button class="btn-control mas" style="padding: 6px 16px; height: auto; font-size:1rem; width:auto; border-radius:8px; background:var(--morado-bubaru); color:white;" onclick="avanzarFlujoComanda('${orden.id}', '${orden.status}')">${textoBoton}</button></td>
+                `;
+                tbody.appendChild(fila);
+            });
+            document.getElementById("lbl-total-insumos").innerText = ordenesEstacion.length;
+        }
+
+        function modificarCantidad(index, cambio) {
+            const insumo = baseDatosInventario[areaSeleccionada][index];
+            insumo.actual = Math.max(0, insumo.actual + cambio);
+            guardarInventarioEnNube();
+        }
+
+        function actualizarCantidadDirecta(index, valor) {
+            const insumo = baseDatosInventario[areaSeleccionada][index];
+            let n = parseInt(valor); insumo.actual = isNaN(n) || n < 0 ? 0 : n;
+            guardarInventarioEnNube();
+        }
+
+        function abrirModalNuevaComanda() { abrirModal("modal-comanda-operador"); }
         
-        function existeInsumoDuplicado(nombre, area, indiceEdicion = null) { const insumos = baseDatosInventario[area] || []; const nombreNormalizado = normalizarTexto(nombre); return insumos.some((insumo, idx) => normalizarTexto(insumo.nombre) === nombreNormalizado && idx !== indiceEdicion); }
+        function crearComandaSecuencial() {
+            const nombre = document.getElementById("comanda-producto-nombre").value.trim();
+            const cantidad = parseInt(document.getElementById("comanda-producto-cantidad").value);
+            if (!nombre || cantidad <= 0) return;
 
-        function tienePermiso(rol) { const rolSolicitado = normalizarTexto(rol); if (rolSolicitado === "admin" || rolSolicitado === "administrador") return rolActual === "Administrador"; if (rolSolicitado === "operador") return rolActual === "Operador" || rolActual === "Administrador"; return false; }
-        function aplicarPermisosRol() { const esAdministrador = tienePermiso("Administrador"); document.body.classList.toggle("rol-operador", !esAdministrador); const tarjetaFormulario = document.getElementById("tarjeta-form-registro"); if (tarjetaFormulario) tarjetaFormulario.style.display = esAdministrador ? "block" : "none"; const btnReiniciar = document.getElementById("btn-reiniciar-memoria"); if (btnReiniciar) btnReiniciar.style.display = esAdministrador ? "block" : "none"; const titulosGral = document.getElementById("titulo-vista-general"); const titulosEst = document.getElementById("titulo-estaciones"); const listaEstaciones = ["Dashboard", "Inventario", "Butique", "Betun", "Horno", "Pan", "Admi"]; if (esAdministrador) { if (titulosGral) titulosGral.style.display = "block"; if (titulosEst) titulosEst.style.display = "block"; listaEstaciones.forEach(estacion => { const botonNav = document.getElementById(`btn-nav-${estacion}`); if (botonNav) botonNav.style.display = "flex"; }); } else { if (titulosGral) titulosGral.style.display = "none"; if (titulosEst) titulosEst.style.display = "none"; listaEstaciones.forEach(estacion => { const botonNav = document.getElementById(`btn-nav-${estacion}`); if (botonNav) { if (estacion === areaSeleccionada) botonNav.style.display = "flex"; else botonNav.style.display = "none"; } }); } actualizarInterfazArea(); }
+            const nuevaComanda = {
+                item: nombre,
+                quantity: cantidad,
+                area: "Horno",
+                status: "En Horno",
+                timestamp: Date.now()
+            };
 
-        function registrarMovimiento(area, nombre, valorAnterior, valorNuevo, tipo, detalles = "") { bitacoraMovimientos.unshift({ id: `MOV-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`, fecha: new Date().toISOString(), area, nombre, valorAnterior, valorNuevo, tipo, rol: rolActual || "Administrador", detalles }); while (bitacoraMovimientos.length > 100) bitacoraMovimientos.pop(); guardarBitacora(); renderizarBitacora(); mostrarPuntoNuevoBitacora(); }
-        function mostrarPuntoNuevoBitacora() { const punto = document.getElementById("bitacora-punto-nuevo"); if (punto) { punto.classList.remove("oculto"); setTimeout(() => punto.classList.add("oculto"), 3000); } }
-        function abrirModalBitacora() { renderizarBitacora(); abrirModal("modal-bitacora"); }
-        function obtenerMovimientosFiltrados() { const filtroArea = document.getElementById("filtro-bitacora-area").value; const filtroTipo = document.getElementById("filtro-bitacora-tipo").value; const filtroFecha = document.getElementById("filtro-bitacora-fecha").value; let movimientosFiltrados = [...bitacoraMovimientos]; if (filtroArea !== "Todas") movimientosFiltrados = movimientosFiltrados.filter(m => m.area === filtroArea); if (filtroTipo !== "Todas") movimientosFiltrados = movimientosFiltrados.filter(m => m.tipo === filtroTipo); if (filtroFecha) { const fechaFiltro = new Date(filtroFecha).toDateString(); movimientosFiltrados = movimientosFiltrados.filter(m => new Date(m.fecha).toDateString() === fechaFiltro); } return movimientosFiltrados; }
-        function filtrarBitacora() { renderizarBitacora(); }
-        function renderizarBitacora() { const tbody = document.getElementById("cuerpo-tabla-bitacora"); if (!tbody) return; tbody.innerHTML = ""; const movimientosFiltrados = obtenerMovimientosFiltrados(); if (movimientosFiltrados.length === 0) { tbody.innerHTML = `<tr><td colspan="8" class="mensaje-vacio">No hay movimientos registrados.</td></tr>`; return; } movimientosFiltrados.forEach(movimiento => { const diferencia = movimiento.valorNuevo - movimiento.valorAnterior; const fila = document.createElement("tr"); let claseTipo = normalizarTexto(movimiento.tipo); if (claseTipo === "alta") claseTipo = "alta"; if (claseTipo === "baja") claseTipo = "baja"; if (claseTipo === "incremento") claseTipo = "incremento"; if (claseTipo === "decremento") claseTipo = "decremento"; if (claseTipo === "edición") claseTipo = "edicion"; if (claseTipo === "ajuste manual") claseTipo = "ajuste"; if (claseTipo === "transferencia") claseTipo = "transferencia"; if (claseTipo === "seguridad") claseTipo = "seguridad"; fila.innerHTML = `<td>${escaparHtml(formatearFecha(movimiento.fecha))}</td><td>${escaparHtml(movimiento.rol)}</td><td>${escaparHtml(obtenerNombreAreaVisible(movimiento.area))}</td><td>${escaparHtml(movimiento.nombre)}</td><td><span class="badge-tipo ${claseTipo}">${escaparHtml(movimiento.tipo)}</span></td><td>${escaparHtml(movimiento.valorAnterior)}</td><td>${escaparHtml(movimiento.valorNuevo)}</td><td class="bitacora-diferencia ${diferencia >= 0 ? 'positivo' : 'negativo'}">${diferencia >= 0 ? '+' : ''}${diferencia}</td>`; tbody.appendChild(fila); }); }
-        function exportarCsvBitacora() { const movimientosFiltrados = obtenerMovimientosFiltrados(); if (movimientosFiltrados.length === 0) { mostrarToast("No hay movimientos para exportar con los filtros actuales.", "warning"); return; } const filtroArea = document.getElementById("filtro-bitacora-area").value; const filtroTipo = document.getElementById("filtro-bitacora-tipo").value; const filtroFecha = document.getElementById("filtro-bitacora-fecha").value; const areaArchivo = filtroArea === "Todas" ? "todas" : filtroArea; const tipoArchivo = filtroTipo === "Todas" ? "todas" : filtroTipo; const fechaArchivo = filtroFecha || obtenerFechaArchivo(); const columnas = ["Fecha/Hora", "Rol", "Área", "Insumo", "Tipo", "Antes", "Después", "Diferencia"]; const filas = movimientosFiltrados.map(movimiento => { const diferencia = movimiento.valorNuevo - movimiento.valorAnterior; const diferenciaStr = diferencia >= 0 ? `+${diferencia}` : `${diferencia}`; return [formatearFecha(movimiento.fecha), movimiento.rol, obtenerNombreAreaVisible(movimiento.area), movimiento.nombre, movimiento.tipo, movimiento.valorAnterior, movimiento.valorNuevo, diferenciaStr].map(limpiarValorCsv).join(","); }); const csv = "\uFEFF" + [columnas.join(","), ...filas].join("\n"); const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob); const enlace = document.getElementById("descarga-csv"); enlace.href = url; enlace.download = `bubaru_bitacora_${areaArchivo}_${tipoArchivo}_${fechaArchivo}.csv`; enlace.click(); URL.revokeObjectURL(url); mostrarToast(`Bitácora exportada: ${movimientosFiltrados.length} movimientos`, "success"); }
-        function limpiarHistorialBitacora() { mostrarModalConfirmacion("⚠️ Limpiar historial", "¿Deseas limpiar todo el historial de movimientos? Esta acción no se puede deshacer.", () => { bitacoraMovimientos = []; guardarBitacora(); renderizarBitacora(); mostrarNotificacion("Historial limpiado.", "exito"); }, { confirmTexto: "Sí, limpiar" }); }
+            database.ref('comandas').push(nuevaComanda);
+            cerrarModal("modal-comanda-operador");
+            document.getElementById("comanda-producto-nombre").value = "";
+            mostrarToast("🚀 Comanda enviada directo a la estación de Horno");
+        }
 
-        function mostrarDashboard(botonElemento) { document.querySelectorAll(".btn-area[data-area]").forEach(btn => btn.classList.remove("activo")); if (botonElemento) botonElemento.classList.add("activo"); document.getElementById("dashboard-view").classList.add("visible"); document.getElementById("tarjeta-form-registro").style.display = "none"; document.querySelector(".grid-resumen").style.display = "none"; document.querySelector(".contenedor-tabla").style.display = "none"; document.getElementById("txt-area-activa").innerText = "Vista: Dashboard"; renderizarDashboard(); }
-        function renderizarDashboard() { const grid = document.getElementById("dashboard-areas-grid"); if (!grid) return; grid.innerHTML = ""; let totalCriticos = 0; let costoTotal = 0; let intentosSeguridad = intentosFallidosPin.operador + intentosFallidosPin.admin; Object.keys(baseDatosInventario).forEach(area => { const insumos = baseDatosInventario[area] || []; let criticosArea = 0; let bajosArea = 0; insumos.forEach(insumo => { const estado = obtenerEstadoInsumo(insumo); if (estado.clase === "critico") { criticosArea++; totalCriticos++; } else if (estado.clase === "bajo") bajosArea++; if (insumo.precioUnitario) costoTotal += insumo.actual * insumo.precioUnitario; }); const borderClass = criticosArea === 0 ? "border-verde" : criticosArea <= 2 ? "border-naranja" : "border-rojo"; const icono = { Admi: "🏢", Pan: "🍞", Betun: "🧁", Butique: "🎂", Horno: "🔥", Inventario: "📦" }[area] || "📍"; const card = document.createElement("div"); card.className = `dashboard-area-card ${borderClass}`; card.innerHTML = `<div class="dashboard-area-header"><div class="dashboard-area-title">${obtenerNombreAreaVisible(area)}</div><div class="dashboard-area-icon">${icono}</div></div><div class="dashboard-area-stats"><div class="dashboard-area-stat"><div class="stat-label">Total</div><div class="stat-value">${insumos.length}</div><div class="dashboard-area-bar"><div class="dashboard-area-bar-fill" style="width: ${Math.min(100, (insumos.length / 20) * 100)}%"></div></div></div><div class="dashboard-area-stat"><div class="stat-label">Crítico</div><div class="stat-value critico">${criticosArea}</div><div class="dashboard-area-bar"><div class="dashboard-area-bar-fill critico" style="width: ${criticosArea > 0 ? Math.min(100, (criticosArea / insumos.length) * 100) : 0}%"></div></div></div><div class="dashboard-area-stat"><div class="stat-label">Bajo</div><div class="stat-value bajo">${bajosArea}</div><div class="dashboard-area-bar"><div class="dashboard-area-bar-fill bajo" style="width: ${bajosArea > 0 ? Math.min(100, (bajosArea / insumos.length) * 100) : 0}%"></div></div></div></div><button class="btn-ver-area" onclick="irAArea('${area}')">Ver área →</button>`; grid.appendChild(card); }); document.getElementById("dashboard-criticos").innerText = totalCriticos; document.getElementById("dashboard-costo").innerText = `$${costoTotal.toFixed(2)}`; document.getElementById("dashboard-seguridad").innerHTML = `${intentosSeguridad} intentos fallidos`; const ahora = new Date(); document.getElementById("dashboard-ultima-actualizacion").innerText = `Última actualización: ${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}:${String(ahora.getSeconds()).padStart(2, "0")}`; }
-        function actualizarDashboardManual() { renderizarDashboard(); mostrarToast("Dashboard actualizado", "success"); }
-        function irAArea(area) { const botonArea = document.querySelector(`.btn-area[data-area="${area}"]`); cambiarArea(area, botonArea); }
-        function ocultarDashboard() { document.getElementById("dashboard-view").classList.remove("visible"); document.getElementById("tarjeta-form-registro").style.display = ""; document.querySelector(".grid-resumen").style.display = ""; document.querySelector(".contenedor-tabla").style.display = ""; }
+        function avanzarFlujoComanda(id, statusActual) {
+            const referenciaComanda = database.ref(`comandas/${id}`);
 
-        function actualizarBadgesSidebar() { Object.keys(baseDatosInventario).forEach(area => { let contadorCriticos = 0; baseDatosInventario[area].forEach(insumo => { if (insumo.actual <= (insumo.min * 0.5)) contadorCriticos++; }); const badgeElemento = document.getElementById(`badge-${area}`); if (badgeElemento) { if (contadorCriticos > 0) { badgeElemento.innerText = contadorCriticos; badgeElemento.style.display = "inline-block"; } else badgeElemento.style.display = "none"; } }); actualizarBadgeSolicitudes(); }
-        function actualizarBadgeSolicitudes() { const badge = document.getElementById("badge-solicitudes"); const pendientes = solicitudesReabastecimiento.filter(solicitud => solicitud.status === "Pendiente").length; if (pendientes > 0) { badge.innerText = pendientes; badge.style.display = "inline-block"; } else badge.style.display = "none"; }
+            if (statusActual === "En Horno") { 
+                referenciaComanda.update({ status: "Listo para Decorar", area: "Betun" });
+                mostrarToast("🔥 Horneado finalizado. Enviado a estación Betún.");
+            }
+            else if (statusActual === "Listo para Decorar") { 
+                referenciaComanda.update({ status: "En Decoración" });
+            }
+            else if (statusActual === "En Decoración") { 
+                referenciaComanda.update({ status: "Terminado", area: "Butique" });
+                database.ref('alertas/boutique').set(`🔔 ¡Pedido Concluido! La orden ya se encuentra lista en Boutique.`);
+            }
+            else if (statusActual === "Terminado") { 
+                referenciaComanda.remove(); 
+                mostrarToast("🎁 ¡Pedido entregado con éxito!");
+            }
+        }
 
-        function actualizarBusqueda(valor) { terminoBusqueda = valor.trim(); document.getElementById("btn-limpiar-busqueda").classList.toggle("oculto", terminoBusqueda === ""); renderizarInventario(); actualizarBusquedaGlobal(); }
-        function limpiarBusqueda() { terminoBusqueda = ""; document.getElementById("busqueda-insumos").value = ""; document.getElementById("btn-limpiar-busqueda").classList.add("oculto"); document.getElementById("contador-busqueda").innerText = ""; document.getElementById("busqueda-dropdown").classList.remove("visible"); renderizarInventario(); }
-        function resaltarCoincidencia(nombre) { if (terminoBusqueda === "") return escaparHtml(nombre); const nombreNormalizado = normalizarTexto(nombre); const terminoNormalizado = normalizarTexto(terminoBusqueda); const inicio = nombreNormalizado.indexOf(terminoNormalizado); if (inicio === -1) return escaparHtml(nombre); const fin = inicio + terminoBusqueda.length; return `${escaparHtml(nombre.slice(0, inicio))}<mark>${escaparHtml(nombre.slice(inicio, fin))}</mark>${escaparHtml(nombre.slice(fin))}`; }
-        function actualizarBusquedaGlobal() { const dropdown = document.getElementById("busqueda-dropdown"); if (terminoBusqueda.length < 2) { dropdown.classList.remove("visible"); dropdown.innerHTML = ""; return; } const terminoNormalizado = normalizarTexto(terminoBusqueda); let resultadosPorArea = {}; let totalResultados = 0; Object.keys(baseDatosInventario).forEach(area => { if (area === areaSeleccionada) return; const insumos = baseDatosInventario[area] || []; const coincidencias = insumos.filter(insumo => normalizarTexto(insumo.nombre).includes(terminoNormalizado)); if (coincidencias.length > 0) { resultadosPorArea[area] = coincidencias; totalResultados += coincidencias.length; } }); if (totalResultados === 0) dropdown.innerHTML = `<div class="busqueda-dropdown-item" style="cursor: default;"><span class="busqueda-dropdown-item-info">Sin resultados en otras áreas</span></div>`; else { dropdown.innerHTML = ""; Object.keys(resultadosPorArea).forEach(area => { const header = document.createElement("div"); header.className = "busqueda-dropdown-grupo-header"; header.innerHTML = `${({ Admi:"🏢", Pan:"🍞", Betun:"🧁", Butique:"🎂", Horno:"🔥", Inventario:"📦" }[area] || "📍")} ${obtenerNombreAreaVisible(area)}`; dropdown.appendChild(header); resultadosPorArea[area].forEach(insumo => { const item = document.createElement("div"); item.className = "busqueda-dropdown-item"; const estado = obtenerEstadoInsumo(insumo); item.innerHTML = `<span class="busqueda-dropdown-item-nombre">${escaparHtml(insumo.nombre)}</span><span class="busqueda-dropdown-item-info">${insumo.actual} ${insumo.unidad} · <span class="badge-estado ${estado.clase}">${estado.texto}</span></span>`; item.onclick = () => { limpiarBusqueda(); const botonArea = document.querySelector(`.btn-area[data-area="${area}"]`); cambiarArea(area, botonArea); terminoBusqueda = insumo.nombre; document.getElementById("busqueda-insumos").value = insumo.nombre; actualizarBusqueda(insumo.nombre); }; dropdown.appendChild(item); }); }); } dropdown.classList.add("visible"); }
-        document.addEventListener("click", (e) => { const busquedaGlobal = document.querySelector(".busqueda-global"); if (!busquedaGlobal.contains(e.target)) document.getElementById("busqueda-dropdown").classList.remove("visible"); });
-        document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.getElementById("busqueda-dropdown").classList.remove("visible"); });
+        // ======================================================================
+        // CONTROL DE ACCESO (SISTEMA DE PINS)
+        // ======================================================================
+        function seleccionarRol(rol) { rolSeleccionadoLogin = rol; if (rol === "operador") mostrarPantallaAreaSelection(); else mostrarPantallaPinEntry(); }
+        function seleccionarArea(area) { areaSeleccionadaLogin = area; mostrarPantallaPinEntry(); }
+        function mostrarPantallaAreaSelection() { document.getElementById("login-rol-selection").classList.add("oculto"); document.getElementById("login-area-selection").classList.remove("oculto"); }
+        function mostrarPantallaPinEntry() { document.getElementById("login-pin-entry").classList.remove("oculto"); document.getElementById("login-area-selection").classList.add("oculto"); document.getElementById("login-rol-selection").classList.add("oculto"); document.getElementById("pin-entry-0").focus(); }
+        function volverARolSelection() { document.getElementById("login-rol-selection").classList.remove("oculto"); document.getElementById("login-area-selection").classList.add("oculto"); }
+        function volverAPantallaAnterior() { volverARolSelection(); }
 
-        function ordenarInsumos(insumos, columna, direccion) { return [...insumos].sort((a, b) => { let valA, valB; switch(columna) { case 'nombre': valA = normalizarTexto(a.nombre); valB = normalizarTexto(b.nombre); break; case 'minimo': valA = a.min; valB = b.min; break; case 'actual': valA = a.actual; valB = b.actual; break; case 'precio': valA = a.precioUnitario || 0; valB = b.precioUnitario || 0; break; case 'precioTotal': valA = (a.actual) * (a.precioUnitario || 0); valB = (b.actual) * (b.precioUnitario || 0); break; case 'estado': const pesoEstado = { critico: 0, bajo: 1, ok: 2 }; valA = pesoEstado[obtenerEstadoInsumo(a).clase]; valB = pesoEstado[obtenerEstadoInsumo(b).clase]; break; default: valA = normalizarTexto(a.nombre); valB = normalizarTexto(b.nombre); } if (direccion === 'asc') return valA > valB ? 1 : valA < valB ? -1 : 0; else return valA < valB ? 1 : valA > valB ? -1 : 0; }); }
-        function setearOrdenamiento(columna) { if (ordenColumnaActual === columna) ordenDireccionActual = ordenDireccionActual === 'asc' ? 'desc' : 'asc'; else { ordenColumnaActual = columna; ordenDireccionActual = 'asc'; } renderizarInventario(); }
-        function obtenerIndicadorOrden(columna) { if (ordenColumnaActual === columna) return ordenDireccionActual === 'asc' ? ' ↑' : ' ↓'; return ''; }
+        function inicializarSistemaAutenticacion() {
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`pin-entry-${i}`).addEventListener("input", (e) => {
+                    if (i < 3 && e.target.value) document.getElementById(`pin-entry-${i+1}`).focus();
+                    else if (i === 3) verificarPinEntry();
+                });
+            }
+        }
 
-        function renderizarInventario() { const insumos = baseDatosInventario[areaSeleccionada] || []; const thead = document.getElementById("encabezado-tabla"); const tbody = document.getElementById("cuerpo-tabla-inventario"); const esInventario = areaSeleccionada === "Inventario"; const puedeVerCostos = esInventario && tienePermiso("Administrador"); const mostrarAcciones = tienePermiso("Administrador") || esInventario; let insumosOrdenados = [...insumos]; if (ordenColumnaActual) insumosOrdenados = ordenarInsumos(insumos, ordenColumnaActual, ordenDireccionActual); tbody.innerHTML = ""; let alertasCriticasArea = 0; let resultadosBusqueda = 0; let encabezados = `<tr><th style="cursor: pointer;" onclick="setearOrdenamiento('nombre')">${esInventario ? "Nombre" : "Insumo / Ingrediente"}${obtenerIndicadorOrden('nombre')}</th><th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('minimo')">Mínimo${obtenerIndicadorOrden('minimo')}</th><th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('actual')">Cantidad${obtenerIndicadorOrden('actual')}</th>`; if (puedeVerCostos) encabezados += `<th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('precio')">Precio por unidad${obtenerIndicadorOrden('precio')}</th><th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('precioTotal')">Precio Total${obtenerIndicadorOrden('precioTotal')}</th>`; encabezados += `<th style="text-align: center; cursor: pointer;" onclick="setearOrdenamiento('estado')">Estado${obtenerIndicadorOrden('estado')}</th>`; if (mostrarAcciones) encabezados += `<th style="text-align: center;">Acciones</th>`; encabezados += `</tr>`; thead.innerHTML = encabezados; insumosOrdenados.forEach((insumo, indexOriginal) => { const index = baseDatosInventario[areaSeleccionada].findIndex(i => i.nombre === insumo.nombre); const estado = obtenerEstadoInsumo(insumo); if (estado.clase === "critico") alertasCriticasArea++; const coincideBusqueda = terminoBusqueda === "" || normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda)); if (!coincideBusqueda) return; resultadosBusqueda++; const pUnitario = insumo.precioUnitario ? insumo.precioUnitario : 0; const pTotal = insumo.actual * pUnitario; const limiteMinimo = esInventario ? 1 : 0; const fila = document.createElement("tr"); let celdas = `<td><span class="nombre-insumo">${resaltarCoincidencia(insumo.nombre)}</span></td><td style="text-align: center; color: var(--chocolate-mutado); font-weight: 600;">${escaparHtml(insumo.min)} ${escaparHtml(insumo.unidad)}</td><td style="text-align: center;"><div class="controles-stock"><button class="btn-control menos" onclick="modificarCantidad(${index}, -1)">-</button><input type="number" class="input-stock-directo" value="${escaparHtml(insumo.actual)}" min="${limiteMinimo}" onchange="actualizarCantidadDirecta(${index}, this.value)"><span class="unidad-medida">${escaparHtml(insumo.unidad)}</span><button class="btn-control mas" onclick="modificarCantidad(${index}, 1)">+</button></div></td>`; if (puedeVerCostos) celdas += `<td style="text-align: center; font-weight: bold; color: var(--menta-destacado);">$ ${pUnitario.toFixed(2)}</td><td style="text-align: center; font-weight: bold; color: var(--chocolate-bubaru);">$ ${pTotal.toFixed(2)}</td>`; celdas += `<td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>`; if (mostrarAcciones) { celdas += `<td style="text-align: center;"><div class="grupo-botones-acciones">`; if (esInventario) celdas += `<button class="btn-transferencia" onclick="abrirModalTransferencia(${index})" title="Transferir">↗</button>`; if (tienePermiso("Administrador")) celdas += `<button class="btn-editar solo-admin" onclick="activarModoEdicion(${index})">✏️</button><button class="btn-eliminar solo-admin" onclick="eliminarInsumo(${index})">🗑️</button>`; celdas += `</div></td>`; } fila.innerHTML = celdas; tbody.appendChild(fila); }); if (resultadosBusqueda === 0) { const columnas = thead.querySelectorAll("th").length || 5; tbody.innerHTML = `<tr><td colspan="${columnas}" class="mensaje-vacio">No se encontraron insumos.</td></tr>`; } document.getElementById("lbl-total-insumos").innerText = insumos.length; document.getElementById("lbl-alertas").innerText = alertasCriticasArea; document.getElementById("contador-busqueda").innerText = terminoBusqueda ? `${resultadosBusqueda} resultados` : ""; actualizarBadgesSidebar(); }
+        function verificarPinEntry() {
+            let pin = ""; for(let i=0; i<4; i++) pin += document.getElementById(`pin-entry-${i}`).value;
+            const esperado = rolSeleccionadoLogin === "operador" ? PIN_OPERADOR : PIN_ADMIN;
 
-        function modificarCantidad(index, cambio) { const insumo = baseDatosInventario[areaSeleccionada][index]; const limiteMinimo = areaSeleccionada === "Inventario" ? 1 : 0; const valorAnterior = insumo.actual; let nuevoValor = insumo.actual + cambio; if (nuevoValor < limiteMinimo) { nuevoValor = limiteMinimo; if (cambio < 0) { mostrarToast(`No se puede reducir por debajo de ${limiteMinimo}`, "warning"); return; } } if (nuevoValor !== valorAnterior) { agregarAccionDeshacer({ tipo: "cambiarCantidad", area: areaSeleccionada, indice: index, valorAnterior: valorAnterior }); insumo.actual = nuevoValor; registrarMovimiento(areaSeleccionada, insumo.nombre, valorAnterior, nuevoValor, cambio > 0 ? "Incremento" : "Decremento"); guardarEnLocalStorage(); renderizarInventario(); if (document.getElementById("dashboard-view").classList.contains("visible")) renderizarDashboard(); } }
-        function actualizarCantidadDirecta(index, valor) { let nuevaCantidad = parseInt(valor); const limiteMinimo = areaSeleccionada === "Inventario" ? 1 : 0; const insumo = baseDatosInventario[areaSeleccionada][index]; const valorAnterior = insumo.actual; if (isNaN(nuevaCantidad)) nuevaCantidad = limiteMinimo; if (nuevaCantidad < limiteMinimo) { nuevaCantidad = limiteMinimo; mostrarToast(`La cantidad no puede ser menor a ${limiteMinimo}`, "warning"); } if (valorAnterior !== nuevaCantidad) { agregarAccionDeshacer({ tipo: "cambiarCantidad", area: areaSeleccionada, indice: index, valorAnterior: valorAnterior }); insumo.actual = nuevaCantidad; registrarMovimiento(areaSeleccionada, insumo.nombre, valorAnterior, nuevaCantidad, "Ajuste Manual"); guardarEnLocalStorage(); renderizarInventario(); if (document.getElementById("dashboard-view").classList.contains("visible")) renderizarDashboard(); } }
+            if (pin === esperado) {
+                rolActual = rolSeleccionadoLogin === "operador" ? "Operador" : "Administrador";
+                if (rolSeleccionadoLogin === "operador") areaSeleccionada = areaSeleccionadaLogin;
+                document.getElementById("lock-screen").classList.add("oculto");
+                document.getElementById("txt-area-activa").innerText = `Área: ${obtenerNombreAreaVisible(areaSeleccionada)}`;
+                aplicarPermisosRol();
+                escucharCambiosEnNube(); 
+            } else {
+                mostrarToast("❌ PIN Incorrecto");
+                for(let i=0; i<4; i++) document.getElementById(`pin-entry-${i}`).value = "";
+                document.getElementById("pin-entry-0").focus();
+            }
+        }
 
-        function agregarAccionDeshacer(accion) { pilaDeshacer.push(accion); if (pilaDeshacer.length > 20) pilaDeshacer.shift(); mostrarBotonDeshacer(); }
-        function mostrarBotonDeshacer() { const boton = document.getElementById("btn-deshacer"); boton.classList.add("visible"); if (temporizadorNotificacion) clearTimeout(temporizadorNotificacion); temporizadorNotificacion = setTimeout(() => boton.classList.remove("visible"), 5000); }
-        function deshacerUltimaAccion() { if (pilaDeshacer.length === 0) return; const accion = pilaDeshacer.pop(); switch (accion.tipo) { case "eliminarInsumo": baseDatosInventario[accion.area].splice(accion.indice, 0, accion.insumo); break; case "editarInsumo": baseDatosInventario[accion.area][accion.indice] = accion.insumoAnterior; break; case "cambiarCantidad": baseDatosInventario[accion.area][accion.indice].actual = accion.valorAnterior; break; case "transferencia": baseDatosInventario[accion.origen][accion.indiceOrigen].actual += accion.cantidad; const indiceDestino = baseDatosInventario[accion.destino].findIndex(item => normalizarTexto(item.nombre) === normalizarTexto(accion.nombreInsumo)); if (indiceDestino >= 0) baseDatosInventario[accion.destino][indiceDestino].actual -= accion.cantidad; break; } guardarEnLocalStorage(); renderizarInventario(); actualizarBadgeSolicitudes(); if (pilaDeshacer.length > 0) mostrarBotonDeshacer(); else document.getElementById("btn-deshacer").classList.remove("visible"); mostrarToast("✅ Acción deshecha", "success"); }
+        function mostrarDashboard() { document.getElementById("dashboard-view").style.display = "block"; }
+        function cambiarArea(area, btn) { areaSeleccionada = area; document.getElementById("dashboard-view").style.display = "none"; document.getElementById("txt-area-activa").innerText = `Área: ${obtenerNombreAreaVisible(area)}`; aplicarPermisosRol(); renderizarInventario(); }
+        function tienePermiso(r) { return r === "Administrador" ? rolActual === "Administrador" : true; }
+        
+        function aplicarPermisosRol() {
+            const admin = tienePermiso("Administrador");
+            document.body.classList.toggle("rol-operador", !admin);
+        }
+        
+        function obtenerNombreAreaVisible(a) { const n={Admi:"Administración",Pan:"Papelería",Betun:"Betún",Butique:"Boutique",Horno:"Horno",Inventario:"Inventario"}; return n[a]||a; }
+        function obtenerEstadoInsumo(i) { if(i.actual <= i.min*0.5) return {clase:"critico",texto:"Crítico"}; return {clase:"ok",texto:"Óptimo"}; }
+        function mostrarToast(m) { const c=document.getElementById("toast-container"); const t=document.createElement("div"); t.className="toast"; t.innerText=m; c.appendChild(t); setTimeout(()=>t.remove(),2500); }
+        function abrirModal(id) { document.getElementById(id).classList.remove("oculto"); }
+        function cerrarModal(id) { document.getElementById(id).classList.add("oculto"); }
+        function cerrarSesion() { window.location.reload(); }
 
-        function activarModoEdicion(index) { if (!tienePermiso("Administrador")) { mostrarNotificacion("El rol Operador no puede editar insumos.", "error"); return; } const insumo = baseDatosInventario[areaSeleccionada][index]; indexInsumoEnEdicion = index; document.getElementById("insumo-nombre").value = insumo.nombre; document.getElementById("insumo-actual").value = insumo.actual; document.getElementById("insumo-min").value = insumo.min; document.getElementById("insumo-unidad").value = insumo.unidad; if (areaSeleccionada === "Inventario") document.getElementById("insumo-precio-unitario").value = insumo.precioUnitario || 0; document.getElementById("tarjeta-form-registro").classList.add("modo-edicion-activa"); document.getElementById("titulo-form").innerHTML = `✏️ Editando: ${insumo.nombre}`; const btnEjecutar = document.getElementById("btn-ejecutar-form"); btnEjecutar.innerText = "Guardar"; btnEjecutar.classList.add("edicion"); document.querySelector(".contenido-principal").scrollTop = 0; }
-        function limpiarFormularioModoRegistro() { indexInsumoEnEdicion = null; document.getElementById("insumo-nombre").value = ""; document.getElementById("insumo-actual").value = ""; document.getElementById("insumo-min").value = ""; const precioInput = document.getElementById("insumo-precio-unitario"); if (precioInput) precioInput.value = ""; document.getElementById("tarjeta-form-registro").classList.remove("modo-edicion-activa"); document.getElementById("titulo-form").innerHTML = `+ Registrar Nuevo Insumo en esta Área`; const btnEjecutar = document.getElementById("btn-ejecutar-form"); btnEjecutar.innerText = "Agregar"; btnEjecutar.classList.remove("edicion"); }
-        function agregarOEditarInsumo() { if (!tienePermiso("Administrador")) { mostrarNotificacion("El rol Operador no puede agregar o editar insumos.", "error"); return; } const nombre = document.getElementById("insumo-nombre").value.trim(); const actualStr = document.getElementById("insumo-actual").value; const minStr = document.getElementById("insumo-min").value; const unidad = document.getElementById("insumo-unidad").value; const precioUnitarioStr = document.getElementById("insumo-precio-unitario").value; const actual = parseInt(actualStr); const min = parseInt(minStr); const precioUnitario = parseFloat(precioUnitarioStr); let formularioValido = true; if (!nombre || nombre.length < 2) { mostrarErrorCampo("insumo-nombre", "El nombre debe tener al menos 2 caracteres"); formularioValido = false; } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-]+$/.test(nombre)) { mostrarErrorCampo("insumo-nombre", "Solo letras, números, espacios y guiones"); formularioValido = false; } else { limpiarErrorCampo("insumo-nombre"); } if (isNaN(actual) || actual < 0) { mostrarErrorCampo("insumo-actual", "Cantidad inválida"); formularioValido = false; } else { limpiarErrorCampo("insumo-actual"); } if (isNaN(min) || min < 0) { mostrarErrorCampo("insumo-min", "Stock mínimo inválido"); formularioValido = false; } else if (min > actual) { mostrarErrorCampo("insumo-min", "El stock mínimo no puede ser mayor a la cantidad actual"); formularioValido = false; } else { limpiarErrorCampo("insumo-min"); } if (!unidad) { mostrarErrorCampo("insumo-unidad", "Selecciona una unidad"); formularioValido = false; } else { limpiarErrorCampo("insumo-unidad"); } if (areaSeleccionada === "Inventario") { if (isNaN(precioUnitario) || precioUnitario < 0) { mostrarErrorCampo("insumo-precio-unitario", "Precio inválido"); formularioValido = false; } else { limpiarErrorCampo("insumo-precio-unitario"); } } if (formularioValido && existeInsumoDuplicado(nombre, areaSeleccionada, indexInsumoEnEdicion)) { mostrarToast(`Ya existe un insumo con el nombre "${nombre}" en esta área`, "error"); mostrarErrorCampo("insumo-nombre", "Ya existe un insumo con este nombre"); formularioValido = false; } if (!formularioValido) { hacerScrollAlPrimerError(); return; } const itemEstructurado = { nombre: nombre, actual: actual, min: min, unidad: unidad }; if (areaSeleccionada === "Inventario") itemEstructurado.precioUnitario = isNaN(precioUnitario) ? 0 : precioUnitario; if (indexInsumoEnEdicion !== null) { const insumoAnterior = baseDatosInventario[areaSeleccionada][indexInsumoEnEdicion]; agregarAccionDeshacer({ tipo: "editarInsumo", area: areaSeleccionada, indice: indexInsumoEnEdicion, insumoAnterior: insumoAnterior }); baseDatosInventario[areaSeleccionada][indexInsumoEnEdicion] = itemEstructurado; registrarMovimiento(areaSeleccionada, itemEstructurado.nombre, insumoAnterior.actual, itemEstructurado.actual, "Edición"); } else { baseDatosInventario[areaSeleccionada].unshift(itemEstructurado); registrarMovimiento(areaSeleccionada, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta"); } limpiarFormularioModoRegistro(); guardarEnLocalStorage(); renderizarInventario(); mostrarToast(`✅ ${indexInsumoEnEdicion !== null ? 'Editado' : 'Agregado'}: ${nombre}`, "success"); }
-        function eliminarInsumo(index) { if (!tienePermiso("Administrador")) { mostrarNotificacion("El rol Operador no puede eliminar insumos.", "error"); return; } if (indexInsumoEnEdicion === index) limpiarFormularioModoRegistro(); const insumoEliminado = baseDatosInventario[areaSeleccionada][index]; mostrarModalConfirmacion("⚠️ Eliminar insumo", `¿Estás seguro de que deseas eliminar ${insumoEliminado.nombre}? Esta acción no se puede deshacer.`, () => { agregarAccionDeshacer({ tipo: "eliminarInsumo", area: areaSeleccionada, indice: index, insumo: insumoEliminado }); baseDatosInventario[areaSeleccionada].splice(index, 1); registrarMovimiento(areaSeleccionada, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja"); guardarEnLocalStorage(); renderizarInventario(); }, { confirmTexto: "Sí, eliminar" }); }
-
-        function abrirModalTransferencia(index) { if (areaSeleccionada !== "Inventario") return; transferenciaIndice = index; const insumo = baseDatosInventario.Inventario[index]; const selectDestino = document.getElementById("transferencia-destino"); const inputCantidad = document.getElementById("transferencia-cantidad"); selectDestino.innerHTML = ""; Object.keys(baseDatosInventario).filter(area => area !== "Inventario" && area !== areaSeleccionada).forEach(area => { const option = document.createElement("option"); option.value = area; option.innerText = obtenerNombreAreaVisible(area); selectDestino.appendChild(option); }); inputCantidad.value = ""; inputCantidad.max = insumo.actual; document.getElementById("transferencia-info").innerHTML = `${insumo.nombre} disponible: ${insumo.actual} ${insumo.unidad}`; document.getElementById("transfer-preview-text").innerHTML = `0 ${insumo.unidad}`; document.getElementById("transfer-preview-destino").innerHTML = "-"; document.getElementById("btn-confirmar-transferencia").disabled = true; abrirModal("modal-transferencia"); }
-        function actualizarPreviewTransferencia() { const destino = document.getElementById("transferencia-destino").value; const cantidad = parseInt(document.getElementById("transferencia-cantidad").value); const insumo = baseDatosInventario.Inventario[transferenciaIndice]; const btnConfirmar = document.getElementById("btn-confirmar-transferencia"); if (!insumo) return; const cantidadValida = !isNaN(cantidad) && cantidad > 0 && cantidad <= insumo.actual; const destinoValido = destino && destino !== ""; if (cantidadValida && destinoValido) { document.getElementById("transfer-preview-text").innerHTML = `${cantidad} ${insumo.unidad}`; document.getElementById("transfer-preview-destino").innerHTML = obtenerNombreAreaVisible(destino); btnConfirmar.disabled = false; } else { document.getElementById("transfer-preview-text").innerHTML = cantidadValida ? `${cantidad} ${insumo.unidad}` : `0 ${insumo.unidad}`; document.getElementById("transfer-preview-destino").innerHTML = destinoValido ? obtenerNombreAreaVisible(destino) : "-"; btnConfirmar.disabled = true; } }
-        function confirmarTransferencia() { const destino = document.getElementById("transferencia-destino").value; const cantidad = parseInt(document.getElementById("transferencia-cantidad").value); const insumoOrigen = baseDatosInventario.Inventario[transferenciaIndice]; if (!insumoOrigen) { mostrarToast("No se encontró el insumo a transferir.", "error"); return; } if (isNaN(cantidad) || cantidad <= 0 || cantidad > insumoOrigen.actual) { mostrarToast("La cantidad debe ser mayor a 0 y no exceder el stock actual.", "error"); return; } const valorAnteriorOrigen = insumoOrigen.actual; insumoOrigen.actual -= cantidad; const listaDestino = baseDatosInventario[destino]; const indiceDestino = listaDestino.findIndex(item => normalizarTexto(item.nombre) === normalizarTexto(insumoOrigen.nombre)); let valorAnteriorDestino = 0; let valorNuevoDestino = cantidad; if (indiceDestino >= 0) { valorAnteriorDestino = listaDestino[indiceDestino].actual; listaDestino[indiceDestino].actual += cantidad; valorNuevoDestino = listaDestino[indiceDestino].actual; } else { listaDestino.unshift({ nombre: insumoOrigen.nombre, min: 0, actual: cantidad, unidad: insumoOrigen.unidad }); } agregarAccionDeshacer({ tipo: "transferencia", origen: "Inventario", destino: destino, indiceOrigen: transferenciaIndice, nombreInsumo: insumoOrigen.nombre, cantidad: cantidad }); registrarMovimiento("Inventario", insumoOrigen.nombre, valorAnteriorOrigen, insumoOrigen.actual, "Transferencia"); registrarMovimiento(destino, insumoOrigen.nombre, valorAnteriorDestino, valorNuevoDestino, "Transferencia"); guardarEnLocalStorage(); cerrarModal("modal-transferencia"); renderizarInventario(); mostrarToast(`✅ Transferencia completada: ${cantidad} ${insumoOrigen.unidad} de ${insumoOrigen.nombre} → ${obtenerNombreAreaVisible(destino)}`, "success"); if (document.getElementById("dashboard-view").classList.contains("visible")) renderizarDashboard(); }
-
-        function cambiarArea(nombreArea, botonElemento) { limpiarFormularioModoRegistro(); limpiarBusqueda(); ordenColumnaActual = null; ordenDireccionActual = "asc"; areaSeleccionada = nombreArea; document.getElementById("txt-area-activa").innerHTML = `Área: ${obtenerNombreAreaVisible(nombreArea)}`; document.querySelectorAll(".btn-area[data-area]").forEach(btn => btn.classList.remove("activo")); if (botonElemento) botonElemento.classList.add("activo"); ocultarDashboard(); actualizarInterfazArea(); renderizarInventario(); }
-        function actualizarInterfazArea() { const contenedorPrecio = document.getElementById("contenedor-precio-form"); const lblTipoModulo = document.getElementById("lbl-tipo-modulo"); const tituloTabla = document.getElementById("titulo-tabla-insumos"); const esInventario = areaSeleccionada === "Inventario"; const puedeVerCostos = esInventario && tienePermiso("Administrador"); contenedorPrecio.style.display = puedeVerCostos ? "flex" : "none"; if (esInventario) { lblTipoModulo.innerText = puedeVerCostos ? "Costos Activos" : "Costos Ocultos"; lblTipoModulo.style.color = puedeVerCostos ? "var(--menta-destacado)" : "var(--morado-bubaru)"; tituloTabla.innerText = puedeVerCostos ? "Control de Almacén General y Precios" : "Control de Almacén General"; } else { lblTipoModulo.innerText = "Inactivo en Cocina"; lblTipoModulo.style.color = "var(--morado-bubaru)"; tituloTabla.innerText = "Insumos Asignados a la Estación"; } }
-
-        function restablecerInventarioFabrica() { if (!tienePermiso("Administrador")) { mostrarNotificacion("Solo Administrador puede restablecer el inventario.", "error"); return; } mostrarModalConfirmacion("⚠️ Restablecer inventario", `Esto eliminará TODOS los cambios del área ${obtenerNombreAreaVisible(areaSeleccionada)} y restaurará los valores de fábrica. ¿Continuar?`, () => { localStorage.removeItem("BUBARU_INVENTARIO_DATA"); limpiarFormularioModoRegistro(); cargarDesdeLocalStorage(); renderizarInventario(); mostrarToast("Inventario restablecido a valores de fábrica", "success"); }, { checkboxTexto: "Entiendo que perderé todos los datos", confirmTexto: "Sí, restablecer" }); }
-
-        function notificarAdministracion() { abrirPanelSolicitudes(); }
-        function abrirPanelSolicitudes() { document.getElementById("solicitud-area-visible-panel").innerHTML = obtenerNombreAreaVisible(areaSeleccionada); document.getElementById("solicitud-item-panel").value = ""; document.getElementById("filtro-solicitudes-area").value = areaSeleccionada; filtroSolicitudesArea = areaSeleccionada; renderizarSolicitudesPanel("Todas"); document.getElementById("panel-solicitudes").classList.add("visible"); document.getElementById("side-panel-overlay").classList.add("visible"); }
-        function cerrarPanelSolicitudes() { document.getElementById("panel-solicitudes").classList.remove("visible"); document.getElementById("side-panel-overlay").classList.remove("visible"); }
-        function seleccionarUrgencia(urgencia, boton) { urgenciaSeleccionada = urgencia; document.querySelectorAll(".btn-urgencia").forEach(btn => btn.classList.remove("active")); boton.classList.add("active"); }
-        function actualizarContadorNotas(textarea) { const contador = document.getElementById("notas-counter"); if (contador) contador.innerText = `${textarea.value.length}/200`; }
-        function crearSolicitudReabastecimientoPanel() { const item = document.getElementById("solicitud-item-panel").value.trim(); const quantity = parseInt(document.getElementById("solicitud-cantidad-panel").value); const notes = document.getElementById("solicitud-notas-panel").value.trim(); if (item === "") { mostrarToast("Escribe el nombre del insumo solicitado.", "error"); return; } if (isNaN(quantity) || quantity <= 0) { mostrarToast("La cantidad solicitada debe ser mayor a 0.", "error"); return; } solicitudesReabastecimiento.unshift({ id: `SOL-${Date.now()}`, area: areaSeleccionada, item: item, quantity: quantity, urgency: urgenciaSeleccionada, notes: notes, status: "Pendiente", timestamp: new Date().toISOString() }); guardarSolicitudes(); actualizarBadgeSolicitudes(); renderizarSolicitudesPanel("Todas"); document.getElementById("solicitud-item-panel").value = ""; document.getElementById("solicitud-cantidad-panel").value = ""; document.getElementById("solicitud-notas-panel").value = ""; document.getElementById("notas-counter").innerText = "0/200"; seleccionarUrgencia("Normal", document.querySelector(".btn-urgencia.normal")); mostrarToast("✅ Solicitud registrada.", "success"); }
-        function filtrarSolicitudes(filtro, boton) { filtroSolicitudesActual = filtro; document.querySelectorAll(".side-panel-tab").forEach(btn => btn.classList.remove("active")); boton.classList.add("active"); renderizarSolicitudesPanel(filtro); }
-        function filtrarSolicitudesPorArea(area) { filtroSolicitudesArea = area; renderizarSolicitudesPanel(filtroSolicitudesActual); }
-        function renderizarSolicitudesPanel(filtro) { const contenedor = document.getElementById("contenedor-solicitudes-panel"); if (!contenedor) return; contenedor.innerHTML = ""; let solicitudesFiltradas = solicitudesReabastecimiento; if (filtro !== "Todas") solicitudesFiltradas = solicitudesReabastecimiento.filter(s => s.status === filtro); if (filtroSolicitudesArea !== "Todas") solicitudesFiltradas = solicitudesFiltradas.filter(s => s.area === filtroSolicitudesArea); const countElement = document.getElementById("filtro-solicitudes-count"); if (countElement) { const verTodasLink = filtroSolicitudesArea !== "Todas" ? ` · <a onclick="filtrarSolicitudesPorArea('Todas')">Ver todas</a>` : ""; countElement.innerHTML = `${solicitudesFiltradas.length} solicitudes${verTodasLink}`; } if (solicitudesFiltradas.length === 0) { contenedor.innerHTML = `<div class="mensaje-vacio">No hay solicitudes ${filtro.toLowerCase()}.</div>`; return; } solicitudesFiltradas.forEach(solicitud => { const card = document.createElement("div"); card.className = `side-panel-card urgencia-${normalizarTexto(solicitud.urgency)}`; const claseEstado = normalizarTexto(solicitud.status); const badgeEstado = tienePermiso("Administrador") ? `<button class="badge-solicitud ${claseEstado}" onclick="ciclarEstadoSolicitud('${solicitud.id}')">${escaparHtml(solicitud.status)}</button>` : `<span class="badge-solicitud ${claseEstado}">${escaparHtml(solicitud.status)}</span>`; card.innerHTML = `<div class="solicitud-badges">${badgeEstado}</div><h4>${escaparHtml(solicitud.item)}</h4><p class="side-panel-meta">Área: ${escaparHtml(obtenerNombreAreaVisible(solicitud.area))}</p><p class="side-panel-meta">Cantidad: ${escaparHtml(solicitud.quantity)}</p>${solicitud.notes ? `<p class="side-panel-notas">${escaparHtml(solicitud.notes)}</p>` : ""}<p class="side-panel-timestamp">${formatearTiempoRelativo(solicitud.timestamp)}</p>`; contenedor.appendChild(card); }); }
-        function formatearTiempoRelativo(fechaIso) { const fecha = new Date(fechaIso); const ahora = new Date(); const diferenciaMs = ahora - fecha; const diferenciaSegundos = Math.floor(diferenciaMs / 1000); const diferenciaMinutos = Math.floor(diferenciaSegundos / 60); const diferenciaHoras = Math.floor(diferenciaMinutos / 60); const diferenciaDias = Math.floor(diferenciaHoras / 24); if (diferenciaSegundos < 60) return "hace un momento"; if (diferenciaMinutos < 60) return `hace ${diferenciaMinutos} minuto${diferenciaMinutos !== 1 ? 's' : ''}`; if (diferenciaHoras < 24) return `hace ${diferenciaHoras} hora${diferenciaHoras !== 1 ? 's' : ''}`; if (diferenciaDias < 7) return `hace ${diferenciaDias} día${diferenciaDias !== 1 ? 's' : ''}`; return formatearFecha(fechaIso); }
-        function ciclarEstadoSolicitud(id) { if (!tienePermiso("Administrador")) return; const solicitud = solicitudesReabastecimiento.find(item => item.id === id); if (!solicitud) return; const flujo = ["Pendiente", "Atendida", "Rechazada"]; const indiceActual = flujo.indexOf(solicitud.status); solicitud.status = flujo[(indiceActual + 1) % flujo.length]; guardarSolicitudes(); renderizarSolicitudesPanel(filtroSolicitudesActual); actualizarBadgeSolicitudes(); }
-
-        function limpiarValorCsv(valor) { return `"${String(valor).replace(/"/g, '""')}"`; }
-        function exportarCsvActual() { const insumos = baseDatosInventario[areaSeleccionada] || []; const esInventario = areaSeleccionada === "Inventario"; const puedeVerCostos = esInventario && tienePermiso("Administrador"); const columnas = puedeVerCostos ? ["Nombre", "Cantidad", "Mínimo", "Unidad", "Precio Unitario", "Precio Total", "Estado"] : ["Nombre", "Cantidad", "Mínimo", "Unidad", "Estado"]; const filas = insumos.map(insumo => { const estado = obtenerEstadoInsumo(insumo).texto; const precioUnitario = insumo.precioUnitario ? insumo.precioUnitario : 0; const valores = [insumo.nombre, insumo.actual, insumo.min, insumo.unidad]; if (puedeVerCostos) valores.push(precioUnitario.toFixed(2), (precioUnitario * insumo.actual).toFixed(2)); valores.push(estado); return valores.map(limpiarValorCsv).join(","); }); const csv = "\uFEFF" + [columnas.join(","), ...filas].join("\n"); const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob); const enlace = document.getElementById("descarga-csv"); enlace.href = url; enlace.download = `bubaru_${areaSeleccionada}_${obtenerFechaArchivo()}.csv`; enlace.click(); URL.revokeObjectURL(url); mostrarNotificacion("CSV exportado correctamente.", "exito"); }
-
-        document.addEventListener("DOMContentLoaded", () => { cargarDesdeLocalStorage(); cargarBitacora(); cargarSolicitudes(); inicializarSistemaAutenticacion(); const esAdministrador = tienePermiso("Administrador"); if (esAdministrador) { const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]'); mostrarDashboard(dashboardBtn); } else { const botonOperador = document.getElementById(`btn-nav-${areaSeleccionada}`); cambiarArea(areaSeleccionada, botonOperador); } renderizarBitacora(); setInterval(() => { const ahora = new Date(); document.getElementById("reloj").innerHTML = `Sincronizado: ${ahora.toLocaleTimeString()}`; if (document.getElementById("dashboard-view").classList.contains("visible")) renderizarDashboard(); }, 1000); });
+        document.addEventListener("DOMContentLoaded", () => {
+            inicializarSistemaAutenticacion();
+            aplicarPermisosRol();
+            
+            setInterval(() => {
+                document.getElementById("reloj").innerHTML = `Sincronizado: ${new Date().toLocaleTimeString()}`;
+            }, 1000);
+        });
     </script>
+    ```
+
+Guarda el archivo, dale a refrescar en el navegador web y listo. ¡Tu sistema ya estará conectado a la nube de Firebase!
 </body>
 </html>
