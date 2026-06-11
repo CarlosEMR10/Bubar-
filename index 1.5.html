@@ -2088,6 +2088,26 @@
             color: white !important;
             border: none !important;
         }
+
+        /* 🌟 PIN DE NOTIFICACIÓN ROJO PARA EL ADMINISTRADOR */
+        .pin-notificacion-admin {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            width: 10px;
+            height: 10px;
+            background-color: #DC2626; /* Rojo crítico de tu paleta */
+            border-radius: 50%;
+            border: 1.5px solid #FFFFFF;
+            box-shadow: 0 0 6px rgba(220, 38, 38, 0.7);
+            animation: pulsoPin 1.8s infinite;
+        }
+
+        @keyframes pulsoPin {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
         
     </style>
 </head>
@@ -2140,7 +2160,10 @@
             <div class="controles-modulos-sidebar">
                 <div class="titulo-seccion">Módulos</div>
                 <button class="btn-area btn-modulo" onclick="abrirModalBitacora()">📋 Bitácora</button>
-                <button class="btn-area btn-modulo" onclick="abrirPanelSolicitudes()">📬 Solicitudes <span class="badge-alerta" id="badge-solicitudes">0</span></button>
+                <button class="btn-area btn-modulo" onclick="abrirPanelSolicitudes()" style="position: relative;">
+            📬 Solicitudes <span class="badge-alerta" id="badge-solicitudes">0</span>
+            <span id="pin-solicitudes-admin" class="pin-notificacion-admin" style="display: none;"></span>
+        </button>
             </div>
 
             <button class="btn-reiniciar-memoria solo-admin" id="btn-reiniciar-memoria" onclick="restablecerInventarioFabrica()">⚠️ Reiniciar Base de Datos</button>
@@ -2710,28 +2733,34 @@
         }
 
         function escucharCambiosEnNube() {
-    // Escucha actualizaciones del inventario de materiales
-    database.ref('inventario').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            baseDatosInventario = data;
-            renderizarInventario();
-        }
-    });
+            // Escucha actualizaciones del inventario de materiales
+            database.ref('inventario').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    baseDatosInventario = data;
+                    renderizarInventario();
+                }
+            });
 
-    // Escucha la cola de pedidos e hilos de comanda
-    database.ref('comandas').on('value', (snapshot) => {
-        const data = snapshot.val();
-        const listadoTemporal = [];
-        if (data) {
-            Object.keys(data).forEach(key => {
-                listadoTemporal.push({ id: key, ...data[key] });
+            // Escucha la cola de pedidos e hilos de comanda en tiempo real
+            database.ref('comandas').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const listadoTemporal = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        listadoTemporal.push({ id: key, ...data[key] });
+                    });
+                }
+                solicitudesReabastecimiento = listadoTemporal.reverse();
+                
+                // 🌟 REFRESCADO INMEDIATO: Forza a las tablas, números y al pin rojo del Admin a reaccionar al instante
+                renderizarInventario();
+                actualizarBadgeSolicitudes(); 
+                if (typeof renderizarSolicitudesPanel === "function") {
+                    renderizarSolicitudesPanel(filtroSolicitudesActual);
+                }
             });
         }
-        solicitudesReabastecimiento = listadoTemporal.reverse();
-        renderizarInventario();
-    });
-}
 
         function cargarDesdeLocalStorage() {
             const datosGuardados = localStorage.getItem("BUBARU_INVENTARIO_DATA");
@@ -3912,14 +3941,29 @@
             const badge = document.getElementById("badge-solicitudes");
             const pendientes = solicitudesReabastecimiento.filter(solicitud => solicitud.status === "Pendiente").length;
 
-            if (pendientes > 0) {
-                badge.innerText = pendientes;
-                badge.style.display = "inline-block";
-            } else {
-                badge.style.display = "none";
+            if (badge) {
+                if (pendientes > 0) {
+                    badge.innerText = pendientes;
+                    badge.style.display = "inline-block";
+                } else {
+                    badge.style.display = "none";
+                }
+            }
+
+            // 🌟 CONTROL DEL PIN EXCLUSIVO PARA EL ADMINISTRADOR
+            const pinAdmin = document.getElementById("pin-solicitudes-admin");
+            if (pinAdmin) {
+                const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
+                const tienePendientes = solicitudesReabastecimiento.some(s => s.status === "Pendiente");
+
+                // Prende el círculo rojo solo si es Administrador Y hay datos pendientes
+                if (esAdministrador && tienePendientes) {
+                    pinAdmin.style.display = "block";
+                } else {
+                    pinAdmin.style.display = "none";
+                }
             }
         }
-
         /* ===============================================
         BÚSQUEDA EN TIEMPO REAL
            =============================================== */
