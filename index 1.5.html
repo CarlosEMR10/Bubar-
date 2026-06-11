@@ -2260,7 +2260,7 @@
                     <h3 id="titulo-tabla-insumos">Insumos Asignados</h3>
                     <div class="tabla-acciones">
                         <button class="btn-csv" onclick="exportarCsvActual()">⬇ CSV</button>
-                        <button class="btn-accion-urgente" onclick="notificarAdministracion()">Pedir al Almacén General</button>
+                        <button class="btn-accion-urgente solo-admin" onclick="notificarAdministracion()">Pedir al Almacén General</button>
                         <button class="btn-accion-urgente" style="background: linear-gradient(135deg, var(--pastel-menta), var(--morado-bubaru));" onclick="abrirModalNuevaComanda()">🎂 Crear Nueva Orden / Comanda</button>
                     </div>
                 </div>
@@ -3573,6 +3573,16 @@
             const formSolicitudContainer = document.getElementById("formulario-crear-solicitud-container");
             if (formSolicitudContainer) {
                 formSolicitudContainer.style.display = esAdministrador ? "none" : "block";
+            }
+
+            // 🌟 RESTRICCIÓN EXCLUSIVA: Solo el Admin y el Operador de Inventario ven el botón de Solicitudes
+            const botonSolicitudesBarra = document.querySelector(".btn-modulo[onclick='abrirPanelSolicitudes()']");
+            if (botonSolicitudesBarra) {
+                if (esAdministrador || areaSeleccionada === "Inventario") {
+                    botonSolicitudesBarra.style.display = "flex";  // Visible para Admin e Inventario
+                } else {
+                    botonSolicitudesBarra.style.display = "none";  // Oculto para Boutique, Betún, Horno y Papelería
+                }
             }
 
             // Control de visibilidad del botón de reinicio de base de datos
