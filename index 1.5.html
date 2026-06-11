@@ -2433,7 +2433,7 @@
                     <option value="Admi">Administración</option>
                 </select>
             </div>
-            <div class="tarjeta-formulario">
+            <div class="tarjeta-formulario" id="formulario-crear-solicitud-container">
                 <h4 style="color: var(--chocolate-bubaru);">Nueva solicitud para <span id="solicitud-area-visible-panel">esta área</span></h4>
                 <div class="form-grid-modal">
                     <div class="campo-form campo-amplio">
@@ -2449,7 +2449,7 @@
                         <div class="urgencia-selector">
                             <button class="btn-urgencia normal active" onclick="seleccionarUrgencia('Normal', this)">🟢 Normal</button>
                             <button class="btn-urgencia urgente" onclick="seleccionarUrgencia('Urgente', this)">🟡 Urgente</button>
-                            <button class="btn-urgencia critico" onclick="seleccionarUrgencia('Crítico', this)">🔴 Crítico</button>
+                            <button class="btn-urgenciaPaper" style="display:none;"></button> <button class="btn-urgencia critico" onclick="seleccionarUrgencia('Crítico', this)">🔴 Crítico</button>
                         </div>
                     </div>
                     <div class="campo-form campo-amplio">
@@ -3530,10 +3530,20 @@
             const esAdministrador = tienePermiso("Administrador");
             document.body.classList.toggle("rol-operador", !esAdministrador);
 
-            // Control de visibilidad del formulario de registro
+            // 🌟 CONTROL INTELIGENTE: El formulario de registro SOLO se muestra en el Almacén General (Inventario)
             const tarjetaFormulario = document.getElementById("tarjeta-form-registro");
             if (tarjetaFormulario) {
-                tarjetaFormulario.style.display = esAdministrador ? "block" : "none";
+                if (areaSeleccionada === "Inventario") {
+                    tarjetaFormulario.style.display = "block"; // Visible para todos en Inventario
+                } else {
+                    tarjetaFormulario.style.display = "none";  // Oculto en Boutique, Betún, Horno y Papelería
+                }
+            }
+
+            // 🌟 NUEVO CANDADO: Si es Administrador oculta el creador de pedidos del panel lateral
+            const formSolicitudContainer = document.getElementById("formulario-crear-solicitud-container");
+            if (formSolicitudContainer) {
+                formSolicitudContainer.style.display = esAdministrador ? "none" : "block";
             }
 
             // Control de visibilidad del botón de reinicio de base de datos
@@ -4643,13 +4653,25 @@
         }
 
         function abrirPanelSolicitudes() {
-            document.getElementById("solicitud-area-visible-panel").innerHTML = obtenerNombreAreaVisible(areaSeleccionada);
-            document.getElementById("solicitud-item-panel").value = "";
-            document.getElementById("filtro-solicitudes-area").value = areaSeleccionada;
-            filtroSolicitudesArea = areaSeleccionada;
-            renderizarSolicitudesPanel("Todas");
-            document.getElementById("panel-solicitudes").classList.add("visible");
-            document.getElementById("side-panel-overlay").classList.add("visible");
+            const panel = document.getElementById("panel-solicitudes");
+            if (panel) {
+                panel.classList.add("visible");
+                document.getElementById("side-panel-overlay").classList.add("visible");
+                document.getElementById("solicitud-area-visible-panel").innerHTML = obtenerNombreAreaVisible(areaSeleccionada);
+                document.getElementById("solicitud-item-panel").value = "";
+                
+                const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
+                
+                // 🌟 El Admin ve "Todas" por defecto; el operador ve solo la suya
+                filtroSolicitudesArea = esAdministrador ? "Todas" : areaSeleccionada;
+                
+                const selectArea = document.getElementById("filtro-solicitudes-area");
+                if (selectArea) {
+                    selectArea.value = filtroSolicitudesArea;
+                }
+                
+                renderizarSolicitudesPanel(filtroSolicitudesActual);
+            }
         }
 
         function cerrarPanelSolicitudes() {
@@ -4687,28 +4709,28 @@
                 return;
             }
 
-            solicitudesReabastecimiento.unshift({
-                id: `SOL-${Date.now()}`,
+            // Creamos el objeto estructurado para subirlo a la nube
+            const nuevaSolicitudNube = {
                 area: areaSeleccionada,
                 item: item,
                 quantity: quantity,
-                urgency: urgenciaSeleccionada,
-                notes: notes,
+                urgency: urgenciaSeleccionada, 
+                notes: notes ? notes : "Sin notas adicionales",
                 status: "Pendiente",
                 timestamp: new Date().toISOString()
-            });
+            };
 
-            guardarSolicitudes();
-            actualizarBadgeSolicitudes();
-            renderizarSolicitudesPanel("Todas");
+            // 🚀 Mandamos la información directo a tu nodo 'comandas' en Firebase
+            database.ref('comandas').push(nuevaSolicitudNube);
 
+            // Limpiamos el formulario de forma limpia
             document.getElementById("solicitud-item-panel").value = "";
             document.getElementById("solicitud-cantidad-panel").value = "";
             document.getElementById("solicitud-notas-panel").value = "";
             document.getElementById("notas-counter").innerText = "0/200";
             seleccionarUrgencia("Normal", document.querySelector(".btn-urgencia.normal"));
 
-            mostrarToast("✅ Solicitud registrada.", "success");
+            mostrarToast("🚀 ¡Solicitud enviada con éxito en tiempo real!", "success");
         }
 
         let filtroSolicitudesActual = "Todas";
@@ -4753,29 +4775,39 @@
                 return;
             }
 
+            const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
+
             solicitudesFiltradas.forEach(solicitud => {
                 const card = document.createElement("div");
                 card.className = `side-panel-card urgencia-${normalizarTexto(solicitud.urgency)}`;
                 const claseEstado = normalizarTexto(solicitud.status);
-                const badgeEstado = tienePermiso("Administrador")
-                    ? `<button class="badge-solicitud ${claseEstado}" onclick="ciclarEstadoSolicitud('${solicitud.id}')">${escaparHtml(solicitud.status)}</button>`
-                    : `<span class="badge-solicitud ${claseEstado}">${escaparHtml(solicitud.status)}</span>`;
+                
+                // 🌟 BOTÓN VERDE DINÁMICO: Solo si es Admin y la solicitud está Pendiente
+                let botonAccionAdmin = "";
+                if (esAdministrador && solicitud.status === "Pendiente") {
+                    botonAccionAdmin = `
+                        <button class="btn-guardar" style="width:100%; margin-top:10px; height:38px; background:linear-gradient(135deg, #4CAF50, #16A34A); font-size:0.85rem;" 
+                                onclick="marcarSolicitudComoCompletada('${solicitud.id}')">
+                            ✓ Solicitud Completada
+                        </button>`;
+                }
 
                 card.innerHTML = `
                     <div class="solicitud-badges">
-                        ${badgeEstado}
+                        <span class="badge-solicitud ${claseEstado}">${escaparHtml(solicitud.status)}</span>
                     </div>
-                    <h4>${escaparHtml(solicitud.item)}</h4>
+                    <h4 style="margin-top:6px;">${escaparHtml(solicitud.item)}</h4>
                     <p class="side-panel-meta">Área: ${escaparHtml(obtenerNombreAreaVisible(solicitud.area))}</p>
                     <p class="side-panel-meta">Cantidad: ${escaparHtml(solicitud.quantity)}</p>
                     ${solicitud.notes ? `<p class="side-panel-notas">${escaparHtml(solicitud.notes)}</p>` : ""}
                     <p class="side-panel-timestamp">${formatearTiempoRelativo(solicitud.timestamp)}</p>
+                    ${botonAccionAdmin}
                 `;
 
                 contenedor.appendChild(card);
             });
         }
-
+        
         function formatearTiempoRelativo(fechaIso) {
             const fecha = new Date(fechaIso);
             const ahora = new Date();
@@ -4811,16 +4843,15 @@
 
             if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
 
-            // Nace la orden asignada inicialmente a HORNO
             solicitudesReabastecimiento.unshift({
                 id: `ORD-${Date.now()}`,
                 origen: "Butique",
-                area: "Horno", // Dueño actual de la tarjeta
+                area: "Horno",
                 item: producto.nombre,
-                quantity: cantidad,
+                quantity: quantity,
                 urgency: "Urgente",
-                notes: notas ? notas : "Sin notas de comanda",
-                status: "En Horno", // Estado inicial
+                notes: notes ? notes : "Sin notas de comanda",
+                status: "En Horno",
                 timestamp: new Date().toISOString()
             });
 
@@ -4842,48 +4873,47 @@
         }
 
         function crearComandaSecuencial() {
-    const nombre = document.getElementById("comanda-producto-nombre").value.trim();
-    const cantidad = parseInt(document.getElementById("comanda-producto-cantidad").value);
+            const nombre = document.getElementById("comanda-producto-nombre").value.trim();
+            const cantidad = parseInt(document.getElementById("comanda-producto-cantidad").value);
 
-    if (!nombre) { mostrarToast("Digita el nombre del pastel", "error"); return; }
-    if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
+            if (!nombre) { mostrarToast("Digita el nombre del pastel", "error"); return; }
+            if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
 
-    const nuevaComanda = {
-        item: nombre,
-        quantity: cantidad,
-        area: "Horno",
-        status: "En Horno",
-        urgency: "Urgente",
-        timestamp: new Date().toISOString()
-    };
+            const nuevaComanda = {
+                item: nombre,
+                quantity: cantidad,
+                area: "Horno",
+                status: "En Horno",
+                urgency: "Urgente",
+                timestamp: new Date().toISOString()
+            };
 
-    // Mandar directo a la nube
-    database.ref('comandas').push(nuevaComanda);
-    cerrarModal("modal-comanda-operador");
-    mostrarToast("🔥 ¡Orden mandada directo a la cocina de Horno!", "success");
-}
+            database.ref('comandas').push(nuevaComanda);
+            cerrarModal("modal-comanda-operador");
+            mostrarToast("🔥 ¡Orden mandada directo a la cocina de Horno!", "success");
+        }
 
-function avanzarFlujoComanda(id) {
-    const orden = solicitudesReabastecimiento.find(o => o.id === id);
-    if (!orden) return;
+        function avanzarFlujoComanda(id) {
+            const orden = solicitudesReabastecimiento.find(o => o.id === id);
+            if (!orden) return;
 
-    const referenciaComanda = database.ref(`comandas/${id}`);
+            const referenciaComanda = database.ref(`comandas/${id}`);
 
-    if (orden.status === "En Horno") {
-        referenciaComanda.update({ status: "Listo para Decorar", area: "Betun" });
-        mostrarToast("🧁 ¡Horneado listo! Pasó a la estación de Betún.", "success");
-    } else if (orden.status === "Listo para Decorar") {
-        referenciaComanda.update({ status: "En Decoración" });
-        mostrarToast("🎨 Decorador trabajando en el diseño...", "success");
-    } else if (orden.status === "En Decoración") {
-        referenciaComanda.update({ status: "Terminado", area: "Butique" });
-        localStorage.setItem("BUBARU_ALERTA_BOUTIQUE", `🔔 ¡Pedido Terminado! Tu comanda de "${orden.item}" está lista en vitrina.`);
-        mostrarToast("✅ ¡Orden completada! Regresó a Boutique.", "success");
-    } else if (orden.status === "Terminado") {
-        referenciaComanda.remove(); // Borra de Firebase al entregarse al cliente
-        mostrarToast("🎁 ¡Pastel entregado al cliente con éxito!", "success");
-    }
-}
+            if (orden.status === "En Horno") {
+                referenciaComanda.update({ status: "Listo para Decorar", area: "Betun" });
+                mostrarToast("🧁 ¡Horneado listo! Pasó a la estación de Betún.", "success");
+            } else if (orden.status === "Listo para Decorar") {
+                referenciaComanda.update({ status: "En Decoración" });
+                mostrarToast("🎨 Decorador trabajando en el diseño...", "success");
+            } else if (orden.status === "En Decoración") {
+                referenciaComanda.update({ status: "Terminado", area: "Butique" });
+                localStorage.setItem("BUBARU_ALERTA_BOUTIQUE", `🔔 ¡Pedido Terminado! Tu comanda de "${orden.item}" está lista en vitrina.`);
+                mostrarToast("✅ ¡Orden completada! Regresó a Boutique.", "success");
+            } else if (orden.status === "Terminado") {
+                referenciaComanda.remove();
+                mostrarToast("🎁 ¡Pastel entregado al cliente con éxito!", "success");
+            }
+        }
 
         /* ===============================================
         EXPORTAR CSV
@@ -4939,36 +4969,29 @@ function avanzarFlujoComanda(id) {
             cargarBitacora();
             cargarSolicitudes();
             
-            // 1. Validamos los PINs y los roles primero
             inicializarSistemaAutenticacion();
             
-            // 2. Evaluamos qué pantalla mostrar según el rol que inició sesión
             const esAdministrador = tienePermiso("Administrador");
             
             if (esAdministrador) {
-                // Si es Admin, entra directo al Dashboard general con todas las estaciones
                 const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
                 mostrarDashboard(dashboardBtn);
             } else {
-                // Si es Operador, forzamos que entre directo a la tabla de su área asignada
-                // Esto oculta los bloques negros del Dashboard de inmediato
                 const botonOperador = document.getElementById(`btn-nav-${areaSeleccionada}`);
                 cambiarArea(areaSeleccionada, botonOperador);
             }
             
             renderizarBitacora();
 
-            // Modifica este bloque al final de tu archivo para que quede así:
             setInterval(() => {
                 const ahora = new Date();
                 document.getElementById("reloj").innerHTML = `Sincronizado: ${ahora.toLocaleTimeString()}`;
                 
-                // --- AQUÍ QUEDA EN MEDIO EL PASO 5 ---
                 const alertaBoutique = localStorage.getItem("BUBARU_ALERTA_BOUTIQUE");
                 if (alertaBoutique && areaSeleccionada === "Butique") {
                     mostrarToast(alertaBoutique, "success");
                     mostrarNotificacion(alertaBoutique, "exito");
-                    localStorage.removeItem("BUBARU_ALERTA_BOUTIQUE"); // Limpia el canal para que no se repita
+                    localStorage.removeItem("BUBARU_ALERTA_BOUTIQUE");
                 }
 
                 if (document.getElementById("dashboard-view").classList.contains("visible")) {
@@ -4976,6 +4999,16 @@ function avanzarFlujoComanda(id) {
                 }
             }, 1000);
         });
+
+        // 🌟 MOTOR LÓGICO EN LA NUBE: Cambia el estado en Firebase en tiempo real
+        function marcarSolicitudComoCompletada(id) {
+            // Actualizamos el estado directamente en internet en tu base de datos
+            database.ref(`comandas/${id}`).update({
+                status: "Atendida"
+            });
+            
+            mostrarToast(`📦 Inventario surtido. Solicitud procesada con éxito.`, "success");
+        }
 
     </script>
 </body>
