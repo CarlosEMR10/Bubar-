@@ -3559,13 +3559,20 @@
             const esAdministrador = tienePermiso("Administrador");
             document.body.classList.toggle("rol-operador", !esAdministrador);
 
-            // 🌟 CONTROL INTELIGENTE: El formulario de registro SOLO se muestra en el Almacén General (Inventario)
+            // 🌟 CONTROL EXCLUSIVO DEL BOTÓN VERDE "REGISTRAR NUEVO INSUMO" (CORREGIDO)
             const tarjetaFormulario = document.getElementById("tarjeta-form-registro");
             if (tarjetaFormulario) {
-                if (areaSeleccionada === "Inventario") {
-                    tarjetaFormulario.style.display = "block"; // Visible para todos en Inventario
+                const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+                
+                // Si es el Administrador O es el Operador parado estrictamente en el área de Inventario
+                if (esAdministrador || areaActualSegura === "Inventario") {
+                    tarjetaFormulario.style.display = "block";
+                    // Forzamos al CSS a no ocultarlo quitando temporalmente el candado visual solo para esta pestaña
+                    tarjetaFormulario.classList.remove("solo-admin"); 
                 } else {
-                    tarjetaFormulario.style.display = "none";  // Oculto en Boutique, Betún, Horno y Papelería
+                    tarjetaFormulario.style.display = "none";
+                    // Le regresamos su clase original si se mueve a Boutique, Horno, Betún o Papelería
+                    tarjetaFormulario.classList.add("solo-admin"); 
                 }
             }
 
@@ -4366,10 +4373,14 @@
         /* ===============================================
         ALTA Y EDICIÓN DE INSUMOS CON VALIDACIÓN DE DUPLICADOS
            =============================================== */
-
+/////////////////////
         function agregarOEditarInsumo() {
-            if (!tienePermiso("Administrador")) {
-                mostrarNotificacion("El rol Operador no puede agregar o editar insumos.", "error");
+            const esAdministrador = tienePermiso("Administrador");
+            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+
+            // 🌟 EXCEPCIÓN DE GUARDADO: Permitir guardar al Admin o al Operador si está en Inventario
+            if (!esAdministrador && areaActualSegura !== "Inventario") {
+                mostrarNotificacion("El rol Operador no puede agregar o editar insumos en esta cocina.", "error");
                 return;
             }
 
@@ -5054,14 +5065,16 @@
             }, 1000);
         });
 
-        // 🌟 MOTOR LÓGICO EN LA NUBE: Cambia el estado en Firebase en tiempo real
+       // 🌟 MOTOR LÓGICO EN LA NUBE CON LIMPIEZA AUTOMÁTICA
         function marcarSolicitudComoCompletada(id) {
-            // Actualizamos el estado directamente en internet en tu base de datos
-            database.ref(`comandas/${id}`).update({
-                status: "Atendida"
-            });
-            
-            mostrarToast(`📦 Inventario surtido. Solicitud procesada con éxito.`, "success");
+            // 🚀 En lugar de solo cambiar el texto, borramos el registro directamente de Firebase
+            database.ref(`comandas/${id}`).remove()
+                .then(() => {
+                    mostrarToast(`📦 Inventario surtido. Historial liberado con éxito.`, "success");
+                })
+                .catch((error) => {
+                    console.error("Error al limpiar historial:", error);
+                });
         }
 
     </script>
