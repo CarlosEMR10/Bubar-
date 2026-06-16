@@ -4378,7 +4378,7 @@
             const esAdministrador = tienePermiso("Administrador");
             const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
 
-            // 🌟 EXCEPCIÓN DE GUARDADO: Permitir guardar al Admin o al Operador si está en Inventario
+            // 🌟 CANDADO INTELIGENTE: Si es Admin pasa directo. Si es Operador, SOLO pasa si está en Inventario.
             if (!esAdministrador && areaActualSegura !== "Inventario") {
                 mostrarNotificacion("El rol Operador no puede agregar o editar insumos en esta cocina.", "error");
                 return;
@@ -4434,8 +4434,8 @@
                 limpiarErrorCampo("insumo-unidad");
             }
 
-            // Validación de precio (solo para inventario)
-            if (areaSeleccionada === "Inventario") {
+            // Validación de precio (Se exige en Inventario tanto para Administrador como para Operador)
+            if (areaActualSegura === "Inventario") {
                 if (isNaN(precioUnitario) || precioUnitario < 0) {
                     mostrarErrorCampo("insumo-precio-unitario", "Precio inválido");
                     formularioValido = false;
@@ -4444,8 +4444,8 @@
                 }
             }
 
-            // VALIDACIÓN DE DUPLICADOS (MEJORA CRÍTICA)
-            if (formularioValido && existeInsumoDuplicado(nombre, areaSeleccionada, indexInsumoEnEdicion)) {
+            // Validación de duplicados
+            if (formularioValido && existeInsumoDuplicado(nombre, areaActualSegura, indexInsumoEnEdicion)) {
                 mostrarToast(`Ya existe un insumo con el nombre "${nombre}" en esta área`, "error");
                 mostrarErrorCampo("insumo-nombre", "Ya existe un insumo con este nombre");
                 formularioValido = false;
@@ -4463,29 +4463,40 @@
                 unidad: unidad
             };
 
-            if (areaSeleccionada === "Inventario") {
+            if (areaActualSegura === "Inventario") {
                 itemEstructurado.precioUnitario = isNaN(precioUnitario) ? 0 : precioUnitario;
             }
 
+            // Guardar cambios en el arreglo local de JavaScript
             if (indexInsumoEnEdicion !== null) {
-                const insumoAnterior = baseDatosInventario[areaSeleccionada][indexInsumoEnEdicion];
+                const insumoAnterior = baseDatosInventario[areaActualSegura][indexInsumoEnEdicion];
                 agregarAccionDeshacer({
                     tipo: "editarInsumo",
-                    area: areaSeleccionada,
+                    area: areaActualSegura,
                     indice: indexInsumoEnEdicion,
                     insumoAnterior: insumoAnterior
                 });
-                baseDatosInventario[areaSeleccionada][indexInsumoEnEdicion] = itemEstructurado;
-                registrarMovimiento(areaSeleccionada, itemEstructurado.nombre, insumoAnterior.actual, itemEstructurado.actual, "Edición");
+                baseDatosInventario[areaActualSegura][indexInsumoEnEdicion] = itemEstructurado;
+                registrarMovimiento(areaActualSegura, itemEstructurado.nombre, insumoAnterior.actual, itemEstructurado.actual, "Edición");
             } else {
-                baseDatosInventario[areaSeleccionada].unshift(itemEstructurado);
-                registrarMovimiento(areaSeleccionada, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta");
+                if (!baseDatosInventario[areaActualSegura]) {
+                    baseDatosInventario[areaActualSegura] = [];
+                }
+                baseDatosInventario[areaActualSegura].unshift(itemEstructurado);
+                registrarMovimiento(areaActualSegura, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta");
             }
 
-            limpiarFormularioModoRegistro();
-            guardarEnLocalStorage();
-            renderizarInventario();
-            mostrarToast(`✅ ${indexInsumoEnEdicion !== null ? 'Editado' : 'Agregado'}: ${nombre}`, "success");
+            // 🚀 PERSISTENCIA EN LA NUBE: Guarda los datos directamente en la raíz de la estación activa en Firebase
+            database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
+                .then(() => {
+                    limpiarFormularioModoRegistro();
+                    renderizarInventario();
+                    mostrarToast(`✅ ${indexInsumoEnEdicion !== null ? 'Editado' : 'Agregado'}: ${nombre}`, "success");
+                })
+                .catch((error) => {
+                    console.error("Error crítico al guardar en Firebase:", error);
+                    mostrarToast("Error al sincronizar con la nube", "error");
+                });
         }
 
         /* ===============================================
@@ -4665,9 +4676,9 @@
             const lblTipoModulo = document.getElementById("lbl-tipo-modulo");
             const tituloTabla = document.getElementById("titulo-tabla-insumos");
             const esInventario = areaSeleccionada === "Inventario";
-            const puedeVerCostos = esInventario && tienePermiso("Administrador");
-
-            contenedorPrecio.style.display = puedeVerCostos ? "flex" : "none";
+            // 🌟 CORRECCIÓN DE VISIBILIDAD: Usamos areaSeleccionada que es la variable real del sistema
+            const esInventarioActivo = (areaSeleccionada === "Inventario");
+            contenedorPrecio.style.display = esInventarioActivo ? "flex" : "none";
 
             if (esInventario) {
                 lblTipoModulo.innerText = puedeVerCostos ? "Costos Activos" : "Costos Ocultos";
