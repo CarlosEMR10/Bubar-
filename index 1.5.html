@@ -4486,8 +4486,8 @@
                 registrarMovimiento(areaActualSegura, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta");
             }
 
-            // 🚀 PERSISTENCIA EN LA NUBE: Guarda los datos directamente en la raíz de la estación activa en Firebase
-            database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
+            // 🚀 RUTA UNIFICADA DE FIREBASE: Se guarda todo dentro de 'inventario' para que sea visible para ambos roles
+            database.ref('inventario').set(baseDatosInventario)
                 .then(() => {
                     limpiarFormularioModoRegistro();
                     renderizarInventario();
@@ -4497,40 +4497,6 @@
                     console.error("Error crítico al guardar en Firebase:", error);
                     mostrarToast("Error al sincronizar con la nube", "error");
                 });
-        }
-
-        /* ===============================================
-        ELIMINACIÓN DE INSUMOS
-           =============================================== */
-
-        function eliminarInsumo(index) {
-            if (!tienePermiso("Administrador")) {
-                mostrarNotificacion("El rol Operador no puede eliminar insumos.", "error");
-                return;
-            }
-
-            if (indexInsumoEnEdicion === index) {
-                limpiarFormularioModoRegistro();
-            }
-
-            const insumoEliminado = baseDatosInventario[areaSeleccionada][index];
-            mostrarModalConfirmacion(
-                "⚠️ Eliminar insumo",
-                `¿Estás seguro de que deseas eliminar ${insumoEliminado.nombre}? Esta acción no se puede deshacer.`,
-                () => {
-                    agregarAccionDeshacer({
-                        tipo: "eliminarInsumo",
-                        area: areaSeleccionada,
-                        indice: index,
-                        insumo: insumoEliminado
-                    });
-                    baseDatosInventario[areaSeleccionada].splice(index, 1);
-                    registrarMovimiento(areaSeleccionada, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja");
-                    guardarEnLocalStorage();
-                    renderizarInventario();
-                },
-                { confirmTexto: "Sí, eliminar" }
-            );
         }
 
         /* ===============================================
