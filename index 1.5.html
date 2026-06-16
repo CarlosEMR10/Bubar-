@@ -4165,11 +4165,14 @@
             if (!tbody || !thead) return;
             tbody.innerHTML = "";
 
+            const esAdministrador = tienePermiso("Administrador");
+            // 🌟 CANDADO DE ACCIONES: El Admin modifica todo. El Operador SOLO modifica si está en "Inventario".
+            const puedeModificarInsumos = esAdministrador || (areaSeleccionada === "Inventario");
+
             // --- ESCENARIO A: ADMINISTRADOR, INVENTARIO O ADMI (MATERIALES ESTÁTICOS) ---
-            if (tienePermiso("Administrador") || esInventario || esAdmi) {
+            if (esAdministrador || esInventario || esAdmi) {
                 const insumos = baseDatosInventario[areaSeleccionada] || [];
                 
-                // Corrección de variables de ordenamiento originales de tu archivo
                 let insumosOrdenados = [...insumos];
                 if (ordenActual && ordenActual.columna) {
                     insumosOrdenados = ordenarInsumos(insumos, ordenActual.columna, ordenActual.direccion);
@@ -4178,12 +4181,14 @@
                 let alertasCriticasArea = 0;
                 let resultadosBusqueda = 0;
 
+                // Añadimos la columna de Acciones al encabezado
                 thead.innerHTML = `
                     <tr>
                         <th>Insumo / Ingrediente</th>
                         <th style="text-align: center;">Mínimo</th>
                         <th style="text-align: center;">Cantidad</th>
                         <th style="text-align: center;">Estado</th>
+                        <th style="text-align: center;">Acciones</th>
                     </tr>`;
 
                 insumosOrdenados.forEach((insumo) => {
@@ -4191,24 +4196,41 @@
                     if (estado.clase === "critico") alertasCriticasArea++;
                     if (terminoBusqueda !== "" && !normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda))) return;
 
+                    // Buscamos el índice real del elemento en el arreglo principal para no alterar el insumo equivocado al ordenar
+                    const indexOriginal = insumos.findIndex(item => item.nombre === insumo.nombre);
+
                     resultadosBusqueda++;
                     const fila = document.createElement("tr");
+
+                    // Construimos dinámicamente el grupo de botones si el permiso está activo en esta pestaña
+                    let htmlAcciones = "";
+                    if (puedeModificarInsumos) {
+                        htmlAcciones = `
+                            <div class="grupo-botones-acciones">
+                                <button class="btn-editar" onclick="activarModoEdicion(${indexOriginal})" title="Editar">✏️</button>
+                                <button class="btn-eliminar" onclick="eliminarInsumo(${indexOriginal})" title="Eliminar">🗑️</button>
+                            </div>`;
+                    } else {
+                        htmlAcciones = `<span class="badge-estado ok" style="font-size: 0.75rem; background: var(--bg-intermedio); color: var(--chocolate-mutado);">🔒 Lectura</span>`;
+                    }
+
                     fila.innerHTML = `
                         <td><span class="nombre-insumo">${resaltarCoincidencia(insumo.nombre)}</span></td>
                         <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
                         <td style="text-align: center;">${insumo.actual} ${insumo.unidad}</td>
                         <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
+                        <td style="text-align: center;">${htmlAcciones}</td>
                     `;
                     tbody.appendChild(fila);
                 });
 
                 document.getElementById("lbl-total-insumos").innerText = insumos.length;
                 document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
-                if (resultadosBusqueda === 0) tbody.innerHTML = `<tr><td colspan="4" class="mensaje-vacio">No se encontraron insumos.</td></tr>`;
+                if (resultadosBusqueda === 0) tbody.innerHTML = `<tr><td colspan="5" class="mensaje-vacio">No se encontraron insumos.</td></tr>`;
                 return;
             }
 
-            // --- ESCENARIO B: RECEPTOR DE COMANDAS DIGITALES (BOUTIQUE, HORNO, BETÚN) ---
+            // --- ESCENARIO B: RECEPTOR DE COMANDAS DIGITALES (OPERADOR EN BOUTIQUE, HORNO, BETÚN) ---
             thead.innerHTML = `
                 <tr>
                     <th>Orden / Producto</th>
@@ -4374,6 +4396,58 @@
         ALTA Y EDICIÓN DE INSUMOS CON VALIDACIÓN DE DUPLICADOS
            =============================================== */
 /////////////////////
+/* ===============================================
+        ELIMINACIÓN DE INSUMOS (CONEXIÓN FIREBASE PERSISTENTE)
+           =============================================== */
+        function eliminarInsumo(index) {
+            const esAdministrador = tienePermiso("Administrador");
+            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+
+            // 🌟 CANDADO DE SEGURIDAD: Admin borra en todo. Operador SOLO borra si está en Inventario.
+            if (!esAdministrador && areaActualSegura !== "Inventario") {
+                mostrarNotificacion("El rol Operador no puede eliminar insumos en esta cocina.", "error");
+                return;
+            }
+
+            if (indexInsumoEnEdicion === index) {
+                limpiarFormularioModoRegistro();
+            }
+
+            const insumoEliminado = baseDatosInventario[areaActualSegura][index];
+
+            mostrarModalConfirmacion(
+                "⚠️ Eliminar insumo",
+                `¿Estás seguro de que deseas eliminar "${insumoEliminado.nombre}"? Esta acción no se puede deshacer.`,
+                () => {
+                    // Guardar respaldo por si se presiona deshacer
+                    agregarAccionDeshacer({
+                        tipo: "eliminarInsumo",
+                        area: areaActualSegura,
+                        indice: index,
+                        insumo: insumoEliminado
+                    });
+                    
+                    // Registrar el movimiento en la bitácora local
+                    registrarMovimiento(areaActualSegura, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja");
+                    
+                    // Remover el insumo del arreglo local de JavaScript
+                    baseDatosInventario[areaActualSegura].splice(index, 1);
+                    
+                    // 🚀 SINCRONIZACIÓN PERSISTENTE EN LA NUBE: Actualiza tu nodo global 'inventario'
+                    database.ref('inventario').set(baseDatosInventario)
+                        .then(() => {
+                            renderizarInventario();
+                            mostrarToast(`🗑️ Eliminado con éxito: ${insumoEliminado.nombre}`, "success");
+                        })
+                        .catch((error) => {
+                            console.error("Error al eliminar en Firebase:", error);
+                            mostrarToast("Error al actualizar la nube", "error");
+                        });
+                },
+                { confirmTexto: "Sí, eliminar" }
+            );
+        }
+        
         function agregarOEditarInsumo() {
             const esAdministrador = tienePermiso("Administrador");
             const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
