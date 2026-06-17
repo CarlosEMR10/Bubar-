@@ -2728,18 +2728,22 @@
             // Disparar evento para otras pestañas
             localStorage.setItem("BUBARU_LAST_UPDATE", Date.now().toString());
 
-            // Sincroniza el inventario con Firebase al instante
-    database.ref('inventario').set(baseDatosInventario);
+            // 🚀 PERSISTENCIA SINCRONIZADA: Guarda en el nodo real del área activa en Firebase
+            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura]);
         }
 
         function escucharCambiosEnNube() {
-            // Escucha actualizaciones del inventario de materiales
-            database.ref('inventario').on('value', (snapshot) => {
+            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            
+            // 🚀 LECTURA EN VIVO DINÁMICA: Escucha directo el nodo real del área activa en Firebase
+            database.ref(areaActualSegura).on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
-                    baseDatosInventario = data;
-                    renderizarInventario();
+                if (!baseDatosInventario[areaActualSegura]) {
+                    baseDatosInventario[areaActualSegura] = [];
                 }
+                baseDatosInventario[areaActualSegura] = data || [];
+                renderizarInventario();
             });
 
             // Escucha la cola de pedidos e hilos de comanda en tiempo real
@@ -2753,7 +2757,6 @@
                 }
                 solicitudesReabastecimiento = listadoTemporal.reverse();
                 
-                // 🌟 REFRESCADO INMEDIATO: Forza a las tablas, números y al pin rojo del Admin a reaccionar al instante
                 renderizarInventario();
                 actualizarBadgeSolicitudes(); 
                 if (typeof renderizarSolicitudesPanel === "function") {
@@ -2768,17 +2771,16 @@
                 try {
                     baseDatosInventario = JSON.parse(datosGuardados);
                 } catch (error) {
-                    baseDatosInventario = JSON.parse(JSON.stringify(datosPorDefecto));
-                    guardarEnLocalStorage();
+                    baseDatosInventario = {};
                 }
             } else {
-                baseDatosInventario = JSON.parse(JSON.stringify(datosPorDefecto));
-                guardarEnLocalStorage();
+                baseDatosInventario = {};
             }
 
+            // Inicializamos arreglos vacíos si no existen para evitar errores de lectura
             Object.keys(datosPorDefecto).forEach(area => {
                 if (!baseDatosInventario[area]) {
-                    baseDatosInventario[area] = JSON.parse(JSON.stringify(datosPorDefecto[area]));
+                    baseDatosInventario[area] = [];
                 }
             });
         }
@@ -3097,21 +3099,39 @@
         function configurarPinInputsEntry() {
             for (let i = 0; i < 4; i++) {
                 const input = document.getElementById(`pin-entry-${i}`);
+                
+                // Forzar que solo se escriban números en caliente
                 input.addEventListener("input", (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, "");
+                });
+
+                // 🚀 MOTOR INTERACTIVO DE FLUJO AVANZADO (EVITA CONGELAMIENTO)
+                input.addEventListener("keyup", (e) => {
                     const valor = e.target.value;
-                    if (!/^[0-9]$/.test(valor)) {
-                        e.target.value = "";
-                        return;
-                    }
-                    if (i < 3) {
-                        document.getElementById(`pin-entry-${i + 1}`).focus();
-                    } else {
-                        verificarPinEntry();
+                    const tecla = e.key;
+
+                    // Si presionó una tecla numérica válida, saltamos de inmediato al siguiente recuadro
+                    if (/^[0-9]$/.test(valor) && tecla !== "Backspace") {
+                        if (i < 3) {
+                            const siguienteInput = document.getElementById(`pin-entry-${i + 1}`);
+                            siguienteInput.focus();
+                            siguienteInput.select(); // Auto-selecciona para escribir fluido
+                        } else {
+                            // Si ya es el último recuadro, ejecuta la validación de PIN
+                            verificarPinEntry();
+                        }
                     }
                 });
+
+                // Control inteligente del botón de borrado (Backspace)
                 input.addEventListener("keydown", (e) => {
-                    if (e.key === "Backspace" && e.target.value === "" && i > 0) {
-                        document.getElementById(`pin-entry-${i - 1}`).focus();
+                    if (e.key === "Backspace") {
+                        if (input.value === "" && i > 0) {
+                            const anteriorInput = document.getElementById(`pin-entry-${i - 1}`);
+                            anteriorInput.focus();
+                            anteriorInput.value = ""; // Borra el número anterior al regresar
+                            e.preventDefault();
+                        }
                     }
                 });
             }
@@ -3559,19 +3579,16 @@
             const esAdministrador = tienePermiso("Administrador");
             document.body.classList.toggle("rol-operador", !esAdministrador);
 
-            // 🌟 CONTROL EXCLUSIVO DEL BOTÓN VERDE "REGISTRAR NUEVO INSUMO" (CORREGIDO)
+            // 🌟 CONTROL EXCLUSIVO DEL BOTÓN VERDE "REGISTRAR NUEVO INSUMO"
             const tarjetaFormulario = document.getElementById("tarjeta-form-registro");
             if (tarjetaFormulario) {
                 const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
                 
-                // Si es el Administrador O es el Operador parado estrictamente en el área de Inventario
                 if (esAdministrador || areaActualSegura === "Inventario") {
                     tarjetaFormulario.style.display = "block";
-                    // Forzamos al CSS a no ocultarlo quitando temporalmente el candado visual solo para esta pestaña
                     tarjetaFormulario.classList.remove("solo-admin"); 
                 } else {
                     tarjetaFormulario.style.display = "none";
-                    // Le regresamos su clase original si se mueve a Boutique, Horno, Betún o Papelería
                     tarjetaFormulario.classList.add("solo-admin"); 
                 }
             }
@@ -4166,7 +4183,7 @@
             tbody.innerHTML = "";
 
             const esAdministrador = tienePermiso("Administrador");
-            // 🌟 CANDADO DE ACCIONES: El Admin modifica todo. El Operador SOLO modifica si está en "Inventario".
+            // El Admin modifica en cualquier cocina. El Operador SOLO puede hacerlo en la pestaña de Inventario.
             const puedeModificarInsumos = esAdministrador || (areaSeleccionada === "Inventario");
 
             // --- ESCENARIO A: ADMINISTRADOR, INVENTARIO O ADMI (MATERIALES ESTÁTICOS) ---
@@ -4214,10 +4231,20 @@
                         htmlAcciones = `<span class="badge-estado ok" style="font-size: 0.75rem; background: var(--bg-intermedio); color: var(--chocolate-mutado);">🔒 Lectura</span>`;
                     }
 
+                    // 🚀 NUEVA COLUMNA INTERACTIVA DE CANTIDAD (+ / -) PARA AMBOS ROLES
+                    const htmlCantidadControles = `
+                        <div class="controles-stock" style="margin: 0 auto;">
+                            <button class="btn-control menos" onclick="modificarCantidad(${indexOriginal}, -1)">-</button>
+                            <input type="text" class="input-stock-directo" value="${insumo.actual}" 
+                                   onchange="actualizarCantidadDirecta(${indexOriginal}, this.value)">
+                            <span class="unidad-medida">${insumo.unidad}</span>
+                            <button class="btn-control mas" onclick="modificarCantidad(${indexOriginal}, 1)">+</button>
+                        </div>`;
+
                     fila.innerHTML = `
                         <td><span class="nombre-insumo">${resaltarCoincidencia(insumo.nombre)}</span></td>
                         <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
-                        <td style="text-align: center;">${insumo.actual} ${insumo.unidad}</td>
+                        <td style="text-align: center;">${htmlCantidadControles}</td>
                         <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
                         <td style="text-align: center;">${htmlAcciones}</td>
                     `;
@@ -4278,12 +4305,13 @@
            =============================================== */
 
         function modificarCantidad(index, cambio) {
-            const insumo = baseDatosInventario[areaSeleccionada][index];
-            const limiteMinimo = areaSeleccionada === "Inventario" ? 1 : 0;
+            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const insumo = baseDatosInventario[areaActualSegura][index];
+            const limiteMinimo = areaActualSegura === "Inventario" ? 1 : 0;
             const valorAnterior = insumo.actual;
             let nuevoValor = insumo.actual + cambio;
             
-            // Prevenir valores negativos
+            // Prevenir valores por debajo del límite mínimo
             if (nuevoValor < limiteMinimo) {
                 nuevoValor = limiteMinimo;
                 if (cambio < 0) {
@@ -4295,17 +4323,59 @@
             if (nuevoValor !== valorAnterior) {
                 agregarAccionDeshacer({
                     tipo: "cambiarCantidad",
-                    area: areaSeleccionada,
+                    area: areaActualSegura,
                     indice: index,
                     valorAnterior: valorAnterior
                 });
                 insumo.actual = nuevoValor;
-                registrarMovimiento(areaSeleccionada, insumo.nombre, valorAnterior, nuevoValor, cambio > 0 ? "Incremento" : "Decremento");
-                guardarEnLocalStorage();
-                renderizarInventario();
-                if (document.getElementById("dashboard-view").classList.contains("visible")) {
-                    renderizarDashboard();
-                }
+                registrarMovimiento(areaActualSegura, insumo.nombre, valorAnterior, nuevoValor, cambio > 0 ? "Incremento" : "Decremento");
+                
+                // Guardar localmente y sincronizar en caliente con Firebase
+                localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
+                database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
+                    .then(() => {
+                        renderizarInventario();
+                        if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                            renderizarDashboard();
+                        }
+                    });
+            }
+        }
+
+        function actualizarCantidadDirecta(index, valor) {
+            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            let nuevaCantidad = parseInt(valor);
+            const limiteMinimo = areaActualSegura === "Inventario" ? 1 : 0;
+            const insumo = baseDatosInventario[areaActualSegura][index];
+            const valorAnterior = insumo.actual;
+            
+            if (isNaN(nuevaCantidad)) {
+                nuevaCantidad = limiteMinimo;
+            }
+            if (nuevaCantidad < limiteMinimo) {
+                nuevaCantidad = limiteMinimo;
+                mostrarToast(`La cantidad no puede ser menor a ${limiteMinimo}`, "warning");
+            }
+
+            if (valorAnterior !== nuevaCantidad) {
+                agregarAccionDeshacer({
+                    tipo: "cambiarCantidad",
+                    area: areaActualSegura,
+                    indice: index,
+                    valorAnterior: valorAnterior
+                });
+                insumo.actual = nuevaCantidad;
+                registrarMovimiento(areaActualSegura, insumo.nombre, valorAnterior, nuevaCantidad, "Ajuste Manual");
+                
+                // Guardar localmente y sincronizar en caliente con Firebase
+                localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
+                database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
+                    .then(() => {
+                        renderizarInventario();
+                        if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                            renderizarDashboard();
+                        }
+                    });
             }
         }
 
@@ -4346,12 +4416,16 @@
            =============================================== */
 
         function activarModoEdicion(index) {
-            if (!tienePermiso("Administrador")) {
-                mostrarNotificacion("El rol Operador no puede editar insumos.", "error");
+            const esAdministrador = tienePermiso("Administrador");
+            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+
+            // 🌟 CANDADO INTELIGENTE DE EDICIÓN: Admin pasa libre. Operador SOLO edita si está en Inventario.
+            if (!esAdministrador && areaActualSegura !== "Inventario") {
+                mostrarNotificacion("El rol Operador no puede editar insumos en esta cocina.", "error");
                 return;
             }
 
-            const insumo = baseDatosInventario[areaSeleccionada][index];
+            const insumo = baseDatosInventario[areaActualSegura][index];
             indexInsumoEnEdicion = index;
 
             document.getElementById("insumo-nombre").value = insumo.nombre;
@@ -4359,7 +4433,7 @@
             document.getElementById("insumo-min").value = insumo.min;
             document.getElementById("insumo-unidad").value = insumo.unidad;
 
-            if (areaSeleccionada === "Inventario") {
+            if (areaActualSegura === "Inventario") {
                 document.getElementById("insumo-precio-unitario").value = insumo.precioUnitario || 0;
             }
 
@@ -4403,7 +4477,7 @@
             const esAdministrador = tienePermiso("Administrador");
             const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
 
-            // 🌟 CANDADO DE SEGURIDAD: Admin borra en todo. Operador SOLO borra si está en Inventario.
+            // 🌟 CANDADO INTELIGENTE: Si es Admin pasa libre. Si es Operador, SOLO pasa si está en Inventario.
             if (!esAdministrador && areaActualSegura !== "Inventario") {
                 mostrarNotificacion("El rol Operador no puede eliminar insumos en esta cocina.", "error");
                 return;
@@ -4433,8 +4507,8 @@
                     // Remover el insumo del arreglo local de JavaScript
                     baseDatosInventario[areaActualSegura].splice(index, 1);
                     
-                    // 🚀 SINCRONIZACIÓN PERSISTENTE EN LA NUBE: Actualiza tu nodo global 'inventario'
-                    database.ref('inventario').set(baseDatosInventario)
+                    // 🚀 PERSISTENCIA EN LA NUBE: Guarda los datos directamente en la raíz de la estación activa en Firebase
+                    database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                         .then(() => {
                             renderizarInventario();
                             mostrarToast(`🗑️ Eliminado con éxito: ${insumoEliminado.nombre}`, "success");
@@ -4560,8 +4634,8 @@
                 registrarMovimiento(areaActualSegura, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta");
             }
 
-            // 🚀 RUTA UNIFICADA DE FIREBASE: Se guarda todo dentro de 'inventario' para que sea visible para ambos roles
-            database.ref('inventario').set(baseDatosInventario)
+            // 🚀 PERSISTENCIA ALINEADA EN LA NUBE: Guarda directo sobre el nodo real de la estación en Firebase
+            database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                 .then(() => {
                     limpiarFormularioModoRegistro();
                     renderizarInventario();
