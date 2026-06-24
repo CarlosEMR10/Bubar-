@@ -2261,6 +2261,7 @@
                     <div class="tabla-acciones">
                         <button class="btn-csv" onclick="exportarCsvActual()">⬇ CSV</button>
                         <button class="btn-accion-urgente solo-admin" onclick="notificarAdministracion()">Pedir al Almacén General</button>
+                        <button class="btn-csv" style="background: linear-gradient(135deg, #FFF, var(--pastel-crema)); border-color: var(--morado-bubaru); color: var(--chocolate-bubaru);" onclick="abrirModalCalendario()">🗓️ Agenda de Entregas</button>
                         <button class="btn-accion-urgente" style="background: linear-gradient(135deg, var(--pastel-menta), var(--morado-bubaru));" onclick="abrirModalNuevaComanda()">🎂 Crear Nueva Orden / Comanda</button>
                     </div>
                 </div>
@@ -2298,6 +2299,93 @@
                     </div>
                     <button class="btn-secundario campo-amplio" onclick="cerrarModal('modal-comanda-operador')">Cancelar</button>
                     <button class="btn-guardar campo-amplio" onclick="crearComandaSecuencial()">🚀 Lanzar Orden</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay oculto" id="modal-calendario-pedidos" role="dialog" aria-modal="true">
+        <div class="modal-card" style="width: min(850px, 100%);">
+            <div class="modal-header">
+                <h3>🗓️ Calendario de Pedidos Programados</h3>
+                <div class="modal-acciones">
+                    <button class="btn-guardar" style="height:36px; padding:0 15px; font-size:0.85rem;" id="btn-registrar-pedido-agenda" onclick="abrirFormularioNuevoPedido()">+ Registrar Pedido</button>
+                    <button class="btn-cerrar-modal" onclick="cerrarModal('modal-calendario-pedidos')">×</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="bitacora-filters" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="bitacora-filter" style="flex: 2; min-width: 200px;">
+                        <label>Filtrar por Fecha de Entrega</label>
+                        <input type="date" id="filtro-calendario-fecha" onchange="renderizarContenidoCalendario()">
+                    </div>
+                    <div class="bitacora-filter" style="flex: 1; min-width: 150px;">
+                        <button class="btn-secundario" style="width: 100%; height: 40px; padding: 0;" onclick="mostrarTodosLosPedidosAgenda()">📋 Ver Todos los Pedidos</button>
+                    </div>
+                </div>
+                <p id="lbl-contador-pedidos-agenda" style="font-size: 0.9rem; color: var(--morado-bubaru); margin: 10px 0; font-weight: bold;"></p>
+                
+                <h4 style="color: var(--estado-alerta); margin: 20px 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">⏳ Pedidos Pendientes y en Producción</h4>
+                <div class="tabla-scroll" style="max-height: 250px; overflow-y: auto; margin-bottom: 25px; border: 1px solid var(--pastel-rosa); border-radius: 8px;">
+                    <table class="tabla-modal">
+                        <thead>
+                            <tr>
+                                <th>Fecha / Hora</th>
+                                <th>Cliente</th>
+                                <th>Pastel / Descripción</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla-calendario-pendientes"></tbody>
+                    </table>
+                </div>
+
+                <h4 style="color: var(--estado-ok); margin: 20px 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 6px;">🎁 Historial de Pedidos Entregados</h4>
+                <div class="tabla-scroll" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--pastel-menta); border-radius: 8px;">
+                    <table class="tabla-modal">
+                        <thead>
+                            <tr>
+                                <th>Fecha / Hora</th>
+                                <th>Cliente</th>
+                                <th>Pastel / Descripción</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: center;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla-calendario-entregados"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay oculto" id="modal-nuevo-pedido-form" role="dialog" aria-modal="true">
+        <div class="modal-card modal-compacto">
+            <div class="modal-header">
+                <h3>📝 Registrar Pedido de Cliente</h3>
+                <button class="btn-cerrar-modal" onclick="cerrarModal('modal-nuevo-pedido-form')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid-modal">
+                    <div class="campo-form campo-amplio">
+                        <label>Nombre de la Clienta / Cliente</label>
+                        <input type="text" id="agenda-cliente-nombre" placeholder="Ej. Ana Martínez">
+                    </div>
+                    <div class="campo-form campo-amplio">
+                        <label>Tipo de Pastel / Especificaciones</label>
+                        <input type="text" id="agenda-pastel-descripcion" placeholder="Ej. Pastel Red Velvet con tres leches y letrero de Cumpleaños">
+                    </div>
+                    <div class="campo-form">
+                        <label>Fecha de Entrega</label>
+                        <input type="date" id="agenda-pedido-fecha">
+                    </div>
+                    <div class="campo-form">
+                        <label>Hora de Entrega</label>
+                        <input type="time" id="agenda-pedido-hora">
+                    </div>
+                    <button class="btn-secundario campo-amplio" onclick="cerrarModal('modal-nuevo-pedido-form')">Cancelar</button>
+                    <button class="btn-guardar campo-amplio" onclick="guardarPedidoApartadoEnNube()">💾 Agendar Pedido</button>
                 </div>
             </div>
         </div>
@@ -5189,6 +5277,234 @@
                 }
             }, 1000);
         });
+
+    /* ===============================================
+        🗓️ MOTOR LÓGICO DEL CALENDARIO DE PEDIDOS PROGRAMADOS
+           =============================================== */
+        let listadoPedidosCalendario = [];
+
+        function abrirModalCalendario() {
+            // Seteamos la fecha de hoy por defecto en el filtro para que abra ordenado
+            const hoy = new Date();
+            const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dia = String(hoy.getDate()).padStart(2, '0');
+            document.getElementById("filtro-calendario-fecha").value = `${hoy.getFullYear()}-${mes}-${dia}`;
+            
+            // Ocultamos o mostramos el botón de registrar según el rol (Solo Boutique/Admin registra)
+            const esBoutique = (areaSeleccionada === "Butique" || areaSeleccionada === "Boutique");
+            const esAdmin = tienePermiso("Administrador");
+            document.getElementById("btn-registrar-pedido-agenda").style.display = (esBoutique || esAdmin) ? "block" : "none";
+
+            // Encendemos la antena de Firebase para escuchar los pedidos apartados
+            database.ref('agenda_pedidos').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const temporal = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        temporal.push({ id: key, ...data[key] });
+                    });
+                }
+                // Ordenar cronológicamente por fecha y hora
+                listadoPedidosCalendario = temporal.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora));
+                renderizarContenidoCalendario();
+            });
+
+            abrirModal("modal-calendario-pedidos");
+        }
+
+        function abrirFormularioNuevoPedido() {
+            document.getElementById("agenda-cliente-nombre").value = "";
+            document.getElementById("agenda-pastel-descripcion").value = "";
+            document.getElementById("agenda-pedido-fecha").value = "";
+            document.getElementById("agenda-pedido-hora").value = "";
+            abrirModal("modal-nuevo-pedido-form");
+        }
+
+        function guardarPedidoApartadoEnNube() {
+            const cliente = document.getElementById("agenda-cliente-nombre").value.trim();
+            const descripcion = document.getElementById("agenda-pastel-descripcion").value.trim();
+            const fecha = document.getElementById("agenda-pedido-fecha").value;
+            const hora = document.getElementById("agenda-pedido-hora").value;
+
+            if (!cliente || !descripcion || !fecha || !hora) {
+                mostrarToast("⚠️ Rellena todos los campos del apartado.", "error");
+                return;
+            }
+
+            const nuevoPedido = {
+                cliente: cliente,
+                descripcion: descripcion,
+                fecha: fecha,
+                hora: hora,
+                status: "Apartado",
+                timestampRegistro: new Date().toISOString()
+            };
+
+            database.ref('agenda_pedidos').push(nuevoPedido)
+                .then(() => {
+                    cerrarModal("modal-nuevo-pedido-form");
+                    mostrarToast("🗓️ Pedido agendado y sincronizado con las estaciones.", "success");
+                });
+        }
+
+        function renderizarContenidoCalendario() {
+            const tbodyPendientes = document.getElementById("cuerpo-tabla-calendario-pendientes");
+            const tbodyEntregados = document.getElementById("cuerpo-tabla-calendario-entregados");
+            const lblContador = document.getElementById("lbl-contador-pedidos-agenda");
+            
+            if (!tbodyPendientes || !tbodyEntregados) return;
+            tbodyPendientes.innerHTML = "";
+            tbodyEntregados.innerHTML = "";
+
+            const fechaFiltro = document.getElementById("filtro-calendario-fecha").value;
+
+            // 1. FILTRAR POR FECHA SI SE SELECCIONÓ UNA
+            let listadoFiltrado = listadoPedidosCalendario;
+            if (fechaFiltro) {
+                listadoFiltrado = listadoPedidosCalendario.filter(p => p.fecha === fechaFiltro);
+                lblContador.innerText = `📊 Pedidos registrados para el día ${fechaFiltro}: ${listadoFiltrado.length}`;
+            } else {
+                lblContador.innerText = `📊 Mostrando Cartelera Completa: ${listadoPedidosCalendario.length} pedido(s) total(es)`;
+            }
+
+            // 2. SEPARAR LOS PEDIDOS EN PENDIENTES Y ENTREGADOS
+            const pedidosPendientes = listadoFiltrado.filter(p => p.status !== "Entregado");
+            const pedidosEntregados = listadoFiltrado.filter(p => p.status === "Entregado");
+
+            const esBoutique = (areaSeleccionada === "Butique" || areaSeleccionada === "Boutique");
+            const esAdmin = tienePermiso("Administrador");
+            const puedeModificar = esBoutique || esAdmin;
+
+            // === RENDERIZAR TABLA 1: PENDIENTES ===
+            if (pedidosPendientes.length === 0) {
+                tbodyPendientes.innerHTML = `<tr><td colspan="5" class="mensaje-vacio">No hay pedidos pendientes en esta selección.</td></tr>`;
+            } else {
+                pedidosPendientes.forEach(pedido => {
+                    const fila = document.createElement("tr");
+                    let htmlBotonAccion = "";
+
+                    if (pedido.status === "Apartado") {
+                        if (puedeModificar) {
+                            htmlBotonAccion = `<button class="btn-guardar" style="padding:6px 12px; height:auto; background:linear-gradient(135deg, var(--pastel-menta), var(--morado-bubaru));" onclick="activarPedidoDesdeAgenda('${pedido.id}')">🔥 Iniciar Producción</button>`;
+                        } else {
+                            htmlBotonAccion = `<span class="badge-estado bajo" style="font-size:0.75rem;">🔒 Esperando Boutique</span>`;
+                        }
+                    } else if (pedido.status === "En Production" || pedido.status === "En Producción") {
+                        // 🚀 BUSCADOR INFALIBLE POR ID: Vinculamos la comanda usando el ID único del pedido de la agenda
+                        const comandaEnCocina = solicitudesReabastecimiento.find(c => c.agendaPedidoId === pedido.id || (c.item.includes(pedido.cliente) && normalizarTexto(c.item).includes(normalizarTexto(pedido.descripcion))));
+                        
+                        // 🔒 CANDADO ROBUSTO: Si la comanda existe en las cocinas y no ha sido marcada como "Terminado" por Betún, se bloquea por completo
+                        if (comandaEnCocina && comandaEnCocina.status !== "Terminado") {
+                            htmlBotonAccion = `<span class="badge-solicitud en-horno" style="font-size:0.75rem; background: linear-gradient(135deg, #EA580C, #DC2626) !important; color: white !important;">⏳ Cocinando (${comandaEnCocina.status})</span>`;
+                        } else {
+                            // El botón verde SOLO se activará si el decorador de Betún ya finalizó su labor
+                            if (puedeModificar) {
+                                htmlBotonAccion = `<button class="btn-guardar" style="padding:6px 12px; height:auto; background:linear-gradient(135deg, #4CAF50, #16A34A); border:none;" onclick="marcarPedidoComoEntregado('${pedido.id}')">✓ Entregar a Cliente</button>`;
+                            } else {
+                                htmlBotonAccion = `<span class="badge-solicitud terminado" style="font-size:0.75rem;">🧁 Listo en Vitrina</span>`;
+                            }
+                        }
+                    }
+
+                    fila.innerHTML = `
+                        <td style="font-weight:bold;">📅 ${pedido.fecha} <br>🕒 ${pedido.hora} hrs</td>
+                        <td>👤 ${escaparHtml(pedido.cliente)}</td>
+                        <td style="white-space:normal; font-size:0.95rem; color:var(--chocolate-mutado);">${escaparHtml(pedido.descripcion)}</td>
+                        <td style="text-align:center;"><span class="badge-solicitud ${pedido.status === 'Apartado' ? 'normal' : 'en-horno'}">${pedido.status}</span></td>
+                        <td style="text-align:center;">${htmlBotonAccion}</td>
+                    `;
+                    tbodyPendientes.appendChild(fila);
+                });
+            }
+
+            // === RENDERIZAR TABLA 2: ENTREGADOS ===
+            if (pedidosEntregados.length === 0) {
+                tbodyEntregados.innerHTML = `<tr><td colspan="5" class="mensaje-vacio">No hay registros de pedidos entregados en esta selección.</td></tr>`;
+            } else {
+                pedidosEntregados.forEach(pedido => {
+                    const fila = document.createElement("tr");
+                    
+                    // 🗑️ BOTÓN INDIVIDUAL DE BORRADO DE HISTORIAL
+                    const htmlBotonEliminarHistorial = `
+                        <button class="btn-eliminar" style="width:34px; height:34px; font-size:0.9rem;" 
+                                onclick="eliminarRegistroHistorialAgenda('${pedido.id}')" title="Eliminar registro">
+                            🗑️
+                        </button>`;
+
+                    fila.innerHTML = `
+                        <td style="color: var(--chocolate-mutado); text-decoration: line-through;">📅 ${pedido.fecha} · 🕒 ${pedido.hora} hrs</td>
+                        <td style="color: var(--chocolate-mutado);">👤 ${escaparHtml(pedido.cliente)}</td>
+                        <td style="white-space:normal; font-size:0.95rem; color: var(--chocolate-mutado); text-decoration: line-through;">${escaparHtml(pedido.descripcion)}</td>
+                        <td style="text-align:center;"><span class="badge-solicitud terminado">🎉 Entregado</span></td>
+                        <td style="text-align:center;">${htmlBotonEliminarHistorial}</td>
+                    `;
+                    tbodyEntregados.appendChild(fila);
+                });
+            }
+        }
+
+        // 🚀 NUEVA FUNCIÓN LOGICA: Remueve el pedido del historial directamente en Firebase Realtime Database
+        function eliminarRegistroHistorialAgenda(id) {
+            mostrarModalConfirmacion(
+                "🗑️ Eliminar del Historial",
+                "¿Estás seguro de que deseas eliminar este pedido del historial permanentemente?",
+                () => {
+                    database.ref(`agenda_pedidos/${id}`).remove()
+                        .then(() => {
+                            mostrarToast("🗑️ Registro eliminado del historial correctamente.", "success");
+                            renderizarContenidoCalendario();
+                        })
+                        .catch((error) => {
+                            console.error("Error al remover de la agenda:", error);
+                            mostrarToast("Error al conectar con la nube", "error");
+                        });
+                },
+                { confirmTexto: "Sí, eliminar" }
+            );
+        }
+
+        function mostrarTodosLosPedidosAgenda() {
+            document.getElementById("filtro-calendario-fecha").value = "";
+            renderizarContenidoCalendario();
+        }
+
+        function activarPedidoDesdeAgenda(id) {
+            const pedido = listadoPedidosCalendario.find(p => p.id === id);
+            if (!pedido) return;
+
+            // Cambiamos el estado en el calendario
+            database.ref(`agenda_pedidos/${id}`).update({ status: "En Production" });
+
+            // Inyectamos el agendaPedidoId para que el candado de entrega no falle jamás
+            const nuevaComandaInmediata = {
+                agendaPedidoId: id, // 🎯 Enlace directo de seguridad
+                item: `[PROGRAMADO] Pastel para ${pedido.cliente} - ${pedido.descripcion}`,
+                quantity: 1,
+                area: "Horno",
+                status: "En Horno",
+                urgency: "Urgente",
+                timestamp: new Date().toISOString()
+            };
+
+            database.ref('comandas').push(nuevaComandaInmediata)
+                .then(() => {
+                    mostrarToast("🔥 ¡Pedido activado! Comanda enviada a la cola de Horno.", "success");
+                    renderizarContenidoCalendario();
+                });
+        }
+
+        function marcarPedidoComoEntregado(id) {
+            database.ref(`agenda_pedidos/${id}`).update({ 
+                status: "Entregado",
+                fechaEntregaReal: new Date().toISOString()
+            })
+            .then(() => {
+                mostrarToast("🎁 ¡Pastel entregado al cliente! Historial archivado.", "success");
+                renderizarContenidoCalendario();
+            });
+        }
+
+        
 
        // 🌟 MOTOR LÓGICO EN LA NUBE CON LIMPIEZA AUTOMÁTICA
         function marcarSolicitudComoCompletada(id) {
