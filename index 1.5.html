@@ -46,7 +46,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
-            font-size: 1.1rem !important; /* Ajuste para que la letra grande de pastelería respire */
+            font-size: 1.1rem !important;
         }
 
         .tabla-modal th {
@@ -59,20 +59,19 @@
         }
 
         .tabla-modal td {
-            padding: 14px 12px; /* Más espacio entre filas y columnas */
+            padding: 14px 12px;
             border-bottom: 1px solid color-mix(in srgb, var(--chocolate-bubaru) 8%, transparent);
-            white-space: nowrap; /* Evita que los textos largos se encimen o se corten de golpe */
+            white-space: nowrap;
         }
 
-        /* Anchos fijos por columna para que se organicen perfectamente en horizontal */
-        .tabla-modal th:nth-child(1), .tabla-modal td:nth-child(1) { width: 22%; } /* Fecha/Hora */
-        .tabla-modal th:nth-child(2), .tabla-modal td:nth-child(2) { width: 12%; } /* Rol */
-        .tabla-modal th:nth-child(3), .tabla-modal td:nth-child(3) { width: 15%; } /* Área */
-        .tabla-modal th:nth-child(4), .tabla-modal td:nth-child(4) { width: 18%; } /* Insumo */
-        .tabla-modal th:nth-child(5), .tabla-modal td:nth-child(5) { width: 10%; text-align: center; } /* Tipo */
-        .tabla-modal th:nth-child(6), .tabla-modal td:nth-child(6) { width: 8%; text-align: center; }  /* Antes */
-        .tabla-modal th:nth-child(7), .tabla-modal td:nth-child(7) { width: 8%; text-align: center; }  /* Después */
-        .tabla-modal th:nth-child(8), .tabla-modal td:nth-child(8) { width: 7%; text-align: center; }  /* Diferencia */
+        .tabla-modal th:nth-child(1), .tabla-modal td:nth-child(1) { width: 22%; }
+        .tabla-modal th:nth-child(2), .tabla-modal td:nth-child(2) { width: 12%; }
+        .tabla-modal th:nth-child(3), .tabla-modal td:nth-child(3) { width: 15%; }
+        .tabla-modal th:nth-child(4), .tabla-modal td:nth-child(4) { width: 18%; }
+        .tabla-modal th:nth-child(5), .tabla-modal td:nth-child(5) { width: 10%; text-align: center; }
+        .tabla-modal th:nth-child(6), .tabla-modal td:nth-child(6) { width: 8%; text-align: center; }
+        .tabla-modal th:nth-child(7), .tabla-modal td:nth-child(7) { width: 8%; text-align: center; }
+        .tabla-modal th:nth-child(8), .tabla-modal td:nth-child(8) { width: 7%; text-align: center; }
 
         .tabla-modal td:nth-child(5), 
         .tabla-modal td:nth-child(6), 
@@ -89,9 +88,8 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            /* FUENTE REDONDEADA */
             font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-            font-weight: 900; /* Cambio de letra */
+            font-weight: 900;
         }
 
         body {
@@ -101,7 +99,7 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            font-size: 1.30rem; /* Hace que toda la letra de la página sea más grande */
+            font-size: 1.30rem;
         }
 
         button,
@@ -283,7 +281,7 @@
         }
 
         /* ===============================================
-        CONTENEDOR DASHBOARD (Sidebar + Principal)
+        CONTENEDOR DASHBOARD (Sidebar + Contenido)
            =============================================== */
 
         .contenedor-dashboard {
@@ -415,7 +413,6 @@
 
         .form-grid {
             display: grid;
-            /* Cambiamos el mínimo a 160px para obligar a los campos a alinearse horizontalmente en pantallas anchas como la imagen */
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 16px;
             margin-top: 10px;
@@ -2096,7 +2093,7 @@
             right: 15px;
             width: 10px;
             height: 10px;
-            background-color: #DC2626; /* Rojo crítico de tu paleta */
+            background-color: #DC2626;
             border-radius: 50%;
             border: 1.5px solid #FFFFFF;
             box-shadow: 0 0 6px rgba(220, 38, 38, 0.7);
@@ -2107,6 +2104,26 @@
             0% { transform: scale(0.9); opacity: 0.8; }
             50% { transform: scale(1.2); opacity: 1; }
             100% { transform: scale(0.9); opacity: 0.8; }
+        }
+
+        /* ===============================================
+        ESTILO PARA MENSAJE DE ADMINISTRADOR EN SOLICITUDES
+           =============================================== */
+        .mensaje-admin-solicitudes {
+            background: linear-gradient(135deg, var(--pastel-lavanda), var(--bg-intermedio));
+            border: 2px solid var(--morado-bubaru);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            color: var(--chocolate-mutado);
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .mensaje-admin-solicitudes span {
+            color: var(--morado-bubaru);
+            font-weight: 800;
         }
         
     </style>
@@ -2144,7 +2161,7 @@
         =============================================== -->
     <div class="contenedor-dashboard">
 
-        <!-- SIDEBAR: Lista de áreas/estaciones (Con IDs agregados) -->
+        <!-- SIDEBAR: Lista de áreas/estaciones -->
         <div class="sidebar-areas">
             <div class="titulo-seccion" id="titulo-vista-general">Vista General</div>
             <button class="btn-area activo" id="btn-nav-Dashboard" data-area="Dashboard" onclick="mostrarDashboard(this)">🏠 Dashboard</button>
@@ -2161,9 +2178,9 @@
                 <div class="titulo-seccion">Módulos</div>
                 <button class="btn-area btn-modulo" onclick="abrirModalBitacora()">📋 Bitácora</button>
                 <button class="btn-area btn-modulo" onclick="abrirPanelSolicitudes()" style="position: relative;">
-            📬 Solicitudes <span class="badge-alerta" id="badge-solicitudes">0</span>
-            <span id="pin-solicitudes-admin" class="pin-notificacion-admin" style="display: none;"></span>
-        </button>
+                    📬 Solicitudes <span class="badge-alerta" id="badge-solicitudes">0</span>
+                    <span id="pin-solicitudes-admin" class="pin-notificacion-admin" style="display: none;"></span>
+                </button>
             </div>
 
             <button class="btn-reiniciar-memoria solo-admin" id="btn-reiniciar-memoria" onclick="restablecerInventarioFabrica()">⚠️ Reiniciar Base de Datos</button>
@@ -2280,7 +2297,7 @@
         MODALES INLINE
         =============================================== -->
 
-        <!-- MODAL INTEGRADO PARA COLOCAR ÓRDENES DESDE BOUTIQUE -->
+    <!-- MODAL INTEGRADO PARA COLOCAR ÓRDENES DESDE BOUTIQUE -->
     <div class="modal-overlay oculto" id="modal-comanda-operador" role="dialog" aria-modal="true">
         <div class="modal-card modal-compacto">
             <div class="modal-header">
@@ -2544,31 +2561,41 @@
                     <option value="Admi">Administración</option>
                 </select>
             </div>
-            <div class="tarjeta-formulario" id="formulario-crear-solicitud-container">
-                <h4 style="color: var(--chocolate-bubaru);">Nueva solicitud para <span id="solicitud-area-visible-panel">esta área</span></h4>
-                <div class="form-grid-modal">
-                    <div class="campo-form campo-amplio">
-                        <label>Nombre del insumo</label>
-                        <input type="text" id="solicitud-item-panel" placeholder="Ej. Azúcar glass">
-                    </div>
-                    <div class="campo-form">
-                        <label>Cantidad necesaria</label>
-                        <input type="number" id="solicitud-cantidad-panel" min="1" placeholder="0">
-                    </div>
-                    <div class="campo-form campo-amplio">
-                        <label>Urgencia</label>
-                        <div class="urgencia-selector">
-                            <button class="btn-urgencia normal active" onclick="seleccionarUrgencia('Normal', this)">🟢 Normal</button>
-                            <button class="btn-urgencia urgente" onclick="seleccionarUrgencia('Urgente', this)">🟡 Urgente</button>
-                            <button class="btn-urgenciaPaper" style="display:none;"></button> <button class="btn-urgencia critico" onclick="seleccionarUrgencia('Crítico', this)">🔴 Crítico</button>
+
+            <!-- ✅ FORMULARIO DE SOLICITUDES: SOLO VISIBLE PARA OPERADORES (NO ADMINISTRADORES) -->
+            <div id="formulario-crear-solicitud-container">
+                <!-- Mensaje para Administradores (oculto por defecto) -->
+                <div id="mensaje-admin-solicitudes" class="mensaje-admin-solicitudes" style="display: none;">
+                    🔒 <span>Modo Administrador</span> — Solo los operadores pueden crear solicitudes de reabastecimiento.
+                </div>
+
+                <!-- Formulario visible para Operadores -->
+                <div id="formulario-solicitud-operador" class="tarjeta-formulario">
+                    <h4 style="color: var(--chocolate-bubaru);">Nueva solicitud para <span id="solicitud-area-visible-panel">esta área</span></h4>
+                    <div class="form-grid-modal">
+                        <div class="campo-form campo-amplio">
+                            <label>Nombre del insumo</label>
+                            <input type="text" id="solicitud-item-panel" placeholder="Ej. Azúcar glass">
                         </div>
+                        <div class="campo-form">
+                            <label>Cantidad necesaria</label>
+                            <input type="number" id="solicitud-cantidad-panel" min="1" placeholder="0">
+                        </div>
+                        <div class="campo-form campo-amplio">
+                            <label>Urgencia</label>
+                            <div class="urgencia-selector">
+                                <button class="btn-urgencia normal active" onclick="seleccionarUrgencia('Normal', this)">🟢 Normal</button>
+                                <button class="btn-urgencia urgente" onclick="seleccionarUrgencia('Urgente', this)">🟡 Urgente</button>
+                                <button class="btn-urgencia critico" onclick="seleccionarUrgencia('Crítico', this)">🔴 Crítico</button>
+                            </div>
+                        </div>
+                        <div class="campo-form campo-amplio">
+                            <label>Notas</label>
+                            <textarea id="solicitud-notas-panel" placeholder="Detalles para almacén general" maxlength="200" oninput="actualizarContadorNotas(this)"></textarea>
+                            <div class="notas-counter" id="notas-counter">0/200</div>
+                        </div>
+                        <button class="btn-guardar campo-amplio" onclick="crearSolicitudReabastecimientoPanel()">Enviar solicitud</button>
                     </div>
-                    <div class="campo-form campo-amplio">
-                        <label>Notas</label>
-                        <textarea id="solicitud-notas-panel" placeholder="Detalles para almacén general" maxlength="200" oninput="actualizarContadorNotas(this)"></textarea>
-                        <div class="notas-counter" id="notas-counter">0/200</div>
-                    </div>
-                    <button class="btn-guardar campo-amplio" onclick="crearSolicitudReabastecimientoPanel()">Enviar solicitud</button>
                 </div>
             </div>
 
@@ -2633,7 +2660,6 @@
                     <button class="btn-area-selection" onclick="seleccionarArea('Pan')">
                         <span class="area-icon">✏️</span>
                         <span class="area-name">Papeleria</span>
-                    </button>
                     </button>
                 </div>
                 <button class="btn-volver" onclick="volverARolSelection()">← Volver</button>
@@ -2719,20 +2745,10 @@
 
     <script>
         /* ===============================================
-        MEJORAS IMPLEMENTADAS - ALTA PRIORIDAD
-        
-        1. ✅ VALIDACIÓN DE DUPLICADOS - No permite nombres repetidos en la misma área
-        2. ✅ PREVENCIÓN DE VALORES NEGATIVOS - Stock nunca baja de 0 (o 1 para Inventario)
-        3. ✅ SINCRONIZACIÓN MULTI-PESTAÑA - Cambios reflejados en tiempo real
-        4. ✅ CIERRE DE SESIÓN POR INACTIVIDAD - 30 minutos sin actividad
-        5. ✅ REGISTRO DE INTENTOS FALLIDOS DE PIN - En bitácora de seguridad
-        6. ✅ ORDENAMIENTO EN TABLA - Click en encabezados para ordenar
-        7. ✅ MEJOR VALIDACIÓN DE FORMULARIOS - Con mensajes de error específicos
+        CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE
            =============================================== */
-
-// 2. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE
         const firebaseConfig = {
-            apiKey: "AIzaSyDVepSR8_cIldD1hmxNKsOQJ5dsIIsFpts", // Clave real de tu consola
+            apiKey: "AIzaSyDVepSR8_cIldD1hmxNKsOQJ5dsIIsFpts",
             authDomain: "bubaru-e23fb.firebaseapp.com",
             databaseURL: "https://bubaru-e23fb-default-rtdb.firebaseio.com",
             projectId: "bubaru-e23fb",
@@ -2742,7 +2758,6 @@
             measurementId: "G-5QKVQNEJ47"
         };
 
-        // Encendemos el motor de enlace en la nube
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
@@ -2800,31 +2815,55 @@
         let temporizadorBloqueoPin = { operador: null, admin: null };
         let confirmacionCallback = null;
         
-        // Variables para ordenamiento
         let ordenActual = { columna: 'nombre', direccion: 'asc' };
-        
-        // Variables para inactividad
         let temporizadorInactividad = null;
-        const TIEMPO_INACTIVIDAD = 30 * 60 * 1000; // 30 minutos
+        const TIEMPO_INACTIVIDAD = 30 * 60 * 1000;
 
         /* ===============================================
-        FUNCIONES DE PERSISTENCIA (localStorage)
+        FUNCIONES DE PERSISTENCIA
            =============================================== */
 
         function guardarEnLocalStorage() {
             localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
-            // Disparar evento para otras pestañas
             localStorage.setItem("BUBARU_LAST_UPDATE", Date.now().toString());
-
-            // 🚀 PERSISTENCIA SINCRONIZADA: Guarda en el nodo real del área activa en Firebase
-            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const areaActualSegura = areaSeleccionada || "Betun";
             database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura]);
         }
 
+        function escucharSolicitudesEnNube() {
+            database.ref('solicitudes').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const listadoTemporal = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        listadoTemporal.push({ id: key, ...data[key] });
+                    });
+                }
+                solicitudesReabastecimiento = listadoTemporal.reverse();
+                actualizarBadgeSolicitudes();
+                if (typeof renderizarSolicitudesPanel === "function") {
+                    renderizarSolicitudesPanel(filtroSolicitudesActual);
+                }
+            });
+        }
+
+        function escucharComandasEnNube() {
+            database.ref('comandas').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const listadoTemporal = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        listadoTemporal.push({ id: key, ...data[key] });
+                    });
+                }
+                window.comandasActivas = listadoTemporal.reverse();
+                renderizarInventario();
+            });
+        }
+
         function escucharCambiosEnNube() {
-            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const areaActualSegura = areaSeleccionada || "Betun";
             
-            // 🚀 LECTURA EN VIVO DINÁMICA: Escucha directo el nodo real del área activa en Firebase
             database.ref(areaActualSegura).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (!baseDatosInventario[areaActualSegura]) {
@@ -2834,23 +2873,8 @@
                 renderizarInventario();
             });
 
-            // Escucha la cola de pedidos e hilos de comanda en tiempo real
-            database.ref('comandas').on('value', (snapshot) => {
-                const data = snapshot.val();
-                const listadoTemporal = [];
-                if (data) {
-                    Object.keys(data).forEach(key => {
-                        listadoTemporal.push({ id: key, ...data[key] });
-                    });
-                }
-                solicitudesReabastecimiento = listadoTemporal.reverse();
-                
-                renderizarInventario();
-                actualizarBadgeSolicitudes(); 
-                if (typeof renderizarSolicitudesPanel === "function") {
-                    renderizarSolicitudesPanel(filtroSolicitudesActual);
-                }
-            });
+            escucharSolicitudesEnNube();
+            escucharComandasEnNube();
         }
 
         function cargarDesdeLocalStorage() {
@@ -2865,7 +2889,6 @@
                 baseDatosInventario = {};
             }
 
-            // Inicializamos arreglos vacíos si no existen para evitar errores de lectura
             Object.keys(datosPorDefecto).forEach(area => {
                 if (!baseDatosInventario[area]) {
                     baseDatosInventario[area] = [];
@@ -2883,31 +2906,11 @@
                 bitacoraMovimientos = [];
                 return;
             }
-
             try {
                 bitacoraMovimientos = JSON.parse(datosGuardados) || [];
             } catch (error) {
                 bitacoraMovimientos = [];
                 guardarBitacora();
-            }
-        }
-
-        function guardarSolicitudes() {
-            localStorage.setItem("BUBARU_SOLICITUDES", JSON.stringify(solicitudesReabastecimiento));
-        }
-
-        function cargarSolicitudes() {
-            const datosGuardados = localStorage.getItem("BUBARU_SOLICITUDES");
-            if (!datosGuardados) {
-                solicitudesReabastecimiento = [];
-                return;
-            }
-
-            try {
-                solicitudesReabastecimiento = JSON.parse(datosGuardados) || [];
-            } catch (error) {
-                solicitudesReabastecimiento = [];
-                guardarSolicitudes();
             }
         }
 
@@ -2940,11 +2943,6 @@
                 if (e.key === "BUBARU_BITACORA") {
                     cargarBitacora();
                     renderizarBitacora();
-                }
-                if (e.key === "BUBARU_SOLICITUDES") {
-                    cargarSolicitudes();
-                    renderizarSolicitudesPanel(filtroSolicitudesActual);
-                    actualizarBadgeSolicitudes();
                 }
             });
         }
@@ -3188,36 +3186,31 @@
             for (let i = 0; i < 4; i++) {
                 const input = document.getElementById(`pin-entry-${i}`);
                 
-                // Forzar que solo se escriban números en caliente
                 input.addEventListener("input", (e) => {
                     e.target.value = e.target.value.replace(/[^0-9]/g, "");
                 });
 
-                // 🚀 MOTOR INTERACTIVO DE FLUJO AVANZADO (EVITA CONGELAMIENTO)
                 input.addEventListener("keyup", (e) => {
                     const valor = e.target.value;
                     const tecla = e.key;
 
-                    // Si presionó una tecla numérica válida, saltamos de inmediato al siguiente recuadro
                     if (/^[0-9]$/.test(valor) && tecla !== "Backspace") {
                         if (i < 3) {
                             const siguienteInput = document.getElementById(`pin-entry-${i + 1}`);
                             siguienteInput.focus();
-                            siguienteInput.select(); // Auto-selecciona para escribir fluido
+                            siguienteInput.select();
                         } else {
-                            // Si ya es el último recuadro, ejecuta la validación de PIN
                             verificarPinEntry();
                         }
                     }
                 });
 
-                // Control inteligente del botón de borrado (Backspace)
                 input.addEventListener("keydown", (e) => {
                     if (e.key === "Backspace") {
                         if (input.value === "" && i > 0) {
                             const anteriorInput = document.getElementById(`pin-entry-${i - 1}`);
                             anteriorInput.focus();
-                            anteriorInput.value = ""; // Borra el número anterior al regresar
+                            anteriorInput.value = "";
                             e.preventDefault();
                         }
                     }
@@ -3267,23 +3260,22 @@
             const pinEsperado = rolSeleccionadoLogin === "operador" ? PIN_OPERADOR : PIN_ADMIN;
 
             if (pinIngresado === pinEsperado) {
-            rolActual = rolSeleccionadoLogin === "operador" ? "Operador" : "Administrador";
-            sessionStorage.setItem("BUBARU_ROL", rolActual);
-            
-            if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
-                areaSeleccionada = areaSeleccionadaLogin;
-                sessionStorage.setItem("BUBARU_AREA", areaSeleccionada);
-            }
-            
-            intentosFallidosPin[rolSeleccionadoLogin] = 0;
-            ocultarLockScreen();
-            aplicarPermisosRol();
-            
-            // 🔥 AQUÍ QUEDA INYECTADO EL ACTIVADOR DE LA NUBE:
-            escucharCambiosEnNube();
-            renderizarInventario();
-            
-            if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+                rolActual = rolSeleccionadoLogin === "operador" ? "Operador" : "Administrador";
+                sessionStorage.setItem("BUBARU_ROL", rolActual);
+                
+                if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+                    areaSeleccionada = areaSeleccionadaLogin;
+                    sessionStorage.setItem("BUBARU_AREA", areaSeleccionada);
+                }
+                
+                intentosFallidosPin[rolSeleccionadoLogin] = 0;
+                ocultarLockScreen();
+                aplicarPermisosRol();
+                
+                escucharCambiosEnNube();
+                renderizarInventario();
+                
+                if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
                     const botonArea = document.querySelector(`.btn-area[data-area="${areaSeleccionada}"]`);
                     cambiarArea(areaSeleccionada, botonArea);
                 }
@@ -3667,10 +3659,9 @@
             const esAdministrador = tienePermiso("Administrador");
             document.body.classList.toggle("rol-operador", !esAdministrador);
 
-            // 🌟 CONTROL EXCLUSIVO DEL BOTÓN VERDE "REGISTRAR NUEVO INSUMO"
             const tarjetaFormulario = document.getElementById("tarjeta-form-registro");
             if (tarjetaFormulario) {
-                const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+                const areaActualSegura = areaSeleccionada || "Betun";
                 
                 if (esAdministrador || areaActualSegura === "Inventario") {
                     tarjetaFormulario.style.display = "block";
@@ -3681,35 +3672,39 @@
                 }
             }
 
-            // 🌟 NUEVO CANDADO: Si es Administrador oculta el creador de pedidos del panel lateral
-            const formSolicitudContainer = document.getElementById("formulario-crear-solicitud-container");
-            if (formSolicitudContainer) {
-                formSolicitudContainer.style.display = esAdministrador ? "none" : "block";
-            }
+            // ✅ SOLICITUDES: Solo Operadores pueden crear, Administradores SOLO ven el mensaje
+            const formContainer = document.getElementById("formulario-crear-solicitud-container");
+            const mensajeAdmin = document.getElementById("mensaje-admin-solicitudes");
+            const formOperador = document.getElementById("formulario-solicitud-operador");
 
-            // 🌟 RESTRICCIÓN EXCLUSIVA: Solo el Admin y el Operador de Inventario ven el botón de Solicitudes
-            const botonSolicitudesBarra = document.querySelector(".btn-modulo[onclick='abrirPanelSolicitudes()']");
-            if (botonSolicitudesBarra) {
-                if (esAdministrador || areaSeleccionada === "Inventario") {
-                    botonSolicitudesBarra.style.display = "flex";  // Visible para Admin e Inventario
+            if (formContainer) {
+                if (esAdministrador) {
+                    // Administrador: ocultamos el formulario, mostramos el mensaje
+                    if (mensajeAdmin) mensajeAdmin.style.display = "block";
+                    if (formOperador) formOperador.style.display = "none";
                 } else {
-                    botonSolicitudesBarra.style.display = "none";  // Oculto para Boutique, Betún, Horno y Papelería
+                    // Operador: mostramos el formulario, ocultamos el mensaje
+                    if (mensajeAdmin) mensajeAdmin.style.display = "none";
+                    if (formOperador) formOperador.style.display = "block";
                 }
             }
 
-            // Control de visibilidad del botón de reinicio de base de datos
+            // ✅ El botón "Solicitudes" es visible para TODOS los roles
+            const botonSolicitudesBarra = document.querySelector(".btn-modulo[onclick='abrirPanelSolicitudes()']");
+            if (botonSolicitudesBarra) {
+                botonSolicitudesBarra.style.display = "flex";
+            }
+
             const btnReiniciar = document.getElementById("btn-reiniciar-memoria");
             if (btnReiniciar) {
                 btnReiniciar.style.display = esAdministrador ? "block" : "none";
             }
 
-            // --- LÓGICA DE FILTRADO DE ESTACIONES EN BARRA LATERAL ---
             const titulosGral = document.getElementById("titulo-vista-general");
             const titulosEst = document.getElementById("titulo-estaciones");
             const listaEstaciones = ["Dashboard", "Inventario", "Butique", "Betun", "Horno", "Pan", "Admi"];
 
             if (esAdministrador) {
-                // El administrador ve absolutamente todos los títulos y botones de la barra lateral
                 if (titulosGral) titulosGral.style.display = "block";
                 if (titulosEst) titulosEst.style.display = "block";
                 
@@ -3718,18 +3713,16 @@
                     if (botonNav) botonNav.style.display = "flex";
                 });
             } else {
-                // El operador NO ve el Dashboard ni los títulos generales de navegación
                 if (titulosGral) titulosGral.style.display = "none";
                 if (titulosEst) titulosEst.style.display = "none";
 
                 listaEstaciones.forEach(estacion => {
                     const botonNav = document.getElementById(`btn-nav-${estacion}`);
                     if (botonNav) {
-                        // Compara si la estación de la barra lateral coincide con la que el operador eligió en el login
                         if (estacion === areaSeleccionada) {
-                            botonNav.style.display = "flex"; // Deja visible sólo su estación asignada
+                            botonNav.style.display = "flex";
                         } else {
-                            botonNav.style.display = "none"; // Oculta todas las demás por completo
+                            botonNav.style.display = "none";
                         }
                     }
                 });
@@ -3932,7 +3925,6 @@
             let costoTotal = 0;
             let intentosSeguridad = 0;
 
-            // Contar intentos fallidos de seguridad
             intentosSeguridad = intentosFallidosPin.operador + intentosFallidosPin.admin;
 
             Object.keys(baseDatosInventario).forEach(area => {
@@ -4072,13 +4064,11 @@
                 }
             }
 
-            // 🌟 CONTROL DEL PIN EXCLUSIVO PARA EL ADMINISTRADOR
             const pinAdmin = document.getElementById("pin-solicitudes-admin");
             if (pinAdmin) {
                 const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
                 const tienePendientes = solicitudesReabastecimiento.some(s => s.status === "Pendiente");
 
-                // Prende el círculo rojo solo si es Administrador Y hay datos pendientes
                 if (esAdministrador && tienePendientes) {
                     pinAdmin.style.display = "block";
                 } else {
@@ -4086,6 +4076,7 @@
                 }
             }
         }
+
         /* ===============================================
         BÚSQUEDA EN TIEMPO REAL
            =============================================== */
@@ -4271,7 +4262,6 @@
             tbody.innerHTML = "";
 
             const esAdministrador = tienePermiso("Administrador");
-            // El Admin modifica en cualquier cocina. El Operador SOLO puede hacerlo en la pestaña de Inventario.
             const puedeModificarInsumos = esAdministrador || (areaSeleccionada === "Inventario");
 
             // --- ESCENARIO A: ADMINISTRADOR, INVENTARIO O ADMI (MATERIALES ESTÁTICOS) ---
@@ -4286,7 +4276,6 @@
                 let alertasCriticasArea = 0;
                 let resultadosBusqueda = 0;
 
-                // Añadimos la columna de Acciones al encabezado
                 thead.innerHTML = `
                     <tr>
                         <th>Insumo / Ingrediente</th>
@@ -4301,13 +4290,11 @@
                     if (estado.clase === "critico") alertasCriticasArea++;
                     if (terminoBusqueda !== "" && !normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda))) return;
 
-                    // Buscamos el índice real del elemento en el arreglo principal para no alterar el insumo equivocado al ordenar
                     const indexOriginal = insumos.findIndex(item => item.nombre === insumo.nombre);
 
                     resultadosBusqueda++;
                     const fila = document.createElement("tr");
 
-                    // Construimos dinámicamente el grupo de botones si el permiso está activo en esta pestaña
                     let htmlAcciones = "";
                     if (puedeModificarInsumos) {
                         htmlAcciones = `
@@ -4319,7 +4306,6 @@
                         htmlAcciones = `<span class="badge-estado ok" style="font-size: 0.75rem; background: var(--bg-intermedio); color: var(--chocolate-mutado);">🔒 Lectura</span>`;
                     }
 
-                    // 🚀 NUEVA COLUMNA INTERACTIVA DE CANTIDAD (+ / -) PARA AMBOS ROLES
                     const htmlCantidadControles = `
                         <div class="controles-stock" style="margin: 0 auto;">
                             <button class="btn-control menos" onclick="modificarCantidad(${indexOriginal}, -1)">-</button>
@@ -4346,6 +4332,8 @@
             }
 
             // --- ESCENARIO B: RECEPTOR DE COMANDAS DIGITALES (OPERADOR EN BOUTIQUE, HORNO, BETÚN) ---
+            const comandasEstacion = (window.comandasActivas || []).filter(s => s.area === areaSeleccionada);
+            
             thead.innerHTML = `
                 <tr>
                     <th>Orden / Producto</th>
@@ -4354,16 +4342,14 @@
                     <th style="text-align: center;">Acción Comanda</th>
                 </tr>`;
 
-            const ordenesEstacion = solicitudesReabastecimiento.filter(s => s.area === areaSeleccionada);
-            
-            if (ordenesEstacion.length === 0) {
+            if (comandasEstacion.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" class="mensaje-vacio">No hay pedidos en la cola de esta estación.</td></tr>`;
                 document.getElementById("lbl-total-insumos").innerText = "0";
                 document.getElementById("lbl-alertas").innerText = "0";
                 return;
             }
 
-            ordenesEstacion.forEach(orden => {
+            comandasEstacion.forEach(orden => {
                 const fila = document.createElement("tr");
                 let claseBadge = "";
                 let textoBoton = "";
@@ -4384,8 +4370,8 @@
                 tbody.appendChild(fila);
             });
 
-            document.getElementById("lbl-total-insumos").innerText = ordenesEstacion.length;
-            document.getElementById("lbl-alertas").innerText = ordenesEstacion.filter(o => o.urgency === "Urgente").length;
+            document.getElementById("lbl-total-insumos").innerText = comandasEstacion.length;
+            document.getElementById("lbl-alertas").innerText = comandasEstacion.filter(o => o.urgency === "Urgente").length;
         }
 
         /* ===============================================
@@ -4393,13 +4379,12 @@
            =============================================== */
 
         function modificarCantidad(index, cambio) {
-            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const areaActualSegura = areaSeleccionada || "Betun";
             const insumo = baseDatosInventario[areaActualSegura][index];
             const limiteMinimo = areaActualSegura === "Inventario" ? 1 : 0;
             const valorAnterior = insumo.actual;
             let nuevoValor = insumo.actual + cambio;
             
-            // Prevenir valores por debajo del límite mínimo
             if (nuevoValor < limiteMinimo) {
                 nuevoValor = limiteMinimo;
                 if (cambio < 0) {
@@ -4418,7 +4403,6 @@
                 insumo.actual = nuevoValor;
                 registrarMovimiento(areaActualSegura, insumo.nombre, valorAnterior, nuevoValor, cambio > 0 ? "Incremento" : "Decremento");
                 
-                // Guardar localmente y sincronizar en caliente con Firebase
                 localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
                 database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                     .then(() => {
@@ -4431,7 +4415,7 @@
         }
 
         function actualizarCantidadDirecta(index, valor) {
-            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const areaActualSegura = areaSeleccionada || "Betun";
             let nuevaCantidad = parseInt(valor);
             const limiteMinimo = areaActualSegura === "Inventario" ? 1 : 0;
             const insumo = baseDatosInventario[areaActualSegura][index];
@@ -4455,7 +4439,6 @@
                 insumo.actual = nuevaCantidad;
                 registrarMovimiento(areaActualSegura, insumo.nombre, valorAnterior, nuevaCantidad, "Ajuste Manual");
                 
-                // Guardar localmente y sincronizar en caliente con Firebase
                 localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
                 database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                     .then(() => {
@@ -4467,47 +4450,14 @@
             }
         }
 
-        function actualizarCantidadDirecta(index, valor) {
-            let nuevaCantidad = parseInt(valor);
-            const limiteMinimo = areaSeleccionada === "Inventario" ? 1 : 0;
-            const insumo = baseDatosInventario[areaSeleccionada][index];
-            const valorAnterior = insumo.actual;
-            
-            // Validar y prevenir valores negativos
-            if (isNaN(nuevaCantidad)) {
-                nuevaCantidad = limiteMinimo;
-            }
-            if (nuevaCantidad < limiteMinimo) {
-                nuevaCantidad = limiteMinimo;
-                mostrarToast(`La cantidad no puede ser menor a ${limiteMinimo}`, "warning");
-            }
-
-            if (valorAnterior !== nuevaCantidad) {
-                agregarAccionDeshacer({
-                    tipo: "cambiarCantidad",
-                    area: areaSeleccionada,
-                    indice: index,
-                    valorAnterior: valorAnterior
-                });
-                insumo.actual = nuevaCantidad;
-                registrarMovimiento(areaSeleccionada, insumo.nombre, valorAnterior, nuevaCantidad, "Ajuste Manual");
-                guardarEnLocalStorage();
-                renderizarInventario();
-                if (document.getElementById("dashboard-view").classList.contains("visible")) {
-                    renderizarDashboard();
-                }
-            }
-        }
-
         /* ===============================================
         EDICIÓN DE INSUMOS
            =============================================== */
 
         function activarModoEdicion(index) {
             const esAdministrador = tienePermiso("Administrador");
-            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const areaActualSegura = areaSeleccionada || "Betun";
 
-            // 🌟 CANDADO INTELIGENTE DE EDICIÓN: Admin pasa libre. Operador SOLO edita si está en Inventario.
             if (!esAdministrador && areaActualSegura !== "Inventario") {
                 mostrarNotificacion("El rol Operador no puede editar insumos en esta cocina.", "error");
                 return;
@@ -4557,15 +4507,11 @@
         /* ===============================================
         ALTA Y EDICIÓN DE INSUMOS CON VALIDACIÓN DE DUPLICADOS
            =============================================== */
-/////////////////////
-/* ===============================================
-        ELIMINACIÓN DE INSUMOS (CONEXIÓN FIREBASE PERSISTENTE)
-           =============================================== */
+
         function eliminarInsumo(index) {
             const esAdministrador = tienePermiso("Administrador");
-            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const areaActualSegura = areaSeleccionada || "Betun";
 
-            // 🌟 CANDADO INTELIGENTE: Si es Admin pasa libre. Si es Operador, SOLO pasa si está en Inventario.
             if (!esAdministrador && areaActualSegura !== "Inventario") {
                 mostrarNotificacion("El rol Operador no puede eliminar insumos en esta cocina.", "error");
                 return;
@@ -4581,7 +4527,6 @@
                 "⚠️ Eliminar insumo",
                 `¿Estás seguro de que deseas eliminar "${insumoEliminado.nombre}"? Esta acción no se puede deshacer.`,
                 () => {
-                    // Guardar respaldo por si se presiona deshacer
                     agregarAccionDeshacer({
                         tipo: "eliminarInsumo",
                         area: areaActualSegura,
@@ -4589,13 +4534,9 @@
                         insumo: insumoEliminado
                     });
                     
-                    // Registrar el movimiento en la bitácora local
                     registrarMovimiento(areaActualSegura, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja");
-                    
-                    // Remover el insumo del arreglo local de JavaScript
                     baseDatosInventario[areaActualSegura].splice(index, 1);
                     
-                    // 🚀 PERSISTENCIA EN LA NUBE: Guarda los datos directamente en la raíz de la estación activa en Firebase
                     database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                         .then(() => {
                             renderizarInventario();
@@ -4612,9 +4553,8 @@
         
         function agregarOEditarInsumo() {
             const esAdministrador = tienePermiso("Administrador");
-            const areaActualSegura = (typeof areaSeleccionada !== 'undefined' && areaSeleccionada) ? areaSeleccionada : "Betun";
+            const areaActualSegura = areaSeleccionada || "Betun";
 
-            // 🌟 CANDADO INTELIGENTE: Si es Admin pasa directo. Si es Operador, SOLO pasa si está en Inventario.
             if (!esAdministrador && areaActualSegura !== "Inventario") {
                 mostrarNotificacion("El rol Operador no puede agregar o editar insumos en esta cocina.", "error");
                 return;
@@ -4632,7 +4572,6 @@
 
             let formularioValido = true;
 
-            // Validación de nombre
             if (!nombre || nombre.length < 2) {
                 mostrarErrorCampo("insumo-nombre", "El nombre debe tener al menos 2 caracteres");
                 formularioValido = false;
@@ -4643,7 +4582,6 @@
                 limpiarErrorCampo("insumo-nombre");
             }
 
-            // Validación de cantidad actual
             if (isNaN(actual) || actual < 0) {
                 mostrarErrorCampo("insumo-actual", "Cantidad inválida");
                 formularioValido = false;
@@ -4651,7 +4589,6 @@
                 limpiarErrorCampo("insumo-actual");
             }
 
-            // Validación de stock mínimo
             if (isNaN(min) || min < 0) {
                 mostrarErrorCampo("insumo-min", "Stock mínimo inválido");
                 formularioValido = false;
@@ -4662,7 +4599,6 @@
                 limpiarErrorCampo("insumo-min");
             }
 
-            // Validación de unidad
             if (!unidad) {
                 mostrarErrorCampo("insumo-unidad", "Selecciona una unidad");
                 formularioValido = false;
@@ -4670,7 +4606,6 @@
                 limpiarErrorCampo("insumo-unidad");
             }
 
-            // Validación de precio (Se exige en Inventario tanto para Administrador como para Operador)
             if (areaActualSegura === "Inventario") {
                 if (isNaN(precioUnitario) || precioUnitario < 0) {
                     mostrarErrorCampo("insumo-precio-unitario", "Precio inválido");
@@ -4680,7 +4615,6 @@
                 }
             }
 
-            // Validación de duplicados
             if (formularioValido && existeInsumoDuplicado(nombre, areaActualSegura, indexInsumoEnEdicion)) {
                 mostrarToast(`Ya existe un insumo con el nombre "${nombre}" en esta área`, "error");
                 mostrarErrorCampo("insumo-nombre", "Ya existe un insumo con este nombre");
@@ -4703,7 +4637,6 @@
                 itemEstructurado.precioUnitario = isNaN(precioUnitario) ? 0 : precioUnitario;
             }
 
-            // Guardar cambios en el arreglo local de JavaScript
             if (indexInsumoEnEdicion !== null) {
                 const insumoAnterior = baseDatosInventario[areaActualSegura][indexInsumoEnEdicion];
                 agregarAccionDeshacer({
@@ -4722,7 +4655,6 @@
                 registrarMovimiento(areaActualSegura, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta");
             }
 
-            // 🚀 PERSISTENCIA ALINEADA EN LA NUBE: Guarda directo sobre el nodo real de la estación en Firebase
             database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                 .then(() => {
                     limpiarFormularioModoRegistro();
@@ -4853,7 +4785,6 @@
             limpiarFormularioModoRegistro();
             limpiarBusqueda();
             
-            // Resetear ordenamiento al cambiar de área
             ordenColumnaActual = null;
             ordenDireccionActual = "asc";
 
@@ -4877,15 +4808,13 @@
             const contenedorPrecio = document.getElementById("contenedor-precio-form");
             const lblTipoModulo = document.getElementById("lbl-tipo-modulo");
             const tituloTabla = document.getElementById("titulo-tabla-insumos");
-            const esInventario = areaSeleccionada === "Inventario";
-            // 🌟 CORRECCIÓN DE VISIBILIDAD: Usamos areaSeleccionada que es la variable real del sistema
             const esInventarioActivo = (areaSeleccionada === "Inventario");
             contenedorPrecio.style.display = esInventarioActivo ? "flex" : "none";
 
-            if (esInventario) {
-                lblTipoModulo.innerText = puedeVerCostos ? "Costos Activos" : "Costos Ocultos";
-                lblTipoModulo.style.color = puedeVerCostos ? "var(--menta-destacado)" : "var(--morado-bubaru)";
-                tituloTabla.innerText = puedeVerCostos ? "Control de Almacén General y Precios" : "Control de Almacén General";
+            if (esInventarioActivo) {
+                lblTipoModulo.innerText = "Costos Activos";
+                lblTipoModulo.style.color = "var(--menta-destacado)";
+                tituloTabla.innerText = "Control de Almacén General y Precios";
             } else {
                 lblTipoModulo.innerText = "Inactivo en Cocina";
                 lblTipoModulo.style.color = "var(--morado-bubaru)";
@@ -4940,7 +4869,6 @@
                 
                 const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
                 
-                // 🌟 El Admin ve "Todas" por defecto; el operador ve solo la suya
                 filtroSolicitudesArea = esAdministrador ? "Todas" : areaSeleccionada;
                 
                 const selectArea = document.getElementById("filtro-solicitudes-area");
@@ -4973,6 +4901,13 @@
         }
 
         function crearSolicitudReabastecimientoPanel() {
+            // ✅ Validación extra: Administradores NO pueden enviar solicitudes
+            const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
+            if (esAdministrador) {
+                mostrarToast("⛔ Los Administradores no pueden enviar solicitudes de reabastecimiento.", "error");
+                return;
+            }
+
             const item = document.getElementById("solicitud-item-panel").value.trim();
             const quantity = parseInt(document.getElementById("solicitud-cantidad-panel").value);
             const notes = document.getElementById("solicitud-notas-panel").value.trim();
@@ -4987,7 +4922,6 @@
                 return;
             }
 
-            // Creamos el objeto estructurado para subirlo a la nube
             const nuevaSolicitudNube = {
                 area: areaSeleccionada,
                 item: item,
@@ -4998,10 +4932,8 @@
                 timestamp: new Date().toISOString()
             };
 
-            // 🚀 Mandamos la información directo a tu nodo 'comandas' en Firebase
-            database.ref('comandas').push(nuevaSolicitudNube);
+            database.ref('solicitudes').push(nuevaSolicitudNube);
 
-            // Limpiamos el formulario de forma limpia
             document.getElementById("solicitud-item-panel").value = "";
             document.getElementById("solicitud-cantidad-panel").value = "";
             document.getElementById("solicitud-notas-panel").value = "";
@@ -5060,7 +4992,6 @@
                 card.className = `side-panel-card urgencia-${normalizarTexto(solicitud.urgency)}`;
                 const claseEstado = normalizarTexto(solicitud.status);
                 
-                // 🌟 BOTÓN VERDE DINÁMICO: Solo si es Admin y la solicitud está Pendiente
                 let botonAccionAdmin = "";
                 if (esAdministrador && solicitud.status === "Pendiente") {
                     botonAccionAdmin = `
@@ -5121,19 +5052,20 @@
 
             if (isNaN(cantidad) || cantidad <= 0) { mostrarToast("Cantidad inválida", "error"); return; }
 
-            solicitudesReabastecimiento.unshift({
+            const nuevaComanda = {
                 id: `ORD-${Date.now()}`,
                 origen: "Butique",
                 area: "Horno",
                 item: producto.nombre,
-                quantity: quantity,
+                quantity: cantidad,
                 urgency: "Urgente",
-                notes: notes ? notes : "Sin notas de comanda",
+                notes: notas ? notas : "Sin notas de comanda",
                 status: "En Horno",
                 timestamp: new Date().toISOString()
-            });
+            };
 
-            guardarSolicitudes();
+            database.ref('comandas').push(nuevaComanda);
+
             actualizarBadgeSolicitudes();
             if (typeof renderizarSolicitudesPanel === "function") renderizarSolicitudesPanel(filtroSolicitudesActual);
             cerrarModal("modal-pedido-boutique");
@@ -5172,7 +5104,7 @@
         }
 
         function avanzarFlujoComanda(id) {
-            const orden = solicitudesReabastecimiento.find(o => o.id === id);
+            const orden = (window.comandasActivas || []).find(o => o.id === id);
             if (!orden) return;
 
             const referenciaComanda = database.ref(`comandas/${id}`);
@@ -5239,63 +5171,31 @@
             mostrarNotificacion("CSV exportado correctamente.", "exito");
         }
 
+        function marcarSolicitudComoCompletada(id) {
+            database.ref(`solicitudes/${id}`).remove()
+                .then(() => {
+                    mostrarToast(`📦 Solicitud atendida y eliminada del listado.`, "success");
+                })
+                .catch((error) => {
+                    console.error("Error al limpiar solicitud:", error);
+                });
+        }
+
         /* ===============================================
-        INICIALIZACIÓN DE LA APLICACIÓN
-           =============================================== */
-        document.addEventListener("DOMContentLoaded", () => {
-            cargarDesdeLocalStorage();
-            cargarBitacora();
-            cargarSolicitudes();
-            
-            inicializarSistemaAutenticacion();
-            
-            const esAdministrador = tienePermiso("Administrador");
-            
-            if (esAdministrador) {
-                const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
-                mostrarDashboard(dashboardBtn);
-            } else {
-                const botonOperador = document.getElementById(`btn-nav-${areaSeleccionada}`);
-                cambiarArea(areaSeleccionada, botonOperador);
-            }
-            
-            renderizarBitacora();
-
-            setInterval(() => {
-                const ahora = new Date();
-                document.getElementById("reloj").innerHTML = `Sincronizado: ${ahora.toLocaleTimeString()}`;
-                
-                const alertaBoutique = localStorage.getItem("BUBARU_ALERTA_BOUTIQUE");
-                if (alertaBoutique && areaSeleccionada === "Butique") {
-                    mostrarToast(alertaBoutique, "success");
-                    mostrarNotificacion(alertaBoutique, "exito");
-                    localStorage.removeItem("BUBARU_ALERTA_BOUTIQUE");
-                }
-
-                if (document.getElementById("dashboard-view").classList.contains("visible")) {
-                    renderizarDashboard();
-                }
-            }, 1000);
-        });
-
-    /* ===============================================
         🗓️ MOTOR LÓGICO DEL CALENDARIO DE PEDIDOS PROGRAMADOS
            =============================================== */
         let listadoPedidosCalendario = [];
 
         function abrirModalCalendario() {
-            // Seteamos la fecha de hoy por defecto en el filtro para que abra ordenado
             const hoy = new Date();
             const mes = String(hoy.getMonth() + 1).padStart(2, '0');
             const dia = String(hoy.getDate()).padStart(2, '0');
             document.getElementById("filtro-calendario-fecha").value = `${hoy.getFullYear()}-${mes}-${dia}`;
             
-            // Ocultamos o mostramos el botón de registrar según el rol (Solo Boutique/Admin registra)
             const esBoutique = (areaSeleccionada === "Butique" || areaSeleccionada === "Boutique");
             const esAdmin = tienePermiso("Administrador");
             document.getElementById("btn-registrar-pedido-agenda").style.display = (esBoutique || esAdmin) ? "block" : "none";
 
-            // Encendemos la antena de Firebase para escuchar los pedidos apartados
             database.ref('agenda_pedidos').on('value', (snapshot) => {
                 const data = snapshot.val();
                 const temporal = [];
@@ -5304,7 +5204,6 @@
                         temporal.push({ id: key, ...data[key] });
                     });
                 }
-                // Ordenar cronológicamente por fecha y hora
                 listadoPedidosCalendario = temporal.sort((a,b) => a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora));
                 renderizarContenidoCalendario();
             });
@@ -5358,7 +5257,6 @@
 
             const fechaFiltro = document.getElementById("filtro-calendario-fecha").value;
 
-            // 1. FILTRAR POR FECHA SI SE SELECCIONÓ UNA
             let listadoFiltrado = listadoPedidosCalendario;
             if (fechaFiltro) {
                 listadoFiltrado = listadoPedidosCalendario.filter(p => p.fecha === fechaFiltro);
@@ -5367,7 +5265,6 @@
                 lblContador.innerText = `📊 Mostrando Cartelera Completa: ${listadoPedidosCalendario.length} pedido(s) total(es)`;
             }
 
-            // 2. SEPARAR LOS PEDIDOS EN PENDIENTES Y ENTREGADOS
             const pedidosPendientes = listadoFiltrado.filter(p => p.status !== "Entregado");
             const pedidosEntregados = listadoFiltrado.filter(p => p.status === "Entregado");
 
@@ -5375,7 +5272,6 @@
             const esAdmin = tienePermiso("Administrador");
             const puedeModificar = esBoutique || esAdmin;
 
-            // === RENDERIZAR TABLA 1: PENDIENTES ===
             if (pedidosPendientes.length === 0) {
                 tbodyPendientes.innerHTML = `<tr><td colspan="5" class="mensaje-vacio">No hay pedidos pendientes en esta selección.</td></tr>`;
             } else {
@@ -5390,14 +5286,11 @@
                             htmlBotonAccion = `<span class="badge-estado bajo" style="font-size:0.75rem;">🔒 Esperando Boutique</span>`;
                         }
                     } else if (pedido.status === "En Production" || pedido.status === "En Producción") {
-                        // 🚀 BUSCADOR INFALIBLE POR ID: Vinculamos la comanda usando el ID único del pedido de la agenda
-                        const comandaEnCocina = solicitudesReabastecimiento.find(c => c.agendaPedidoId === pedido.id || (c.item.includes(pedido.cliente) && normalizarTexto(c.item).includes(normalizarTexto(pedido.descripcion))));
+                        const comandaEnCocina = (window.comandasActivas || []).find(c => c.agendaPedidoId === pedido.id || (c.item.includes(pedido.cliente) && normalizarTexto(c.item).includes(normalizarTexto(pedido.descripcion))));
                         
-                        // 🔒 CANDADO ROBUSTO: Si la comanda existe en las cocinas y no ha sido marcada como "Terminado" por Betún, se bloquea por completo
                         if (comandaEnCocina && comandaEnCocina.status !== "Terminado") {
                             htmlBotonAccion = `<span class="badge-solicitud en-horno" style="font-size:0.75rem; background: linear-gradient(135deg, #EA580C, #DC2626) !important; color: white !important;">⏳ Cocinando (${comandaEnCocina.status})</span>`;
                         } else {
-                            // El botón verde SOLO se activará si el decorador de Betún ya finalizó su labor
                             if (puedeModificar) {
                                 htmlBotonAccion = `<button class="btn-guardar" style="padding:6px 12px; height:auto; background:linear-gradient(135deg, #4CAF50, #16A34A); border:none;" onclick="marcarPedidoComoEntregado('${pedido.id}')">✓ Entregar a Cliente</button>`;
                             } else {
@@ -5417,14 +5310,12 @@
                 });
             }
 
-            // === RENDERIZAR TABLA 2: ENTREGADOS ===
             if (pedidosEntregados.length === 0) {
                 tbodyEntregados.innerHTML = `<tr><td colspan="5" class="mensaje-vacio">No hay registros de pedidos entregados en esta selección.</td></tr>`;
             } else {
                 pedidosEntregados.forEach(pedido => {
                     const fila = document.createElement("tr");
                     
-                    // 🗑️ BOTÓN INDIVIDUAL DE BORRADO DE HISTORIAL
                     const htmlBotonEliminarHistorial = `
                         <button class="btn-eliminar" style="width:34px; height:34px; font-size:0.9rem;" 
                                 onclick="eliminarRegistroHistorialAgenda('${pedido.id}')" title="Eliminar registro">
@@ -5443,7 +5334,6 @@
             }
         }
 
-        // 🚀 NUEVA FUNCIÓN LOGICA: Remueve el pedido del historial directamente en Firebase Realtime Database
         function eliminarRegistroHistorialAgenda(id) {
             mostrarModalConfirmacion(
                 "🗑️ Eliminar del Historial",
@@ -5472,12 +5362,10 @@
             const pedido = listadoPedidosCalendario.find(p => p.id === id);
             if (!pedido) return;
 
-            // Cambiamos el estado en el calendario
             database.ref(`agenda_pedidos/${id}`).update({ status: "En Production" });
 
-            // Inyectamos el agendaPedidoId para que el candado de entrega no falle jamás
             const nuevaComandaInmediata = {
-                agendaPedidoId: id, // 🎯 Enlace directo de seguridad
+                agendaPedidoId: id,
                 item: `[PROGRAMADO] Pastel para ${pedido.cliente} - ${pedido.descripcion}`,
                 quantity: 1,
                 area: "Horno",
@@ -5504,20 +5392,45 @@
             });
         }
 
-        
+        /* ===============================================
+        INICIALIZACIÓN DE LA APLICACIÓN
+           =============================================== */
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarDesdeLocalStorage();
+            cargarBitacora();
+            
+            inicializarSistemaAutenticacion();
+            
+            const esAdministrador = tienePermiso("Administrador");
+            
+            if (esAdministrador) {
+                const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
+                mostrarDashboard(dashboardBtn);
+            } else {
+                const botonOperador = document.getElementById(`btn-nav-${areaSeleccionada}`);
+                cambiarArea(areaSeleccionada, botonOperador);
+            }
+            
+            renderizarBitacora();
 
-       // 🌟 MOTOR LÓGICO EN LA NUBE CON LIMPIEZA AUTOMÁTICA
-        function marcarSolicitudComoCompletada(id) {
-            // 🚀 En lugar de solo cambiar el texto, borramos el registro directamente de Firebase
-            database.ref(`comandas/${id}`).remove()
-                .then(() => {
-                    mostrarToast(`📦 Inventario surtido. Historial liberado con éxito.`, "success");
-                })
-                .catch((error) => {
-                    console.error("Error al limpiar historial:", error);
-                });
-        }
+            setInterval(() => {
+                const ahora = new Date();
+                document.getElementById("reloj").innerHTML = `Sincronizado: ${ahora.toLocaleTimeString()}`;
+                
+                const alertaBoutique = localStorage.getItem("BUBARU_ALERTA_BOUTIQUE");
+                if (alertaBoutique && areaSeleccionada === "Butique") {
+                    mostrarToast(alertaBoutique, "success");
+                    mostrarNotificacion(alertaBoutique, "exito");
+                    localStorage.removeItem("BUBARU_ALERTA_BOUTIQUE");
+                }
 
+                if (document.getElementById("dashboard-view").classList.contains("visible")) {
+                    renderizarDashboard();
+                }
+            }, 1000);
+
+            window.comandasActivas = [];
+        });
     </script>
 </body>
 </html>
