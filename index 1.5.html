@@ -2135,21 +2135,12 @@
         =============================================== -->
     <div class="app-bar">
         <div class="marca">
-            <h1>B U B A R U</h1>
+            <h1>B U B A R Ú</h1>
             <p>Control Descentralizado de Inventarios</p>
         </div>
 
-        <div class="busqueda-global">
-            <div class="busqueda-input-wrap">
-                <input type="text" id="busqueda-insumos" placeholder="🔍 Buscar insumo..." oninput="actualizarBusqueda(this.value)">
-                <button class="btn-limpiar-busqueda oculto" id="btn-limpiar-busqueda" onclick="limpiarBusqueda()" aria-label="Limpiar búsqueda">×</button>
-            </div>
-            <div class="busqueda-dropdown" id="busqueda-dropdown"></div>
-            <p class="contador-busqueda" id="contador-busqueda"></p>
-        </div>
-
         <div class="info-estacion">
-            <h2 id="txt-area-activa">Área: Betun</h2>
+            <h2 id="txt-area-activa">Área abierta</h2>
             <p class="subtxt" id="reloj">Sincronizando...</p>
             <button class="btn-gestion-pines solo-admin" onclick="abrirModalGestionPines()">🔐 Gestión de PINs</button>
             <button class="btn-cerrar-sesion" onclick="cerrarSesion()">🔒 Cerrar sesión</button>
@@ -2171,9 +2162,6 @@
             <button class="btn-area" id="btn-nav-Butique" data-area="Butique" onclick="cambiarArea('Butique', this)">Boutique <span class="badge-alerta" id="badge-Butique">0</span></button>
             <button class="btn-area" id="btn-nav-Betun" data-area="Betun" onclick="cambiarArea('Betun', this)">Betún <span class="badge-alerta" id="badge-Betun">0</span></button>
             <button class="btn-area" id="btn-nav-Horno" data-area="Horno" onclick="cambiarArea('Horno', this)">Horno <span class="badge-alerta" id="badge-Horno">0</span></button>
-            <button class="btn-area" id="btn-nav-Pan" data-area="Pan" onclick="cambiarArea('Pan', this)">Papelería <span class="badge-alerta" id="badge-Pan">0</span></button>
-            <button class="btn-area" id="btn-nav-Admi" data-area="Admi" onclick="cambiarArea('Admi', this)">Administración <span class="badge-alerta" id="badge-Admi">0</span></button>
-
             <div class="controles-modulos-sidebar">
                 <div class="titulo-seccion">Módulos</div>
                 <button class="btn-area btn-modulo" onclick="abrirModalBitacora()">📋 Bitácora</button>
@@ -2218,7 +2206,7 @@
                 <div class="form-grid">
                     <div class="campo-form">
                         <label>Nombre del Insumo</label>
-                        <input type="text" id="insumo-nombre" placeholder="Ej. Chispas de chocolate">
+                        <input type="text" id="insumo-nombre" placeholder="">
                         <span class="field-error" id="error-nombre"></span>
                     </div>
                     <div class="campo-form">
@@ -2227,7 +2215,8 @@
                         <span class="field-error" id="error-actual"></span>
                     </div>
 
-                    <div class="campo-form solo-inventario-form" id="contenedor-precio-form" style="display: none;">
+                    <!-- 💰 CAJA DE PRECIO POR UNIDAD DE AJUSTE PERMANENTE -->
+                    <div class="campo-form" id="contenedor-precio-form">
                         <label>Precio por Unidad ($)</label>
                         <input type="number" id="insumo-precio-unitario" placeholder="0" min="0" step="0.01">
                         <span class="field-error" id="error-precio"></span>
@@ -2235,7 +2224,7 @@
 
                     <div class="campo-form">
                         <label>Stock Mínimo</label>
-                        <input type="number" id="insumo-min" placeholder="Ej. 5" min="0">
+                        <input type="number" id="insumo-min" placeholder="" min="0">
                         <span class="field-error" id="error-min"></span>
                     </div>
                     <div class="campo-form">
@@ -2308,7 +2297,7 @@
                 <div class="form-grid-modal">
                     <div class="campo-form campo-amplio">
                         <label>¿Qué producto se va a producir?</label>
-                        <input type="text" id="comanda-producto-nombre" placeholder="Ej. Pastel Red Velvet">
+                        <input type="text" id="comanda-producto-nombre" placeholder=>
                     </div>
                     <div class="campo-form campo-amplio">
                         <label>Cantidad de piezas</label>
@@ -2387,11 +2376,11 @@
                 <div class="form-grid-modal">
                     <div class="campo-form campo-amplio">
                         <label>Nombre de la Clienta / Cliente</label>
-                        <input type="text" id="agenda-cliente-nombre" placeholder="Ej. Ana Martínez">
+                        <input type="text" id="agenda-cliente-nombre" placeholder=>
                     </div>
                     <div class="campo-form campo-amplio">
                         <label>Tipo de Pastel / Especificaciones</label>
-                        <input type="text" id="agenda-pastel-descripcion" placeholder="Ej. Pastel Red Velvet con tres leches y letrero de Cumpleaños">
+                        <input type="text" id="agenda-pastel-descripcion" placeholder=>
                     </div>
                     <div class="campo-form">
                         <label>Fecha de Entrega</label>
@@ -2511,7 +2500,7 @@
                     <div class="form-grid-modal">
                         <div class="campo-form">
                             <label>Nombre del insumo</label>
-                            <input type="text" id="solicitud-item" placeholder="Ej. Azúcar glass">
+                            <input type="text" id="solicitud-item" placeholder="">
                         </div>
                         <div class="campo-form">
                             <label>Cantidad necesaria</label>
@@ -2575,11 +2564,26 @@
                     <div class="form-grid-modal">
                         <div class="campo-form campo-amplio">
                             <label>Nombre del insumo</label>
-                            <input type="text" id="solicitud-item-panel" placeholder="Ej. Azúcar glass">
+                            <input type="text" id="solicitud-item-panel" placeholder="">
                         </div>
                         <div class="campo-form">
                             <label>Cantidad necesaria</label>
                             <input type="number" id="solicitud-cantidad-panel" min="1" placeholder="0">
+                        </div>
+                        <!-- 📦 MENÚ DESPLEGABLE DE UNIDADES AGREGADO AL FORMULARIO LATERAL -->
+                        <div class="campo-form">
+                            <label>Unidad</label>
+                            <select id="solicitud-unidad-panel">
+                                <option value="kg">kg</option>
+                                <option value="pzas">pzas</option>
+                                <option value="sacos">sacos</option>
+                                <option value="L">Litros</option>
+                                <option value="galones">galones</option>
+                                <option value="onzas">onzas</option>
+                                <option value="rollos">rollos</option>
+                                <option value="bloques">bloques</option>
+                                <option value="bultos">bultos</option>
+                            </select>
                         </div>
                         <div class="campo-form campo-amplio">
                             <label>Urgencia</label>
@@ -2603,7 +2607,6 @@
                 <button class="side-panel-tab active" onclick="filtrarSolicitudes('Todas', this)">Todas</button>
                 <button class="side-panel-tab" onclick="filtrarSolicitudes('Pendiente', this)">Pendiente</button>
                 <button class="side-panel-tab" onclick="filtrarSolicitudes('Atendida', this)">Atendida</button>
-                <button class="side-panel-tab" onclick="filtrarSolicitudes('Rechazada', this)">Rechazada</button>
             </div>
             <div class="filtro-solicitudes-count" id="filtro-solicitudes-count"></div>
 
@@ -2616,7 +2619,7 @@
         =============================================== -->
     <div id="lock-screen">
         <div class="lock-screen-content">
-            <div class="lock-screen-logo">B U B A R U</div>
+            <div class="lock-screen-logo">B U B A R Ú</div>
             <p class="lock-screen-subtitle">Control Descentralizado de Inventarios</p>
             
             <!-- PANTALLA DE SELECCIÓN DE ROL -->
@@ -2656,10 +2659,6 @@
                     <button class="btn-area-selection" onclick="seleccionarArea('Horno')">
                         <span class="area-icon">🔥</span>
                         <span class="area-name">Horno</span>
-                    </button>
-                    <button class="btn-area-selection" onclick="seleccionarArea('Pan')">
-                        <span class="area-icon">✏️</span>
-                        <span class="area-name">Papeleria</span>
                     </button>
                 </div>
                 <button class="btn-volver" onclick="volverARolSelection()">← Volver</button>
@@ -2805,7 +2804,7 @@
         let indexInsumoEnEdicion = null;
         let bitacoraMovimientos = [];
         let solicitudesReabastecimiento = [];
-        let rolActual = "Administrador";
+        let rolActual = "";
         let terminoBusqueda = "";
         let transferenciaIndice = null;
         let temporizadorNotificacion = null;
@@ -2864,12 +2863,12 @@
         function escucharCambiosEnNube() {
             const areaActualSegura = areaSeleccionada || "Betun";
             
+            // Apagamos todas las escuchas previas del nodo de inventario
+            database.ref().off('value'); 
+            
+            // Escuchamos el nodo del área específica
             database.ref(areaActualSegura).on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (!baseDatosInventario[areaActualSegura]) {
-                    baseDatosInventario[areaActualSegura] = [];
-                }
-                baseDatosInventario[areaActualSegura] = data || [];
+                baseDatosInventario[areaActualSegura] = snapshot.val() || [];
                 renderizarInventario();
             });
 
@@ -3273,9 +3272,12 @@
                 aplicarPermisosRol();
                 
                 escucharCambiosEnNube();
-                renderizarInventario();
                 
-                if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
+                // 🚀 REDIRECCIÓN LIMPIA DE ARRANQUE
+                if (rolActual === "Administrador") {
+                    const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
+                    mostrarDashboard(dashboardBtn);
+                } else if (rolSeleccionadoLogin === "operador" && areaSeleccionadaLogin) {
                     const botonArea = document.querySelector(`.btn-area[data-area="${areaSeleccionada}"]`);
                     cambiarArea(areaSeleccionada, botonArea);
                 }
@@ -3661,9 +3663,8 @@
 
             const tarjetaFormulario = document.getElementById("tarjeta-form-registro");
             if (tarjetaFormulario) {
-                const areaActualSegura = areaSeleccionada || "Betun";
-                
-                if (esAdministrador || areaActualSegura === "Inventario") {
+                // 🎯 MODIFICADO: Permitimos que cualquier operador con sesión iniciada vea el formulario de registro arriba
+                if (esAdministrador || rolActual) {
                     tarjetaFormulario.style.display = "block";
                     tarjetaFormulario.classList.remove("solo-admin"); 
                 } else {
@@ -3672,20 +3673,31 @@
                 }
             }
 
-            // ✅ SOLICITUDES: Solo Operadores pueden crear, Administradores SOLO ven el mensaje
+            // ✅ SOLICITUDES: Oculta menús de filtrado inservibles para operadores
             const formContainer = document.getElementById("formulario-crear-solicitud-container");
             const mensajeAdmin = document.getElementById("mensaje-admin-solicitudes");
             const formOperador = document.getElementById("formulario-solicitud-operador");
+            
+            // Localizamos las pestañas, el contador y el selector de área del panel lateral de solicitudes
+            const pestañasFiltrado = document.querySelector(".side-panel-tabs");
+            const contadorFiltrado = document.getElementById("filtro-solicitudes-count");
+            const selectorAreaFiltrado = document.querySelector(".filtro-solicitudes-area-container"); // 🎯 Capturamos el filtro por área
 
             if (formContainer) {
                 if (esAdministrador) {
-                    // Administrador: ocultamos el formulario, mostramos el mensaje
+                    // Administrador: ocultamos formulario, mostramos advertencia y activamos visualización de filtros
                     if (mensajeAdmin) mensajeAdmin.style.display = "block";
                     if (formOperador) formOperador.style.display = "none";
+                    if (pestañasFiltrado) pestañasFiltrado.style.display = "flex";
+                    if (contadorFiltrado) contadorFiltrado.style.display = "flex";
+                    if (selectorAreaFiltrado) selectorAreaFiltrado.style.display = "block"; // 👁️ Visible para Admin
                 } else {
-                    // Operador: mostramos el formulario, ocultamos el mensaje
+                    // Operador: habilitamos formulario, ocultamos advertencia y DESAPARECEMOS menús inservibles
                     if (mensajeAdmin) mensajeAdmin.style.display = "none";
                     if (formOperador) formOperador.style.display = "block";
+                    if (pestañasFiltrado) pestañasFiltrado.style.display = "none";   
+                    if (contadorFiltrado) contadorFiltrado.style.display = "none";   
+                    if (selectorAreaFiltrado) selectorAreaFiltrado.style.display = "none";  // 🔒 Oculto para Operadores
                 }
             }
 
@@ -3702,11 +3714,21 @@
 
             const titulosGral = document.getElementById("titulo-vista-general");
             const titulosEst = document.getElementById("titulo-estaciones");
-            const listaEstaciones = ["Dashboard", "Inventario", "Butique", "Betun", "Horno", "Pan", "Admi"];
+            const listaEstaciones = ["Inventario", "Butique", "Betun", "Horno"];
+
+            // 🔒 CANDADO ANTIMUTACIÓN: Si no hay sesión activa aún, no alteramos la interfaz de fondo
+            if (!rolActual) {
+                document.getElementById("dashboard-view").classList.remove("visible");
+                return;
+            }
 
             if (esAdministrador) {
                 if (titulosGral) titulosGral.style.display = "block";
                 if (titulosEst) titulosEst.style.display = "block";
+                
+                // Forzamos que se muestre el botón de Dashboard al Admin
+                const dashBtn = document.getElementById("btn-nav-Dashboard");
+                if (dashBtn) dashBtn.style.display = "flex";
                 
                 listaEstaciones.forEach(estacion => {
                     const botonNav = document.getElementById(`btn-nav-${estacion}`);
@@ -3715,6 +3737,11 @@
             } else {
                 if (titulosGral) titulosGral.style.display = "none";
                 if (titulosEst) titulosEst.style.display = "none";
+                
+                // Ocultamos el Dashboard por completo para la vista del Operador
+                const dashBtn = document.getElementById("btn-nav-Dashboard");
+                if (dashBtn) dashBtn.style.display = "none";
+                document.getElementById("dashboard-view").classList.remove("visible");
 
                 listaEstaciones.forEach(estacion => {
                     const botonNav = document.getElementById(`btn-nav-${estacion}`);
@@ -4053,23 +4080,24 @@
 
         function actualizarBadgeSolicitudes() {
             const badge = document.getElementById("badge-solicitudes");
+            const pinAdmin = document.getElementById("pin-solicitudes-admin");
             const pendientes = solicitudesReabastecimiento.filter(solicitud => solicitud.status === "Pendiente").length;
+            
+            // Verificamos si es Administrador de forma segura
+            const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
 
             if (badge) {
-                if (pendientes > 0) {
+                // 🔒 CANDADO DE SEGURIDAD: El círculo rojo con número SOLO se muestra si es Administrador Y hay datos pendientes
+                if (esAdministrador && pendientes > 0) {
                     badge.innerText = pendientes;
                     badge.style.display = "inline-block";
                 } else {
-                    badge.style.display = "none";
+                    badge.style.display = "none"; // Oculto por completo para operadores
                 }
             }
 
-            const pinAdmin = document.getElementById("pin-solicitudes-admin");
             if (pinAdmin) {
-                const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
-                const tienePendientes = solicitudesReabastecimiento.some(s => s.status === "Pendiente");
-
-                if (esAdministrador && tienePendientes) {
+                if (esAdministrador && pendientes > 0) {
                     pinAdmin.style.display = "block";
                 } else {
                     pinAdmin.style.display = "none";
@@ -4264,8 +4292,8 @@
             const esAdministrador = tienePermiso("Administrador");
             const puedeModificarInsumos = esAdministrador || (areaSeleccionada === "Inventario");
 
-            // --- ESCENARIO A: ADMINISTRADOR, INVENTARIO O ADMI (MATERIALES ESTÁTICOS) ---
-            if (esAdministrador || esInventario || esAdmi) {
+            // --- ESCENARIO A: ADMINISTRADOR EN CUALQUIER ÁREA, O OPERADOR EN INVENTARIO/ADMI ---
+            if (esAdministrador || areaSeleccionada === "Inventario") {
                 const insumos = baseDatosInventario[areaSeleccionada] || [];
                 
                 let insumosOrdenados = [...insumos];
@@ -4310,7 +4338,7 @@
                         <div class="controles-stock" style="margin: 0 auto;">
                             <button class="btn-control menos" onclick="modificarCantidad(${indexOriginal}, -1)">-</button>
                             <input type="text" class="input-stock-directo" value="${insumo.actual}" 
-                                   onchange="actualizarCantidadDirecta(${indexOriginal}, this.value)">
+                                onchange="actualizarCantidadDirecta(${indexOriginal}, this.value)">
                             <span class="unidad-medida">${insumo.unidad}</span>
                             <button class="btn-control mas" onclick="modificarCantidad(${indexOriginal}, 1)">+</button>
                         </div>`;
@@ -4331,47 +4359,88 @@
                 return;
             }
 
-            // --- ESCENARIO B: RECEPTOR DE COMANDAS DIGITALES (OPERADOR EN BOUTIQUE, HORNO, BETÚN) ---
+            // --- ESCENARIO B: VISTA DIVIDIDA PARA OPERADORES DE COCINA (INSUMOS + COMANDAS) ---
+            const insumosCocina = baseDatosInventario[areaSeleccionada] || [];
             const comandasEstacion = (window.comandasActivas || []).filter(s => s.area === areaSeleccionada);
             
+            // Creamos un encabezado unificado inteligente
             thead.innerHTML = `
                 <tr>
-                    <th>Orden / Producto</th>
-                    <th style="text-align: center;">Cantidad</th>
-                    <th style="text-align: center;">Estado Actual</th>
-                    <th style="text-align: center;">Acción Comanda</th>
-                </tr>`;
+                    <th>Elemento (Insumo / Orden)</th>
+                    <th style="text-align: center;">Mínimo / Cantidad</th>
+                    <th style="text-align: center;">Control / Cantidad Actual</th>
+                    <th style="text-align: center;">Estado</th>
+                </ul>`;
 
-            if (comandasEstacion.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="mensaje-vacio">No hay pedidos en la cola de esta estación.</td></tr>`;
-                document.getElementById("lbl-total-insumos").innerText = "0";
-                document.getElementById("lbl-alertas").innerText = "0";
-                return;
+            let alertasCriticasArea = 0;
+
+            // 1. Renderizamos la sección de INSUMOS puros de la cocina
+            if (insumosCocina.length > 0) {
+                const filaSeparadorInsumos = document.createElement("tr");
+                filaSeparadorInsumos.innerHTML = `<td colspan="4" style="background-color: var(--bg-intermedio); color: var(--chocolate-bubaru); font-weight: 800; padding: 8px 12px; font-size: 1.05rem;">📦 INGREDIENTES Y MATERIALES EN ESTA ESTACIÓN</td>`;
+                tbody.appendChild(filaSeparadorInsumos);
+
+                insumosCocina.forEach((insumo) => {
+                    const estado = obtenerEstadoInsumo(insumo);
+                    if (estado.clase === "critico") alertasCriticasArea++;
+                    if (terminoBusqueda !== "" && !normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda))) return;
+
+                    const indexOriginal = insumosCocina.findIndex(item => item.nombre === insumo.nombre);
+                    const fila = document.createElement("tr");
+
+                    const htmlCantidadControles = `
+                        <div class="controles-stock" style="margin: 0 auto;">
+                            <button class="btn-control menos" onclick="modificarCantidad(${indexOriginal}, -1)">-</button>
+                            <input type="text" class="input-stock-directo" value="${insumo.actual}" onchange="actualizarCantidadDirecta(${indexOriginal}, this.value)">
+                            <span class="unidad-medida">${insumo.unidad}</span>
+                            <button class="btn-control mas" onclick="modificarCantidad(${indexOriginal}, 1)">+</button>
+                        </div>`;
+
+                    fila.innerHTML = `
+                        <td><span class="nombre-insumo">🍓 ${escaparHtml(insumo.nombre)}</span></td>
+                        <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
+                        <td style="text-align: center;">${htmlCantidadControles}</td>
+                        <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
+                    `;
+                    tbody.appendChild(fila);
+                });
             }
 
-            comandasEstacion.forEach(orden => {
-                const fila = document.createElement("tr");
-                let claseBadge = "";
-                let textoBoton = "";
+            // 2. Renderizamos la sección de COMANDAS / PEDIDOS de pasteles activos abajo
+            const filaSeparadorComandas = document.createElement("tr");
+            filaSeparadorComandas.innerHTML = `<td colspan="4" style="background-color: var(--pastel-lavanda); color: var(--chocolate-bubaru); font-weight: 800; padding: 8px 12px; font-size: 1.05rem;">🎂 ORDENES DE PRODUCCIÓN ASIGNADAS</td>`;
+            tbody.appendChild(filaSeparadorComandas);
 
-                if (orden.status === "En Horno") { claseBadge = "en-horno"; textoBoton = "🔥 Terminar Horneado"; }
-                if (orden.status === "Listo para Decorar") { claseBadge = "listo-para-decorar"; textoBoton = "👨‍🍳 Empezar Decoración"; }
-                if (orden.status === "En Decoración") { claseBadge = "en-decoracion"; textoBoton = "🧁 Terminar Decoración"; }
-                if (orden.status === "Terminado") { claseBadge = "terminado"; textoBoton = "🎁 Entregar / Archivar"; }
+            if (comandasEstacion.length === 0) {
+                const filaVacia = document.createElement("tr");
+                filaVacia.innerHTML = `<td colspan="4" class="mensaje-vacio">No hay comandas pendientes en esta cocina.</td>`;
+                tbody.appendChild(filaVacia);
+            } else {
+                comandasEstacion.forEach(orden => {
+                    const fila = document.createElement("tr");
+                    let claseBadge = "";
+                    let textoBoton = "";
 
-                fila.innerHTML = `
-                    <td><span class="nombre-insumo">🎂 ${escaparHtml(orden.item)}</span></td>
-                    <td style="text-align: center; font-weight: bold;">${orden.quantity} pzas</td>
-                    <td style="text-align: center;"><span class="badge-solicitud ${claseBadge}">${orden.status}</span></td>
-                    <td style="text-align: center;">
-                        <button class="btn-guardar" style="padding: 6px 16px; height: auto;" onclick="avanzarFlujoComanda('${orden.id}')">${textoBoton}</button>
-                    </td>
-                `;
-                tbody.appendChild(fila);
-            });
+                    if (orden.status === "En Horno") { claseBadge = "en-horno"; textoBoton = "🔥 Terminar Horneado"; }
+                    if (orden.status === "Listo para Decorar") { claseBadge = "listo-para-decorar"; textoBoton = "👨‍🍳 Empezar Decoración"; }
+                    if (orden.status === "En Decoración") { claseBadge = "en-decoracion"; textoBoton = "🧁 Terminar Decoración"; }
+                    if (orden.status === "Terminado") { claseBadge = "terminado"; textoBoton = "🎁 Entregar / Archivar"; }
 
-            document.getElementById("lbl-total-insumos").innerText = comandasEstacion.length;
-            document.getElementById("lbl-alertas").innerText = comandasEstacion.filter(o => o.urgency === "Urgente").length;
+                    fila.innerHTML = `
+                        <td><span class="nombre-insumo" style="color: var(--morado-bubaru);">🎂 ${escaparHtml(orden.item)}</span></td>
+                        <td style="text-align: center; font-weight: bold;">Meta: ${orden.quantity} pzas</td>
+                        <td style="text-align: center;">
+                            <button class="btn-guardar" style="padding: 6px 16px; height: auto; font-size: 0.85rem;" onclick="avanzarFlujoComanda('${orden.id}')">${textoBoton}</button>
+                        </td>
+                        <td style="text-align: center;"><span class="badge-solicitud ${claseBadge}">${orden.status}</span></td>
+                    `;
+                    tbody.appendChild(fila);
+                });
+            }
+
+            // Actualizamos los contadores de la cocina basados en los insumos reales
+            document.getElementById("lbl-total-insumos").innerText = insumosCocina.length;
+            document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
         }
 
         /* ===============================================
@@ -4403,6 +4472,24 @@
                 insumo.actual = nuevoValor;
                 registrarMovimiento(areaActualSegura, insumo.nombre, valorAnterior, nuevoValor, cambio > 0 ? "Incremento" : "Decremento");
                 
+                // 🔄 Sincronización rápida de stock (+ / -)
+                if (areaActualSegura === "Inventario") {
+                    Object.keys(baseDatosInventario).forEach(otraArea => {
+                        if (otraArea === "Inventario") return;
+                        const idxEspejo = (baseDatosInventario[otraArea] || []).findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumo.nombre));
+                        if (idxEspejo >= 0) {
+                            baseDatosInventario[otraArea][idxEspejo].actual = nuevoValor;
+                            database.ref(otraArea).set(baseDatosInventario[otraArea]);
+                        }
+                    });
+                } else if (baseDatosInventario["Inventario"]) {
+                    const idxEspejo = baseDatosInventario["Inventario"].findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumo.nombre));
+                    if (idxEspejo >= 0) {
+                        baseDatosInventario["Inventario"][idxEspejo].actual = nuevoValor;
+                        database.ref("Inventario").set(baseDatosInventario["Inventario"]);
+                    }
+                }
+
                 localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
                 database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                     .then(() => {
@@ -4535,8 +4622,26 @@
                     });
                     
                     registrarMovimiento(areaActualSegura, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja");
-                    baseDatosInventario[areaActualSegura].splice(index, 1);
                     
+                    // 🗑️ Borrado instantáneo en red espejo
+                    if (areaActualSegura === "Inventario") {
+                        Object.keys(baseDatosInventario).forEach(otraArea => {
+                            if (otraArea === "Inventario") return;
+                            const idxEspejo = (baseDatosInventario[otraArea] || []).findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumoEliminado.nombre));
+                            if (idxEspejo >= 0) {
+                                baseDatosInventario[otraArea].splice(idxEspejo, 1);
+                                database.ref(otraArea).set(baseDatosInventario[otraArea]);
+                            }
+                        });
+                    } else if (baseDatosInventario["Inventario"]) {
+                        const idxEspejo = baseDatosInventario["Inventario"].findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumoEliminado.nombre));
+                        if (idxEspejo >= 0) {
+                            baseDatosInventario["Inventario"].splice(idxEspejo, 1);
+                            database.ref("Inventario").set(baseDatosInventario["Inventario"]);
+                        }
+                    }
+
+                    baseDatosInventario[areaActualSegura].splice(index, 1);
                     database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
                         .then(() => {
                             renderizarInventario();
@@ -4552,14 +4657,7 @@
         }
         
         function agregarOEditarInsumo() {
-            const esAdministrador = tienePermiso("Administrador");
             const areaActualSegura = areaSeleccionada || "Betun";
-
-            if (!esAdministrador && areaActualSegura !== "Inventario") {
-                mostrarNotificacion("El rol Operador no puede agregar o editar insumos en esta cocina.", "error");
-                return;
-            }
-
             const nombre = document.getElementById("insumo-nombre").value.trim();
             const actualStr = document.getElementById("insumo-actual").value;
             const minStr = document.getElementById("insumo-min").value;
@@ -4570,101 +4668,35 @@
             const min = parseInt(minStr);
             const precioUnitario = parseFloat(precioUnitarioStr);
 
-            let formularioValido = true;
+            // Validaciones iniciales... (puedes dejar tus validaciones igual)
+            if (!nombre || nombre.length < 2) { mostrarErrorCampo("insumo-nombre", "Nombre inválido"); return; }
+            if (isNaN(actual) || actual < 0) { mostrarErrorCampo("insumo-actual", "Cantidad inválida"); return; }
 
-            if (!nombre || nombre.length < 2) {
-                mostrarErrorCampo("insumo-nombre", "El nombre debe tener al menos 2 caracteres");
-                formularioValido = false;
-            } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-]+$/.test(nombre)) {
-                mostrarErrorCampo("insumo-nombre", "Solo letras, números, espacios y guiones");
-                formularioValido = false;
-            } else {
-                limpiarErrorCampo("insumo-nombre");
-            }
+            const itemEstructurado = { nombre, actual, min, unidad, precioUnitario: isNaN(precioUnitario) ? 0 : precioUnitario };
 
-            if (isNaN(actual) || actual < 0) {
-                mostrarErrorCampo("insumo-actual", "Cantidad inválida");
-                formularioValido = false;
-            } else {
-                limpiarErrorCampo("insumo-actual");
-            }
-
-            if (isNaN(min) || min < 0) {
-                mostrarErrorCampo("insumo-min", "Stock mínimo inválido");
-                formularioValido = false;
-            } else if (min > actual) {
-                mostrarErrorCampo("insumo-min", "El stock mínimo no puede ser mayor a la cantidad actual");
-                formularioValido = false;
-            } else {
-                limpiarErrorCampo("insumo-min");
-            }
-
-            if (!unidad) {
-                mostrarErrorCampo("insumo-unidad", "Selecciona una unidad");
-                formularioValido = false;
-            } else {
-                limpiarErrorCampo("insumo-unidad");
-            }
-
-            if (areaActualSegura === "Inventario") {
-                if (isNaN(precioUnitario) || precioUnitario < 0) {
-                    mostrarErrorCampo("insumo-precio-unitario", "Precio inválido");
-                    formularioValido = false;
-                } else {
-                    limpiarErrorCampo("insumo-precio-unitario");
-                }
-            }
-
-            if (formularioValido && existeInsumoDuplicado(nombre, areaActualSegura, indexInsumoEnEdicion)) {
-                mostrarToast(`Ya existe un insumo con el nombre "${nombre}" en esta área`, "error");
-                mostrarErrorCampo("insumo-nombre", "Ya existe un insumo con este nombre");
-                formularioValido = false;
-            }
-
-            if (!formularioValido) {
-                hacerScrollAlPrimerError();
-                return;
-            }
-
-            const itemEstructurado = {
-                nombre: nombre,
-                actual: actual,
-                min: min,
-                unidad: unidad
-            };
-
-            if (areaActualSegura === "Inventario") {
-                itemEstructurado.precioUnitario = isNaN(precioUnitario) ? 0 : precioUnitario;
-            }
-
+            // lógica de guardado
             if (indexInsumoEnEdicion !== null) {
-                const insumoAnterior = baseDatosInventario[areaActualSegura][indexInsumoEnEdicion];
-                agregarAccionDeshacer({
-                    tipo: "editarInsumo",
-                    area: areaActualSegura,
-                    indice: indexInsumoEnEdicion,
-                    insumoAnterior: insumoAnterior
-                });
                 baseDatosInventario[areaActualSegura][indexInsumoEnEdicion] = itemEstructurado;
-                registrarMovimiento(areaActualSegura, itemEstructurado.nombre, insumoAnterior.actual, itemEstructurado.actual, "Edición");
             } else {
-                if (!baseDatosInventario[areaActualSegura]) {
-                    baseDatosInventario[areaActualSegura] = [];
-                }
+                if (!baseDatosInventario[areaActualSegura]) baseDatosInventario[areaActualSegura] = [];
                 baseDatosInventario[areaActualSegura].unshift(itemEstructurado);
-                registrarMovimiento(areaActualSegura, itemEstructurado.nombre, 0, itemEstructurado.actual, "Alta");
             }
 
-            database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
-                .then(() => {
-                    limpiarFormularioModoRegistro();
-                    renderizarInventario();
-                    mostrarToast(`✅ ${indexInsumoEnEdicion !== null ? 'Editado' : 'Agregado'}: ${nombre}`, "success");
-                })
-                .catch((error) => {
-                    console.error("Error crítico al guardar en Firebase:", error);
-                    mostrarToast("Error al sincronizar con la nube", "error");
-                });
+            // Sincroniza al nodo actual
+            database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura]);
+
+            // Sincroniza al nodo Inventario (espejo)
+            if (areaActualSegura !== "Inventario") {
+                if (!baseDatosInventario["Inventario"]) baseDatosInventario["Inventario"] = [];
+                const idx = baseDatosInventario["Inventario"].findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(itemEstructurado.nombre));
+                if (idx >= 0) baseDatosInventario["Inventario"][idx] = itemEstructurado;
+                else baseDatosInventario["Inventario"].unshift(itemEstructurado);
+                database.ref("Inventario").set(baseDatosInventario["Inventario"]);
+            }
+
+            limpiarFormularioModoRegistro();
+            renderizarInventario();
+            mostrarToast("Guardado en todos los módulos", "success");
         }
 
         /* ===============================================
@@ -4801,15 +4833,16 @@
 
             ocultarDashboard();
             actualizarInterfazArea();
+            // 🚀 RE-CONEXIÓN EN TIEMPO REAL AL CAMBIAR DE PESTAÑA
+            escucharCambiosEnNube(); 
+            
             renderizarInventario();
         }
 
         function actualizarInterfazArea() {
-            const contenedorPrecio = document.getElementById("contenedor-precio-form");
             const lblTipoModulo = document.getElementById("lbl-tipo-modulo");
             const tituloTabla = document.getElementById("titulo-tabla-insumos");
             const esInventarioActivo = (areaSeleccionada === "Inventario");
-            contenedorPrecio.style.display = esInventarioActivo ? "flex" : "none";
 
             if (esInventarioActivo) {
                 lblTipoModulo.innerText = "Costos Activos";
@@ -4910,6 +4943,7 @@
 
             const item = document.getElementById("solicitud-item-panel").value.trim();
             const quantity = parseInt(document.getElementById("solicitud-cantidad-panel").value);
+            const unidad = document.getElementById("solicitud-unidad-panel").value; // 🎯 Captura la unidad elegida
             const notes = document.getElementById("solicitud-notas-panel").value.trim();
 
             if (item === "") {
@@ -4926,6 +4960,7 @@
                 area: areaSeleccionada,
                 item: item,
                 quantity: quantity,
+                unidad: unidad, // 🎯 Lo añade al paquete que se va a Firebase
                 urgency: urgenciaSeleccionada, 
                 notes: notes ? notes : "Sin notas adicionales",
                 status: "Pendiente",
@@ -4960,10 +4995,20 @@
 
         function renderizarSolicitudesPanel(filtro) {
             const contenedor = document.getElementById("contenedor-solicitudes-panel");
+            const countElement = document.getElementById("filtro-solicitudes-count");
+            
             if (!contenedor) return;
-
             contenedor.innerHTML = "";
 
+            const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
+
+            // 🔒 CANDADO DE SEGURIDAD PARA OPERADORES: Si no es Admin, limpiamos la pantalla abajo y no dejamos ver registros
+            if (!esAdministrador) {
+                if (countElement) countElement.innerHTML = "";
+                return;
+            }
+
+            // --- DE AQUÍ EN ADELANTE SÓLO SE EJECUTA SI ES EL ADMINISTRADOR ---
             let solicitudesFiltradas = solicitudesReabastecimiento;
             if (filtro !== "Todas") {
                 solicitudesFiltradas = solicitudesReabastecimiento.filter(s => s.status === filtro);
@@ -4972,7 +5017,6 @@
                 solicitudesFiltradas = solicitudesFiltradas.filter(s => s.area === filtroSolicitudesArea);
             }
 
-            const countElement = document.getElementById("filtro-solicitudes-count");
             if (countElement) {
                 const verTodasLink = filtroSolicitudesArea !== "Todas" 
                     ? ` · <a onclick="filtrarSolicitudesPorArea('Todas')">Ver todas</a>` 
@@ -4985,18 +5029,16 @@
                 return;
             }
 
-            const esAdministrador = (rolActual === "Administrador" || rolActual === "admin");
-
             solicitudesFiltradas.forEach(solicitud => {
                 const card = document.createElement("div");
                 card.className = `side-panel-card urgencia-${normalizarTexto(solicitud.urgency)}`;
                 const claseEstado = normalizarTexto(solicitud.status);
                 
                 let botonAccionAdmin = "";
-                if (esAdministrador && solicitud.status === "Pendiente") {
+                if (solicitud.status === "Pendiente") {
                     botonAccionAdmin = `
                         <button class="btn-guardar" style="width:100%; margin-top:10px; height:38px; background:linear-gradient(135deg, #4CAF50, #16A34A); font-size:0.85rem;" 
-                                onclick="marcarSolicitudComoCompletada('${solicitud.id}')">
+                                onclick="moverSolicitudAAtendida('${solicitud.id}')">
                             ✓ Solicitud Completada
                         </button>`;
                 }
@@ -5007,7 +5049,7 @@
                     </div>
                     <h4 style="margin-top:6px;">${escaparHtml(solicitud.item)}</h4>
                     <p class="side-panel-meta">Área: ${escaparHtml(obtenerNombreAreaVisible(solicitud.area))}</p>
-                    <p class="side-panel-meta">Cantidad: ${escaparHtml(solicitud.quantity)}</p>
+                    <p class="side-panel-meta">Cantidad: <b>${escaparHtml(solicitud.quantity)} ${escaparHtml(solicitud.unidad || '')}</b></p>
                     ${solicitud.notes ? `<p class="side-panel-notas">${escaparHtml(solicitud.notes)}</p>` : ""}
                     <p class="side-panel-timestamp">${formatearTiempoRelativo(solicitud.timestamp)}</p>
                     ${botonAccionAdmin}
@@ -5171,13 +5213,13 @@
             mostrarNotificacion("CSV exportado correctamente.", "exito");
         }
 
-        function marcarSolicitudComoCompletada(id) {
-            database.ref(`solicitudes/${id}`).remove()
+        function moverSolicitudAAtendida(id) {
+            database.ref(`solicitudes/${id}`).update({ status: "Atendida" })
                 .then(() => {
-                    mostrarToast(`📦 Solicitud atendida y eliminada del listado.`, "success");
+                    mostrarToast(`📦 Insumo marcado como surtido. Movido a Atendidas.`, "success");
                 })
                 .catch((error) => {
-                    console.error("Error al limpiar solicitud:", error);
+                    console.error("Error al actualizar estado de solicitud:", error);
                 });
         }
 
@@ -5398,19 +5440,41 @@
         document.addEventListener("DOMContentLoaded", () => {
             cargarDesdeLocalStorage();
             cargarBitacora();
+            cargarPines();
             
-            inicializarSistemaAutenticacion();
+            const rolGuardado = sessionStorage.getItem("BUBARU_ROL");
+            const areaGuardada = sessionStorage.getItem("BUBARU_AREA");
             
-            const esAdministrador = tienePermiso("Administrador");
-            
-            if (esAdministrador) {
-                const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
-                mostrarDashboard(dashboardBtn);
+            if (rolGuardado) {
+                rolActual = rolGuardado;
+                if (areaGuardada) areaSeleccionada = areaGuardada;
+                
+                const lockScreen = document.getElementById("lock-screen");
+                if (lockScreen) lockScreen.classList.add("oculto");
+                
+                aplicarPermisosRol();
+                
+                // Forzamos la conexión a Firebase primero
+                escucharCambiosEnNube();
+                
+                // Damos un breve respiro para que Firebase entregue los datos antes de pintar la UI
+                setTimeout(() => {
+                    if (rolActual === "Administrador" || rolActual === "admin") {
+                        const dashboardBtn = document.querySelector('.btn-area[data-area="Dashboard"]');
+                        mostrarDashboard(dashboardBtn);
+                    } else {
+                        const botonOperador = document.getElementById(`btn-nav-${areaSeleccionada}`);
+                        cambiarArea(areaSeleccionada, botonOperador);
+                    }
+                }, 300);
+                iniciarMonitoreoInactividad();
             } else {
-                const botonOperador = document.getElementById(`btn-nav-${areaSeleccionada}`);
-                cambiarArea(areaSeleccionada, botonOperador);
+                rolActual = "";
+                mostrarLockScreen();
             }
             
+            configurarPinInputsEntry();
+            inicializarSincronizacionMultiPestana();
             renderizarBitacora();
 
             setInterval(() => {
