@@ -2863,12 +2863,19 @@
         function escucharCambiosEnNube() {
             const areaActualSegura = areaSeleccionada || "Betun";
             
-            // Apagamos todas las escuchas previas del nodo de inventario
+            // 1. Apagamos todas las escuchas previas para evitar conflictos
             database.ref().off('value'); 
             
-            // Escuchamos el nodo del área específica
+            // 2. Escuchamos el nodo del área específica del operador
             database.ref(areaActualSegura).on('value', (snapshot) => {
                 baseDatosInventario[areaActualSegura] = snapshot.val() || [];
+                renderizarInventario();
+            });
+
+            // 3. Escuchamos TAMBIÉN el nodo Inventario para que cualquier cambio ahí se refleje
+            // Esto evita que los insumos no aparezcan o se desincronicen
+            database.ref('Inventario').on('value', (snapshot) => {
+                baseDatosInventario['Inventario'] = snapshot.val() || [];
                 renderizarInventario();
             });
 
@@ -4283,137 +4290,128 @@
         function renderizarInventario() {
             const thead = document.getElementById("encabezado-tabla");
             const tbody = document.getElementById("cuerpo-tabla-inventario");
-            const esInventario = areaSeleccionada === "Inventario";
-            const esAdmi = areaSeleccionada === "Admi";
-
             if (!tbody || !thead) return;
             tbody.innerHTML = "";
 
             const esAdministrador = tienePermiso("Administrador");
-            const puedeModificarInsumos = esAdministrador || (areaSeleccionada === "Inventario");
 
-            // --- ESCENARIO A: ADMINISTRADOR EN CUALQUIER ÁREA, O OPERADOR EN INVENTARIO/ADMI ---
-            if (esAdministrador || areaSeleccionada === "Inventario") {
-                const insumos = baseDatosInventario[areaSeleccionada] || [];
-                
-                let insumosOrdenados = [...insumos];
-                if (ordenActual && ordenActual.columna) {
-                    insumosOrdenados = ordenarInsumos(insumos, ordenActual.columna, ordenActual.direccion);
-                }
-                
-                let alertasCriticasArea = 0;
-                let resultadosBusqueda = 0;
-
-                thead.innerHTML = `
-                    <tr>
-                        <th>Insumo / Ingrediente</th>
-                        <th style="text-align: center;">Mínimo</th>
-                        <th style="text-align: center;">Cantidad</th>
-                        <th style="text-align: center;">Estado</th>
-                        <th style="text-align: center;">Acciones</th>
-                    </tr>`;
-
-                insumosOrdenados.forEach((insumo) => {
-                    const estado = obtenerEstadoInsumo(insumo);
-                    if (estado.clase === "critico") alertasCriticasArea++;
-                    if (terminoBusqueda !== "" && !normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda))) return;
-
-                    const indexOriginal = insumos.findIndex(item => item.nombre === insumo.nombre);
-
-                    resultadosBusqueda++;
-                    const fila = document.createElement("tr");
-
-                    let htmlAcciones = "";
-                    if (puedeModificarInsumos) {
-                        htmlAcciones = `
-                            <div class="grupo-botones-acciones">
-                                <button class="btn-editar" onclick="activarModoEdicion(${indexOriginal})" title="Editar">✏️</button>
-                                <button class="btn-eliminar" onclick="eliminarInsumo(${indexOriginal})" title="Eliminar">🗑️</button>
-                            </div>`;
-                    } else {
-                        htmlAcciones = `<span class="badge-estado ok" style="font-size: 0.75rem; background: var(--bg-intermedio); color: var(--chocolate-mutado);">🔒 Lectura</span>`;
-                    }
-
-                    const htmlCantidadControles = `
-                        <div class="controles-stock" style="margin: 0 auto;">
-                            <button class="btn-control menos" onclick="modificarCantidad(${indexOriginal}, -1)">-</button>
-                            <input type="text" class="input-stock-directo" value="${insumo.actual}" 
-                                onchange="actualizarCantidadDirecta(${indexOriginal}, this.value)">
-                            <span class="unidad-medida">${insumo.unidad}</span>
-                            <button class="btn-control mas" onclick="modificarCantidad(${indexOriginal}, 1)">+</button>
-                        </div>`;
-
-                    fila.innerHTML = `
-                        <td><span class="nombre-insumo">${resaltarCoincidencia(insumo.nombre)}</span></td>
-                        <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
-                        <td style="text-align: center;">${htmlCantidadControles}</td>
-                        <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
-                        <td style="text-align: center;">${htmlAcciones}</td>
-                    `;
-                    tbody.appendChild(fila);
-                });
-
-                document.getElementById("lbl-total-insumos").innerText = insumos.length;
-                document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
-                if (resultadosBusqueda === 0) tbody.innerHTML = `<tr><td colspan="5" class="mensaje-vacio">No se encontraron insumos.</td></tr>`;
-                return;
+            if (esAdministrador) {
+                renderizarTablaInsumosAdministrador();
+            } else {
+                renderizarVistaDivididaOperador();
             }
+        }
 
-            // --- ESCENARIO B: VISTA DIVIDIDA PARA OPERADORES DE COCINA (INSUMOS + COMANDAS) ---
+        function renderizarTablaInsumosAdministrador() {
+            const thead = document.getElementById("encabezado-tabla");
+            const tbody = document.getElementById("cuerpo-tabla-inventario");
+            const insumos = baseDatosInventario[areaSeleccionada] || [];
+            
+            let alertasCriticasArea = 0;
+            let resultadosBusqueda = 0;
+
+            thead.innerHTML = `
+                <tr>
+                    <th>Insumo / Ingrediente</th>
+                    <th style="text-align: center;">Mínimo</th>
+                    <th style="text-align: center;">Cantidad Actual (Control)</th>
+                    <th style="text-align: center;">Estado</th>
+                    <th style="text-align: center;">Acciones</th>
+                </tr>`;
+
+            insumos.forEach((insumo, index) => {
+                const estado = obtenerEstadoInsumo(insumo);
+                if (estado.clase === "critico") alertasCriticasArea++;
+                if (terminoBusqueda !== "" && !normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda))) return;
+
+                resultadosBusqueda++;
+                const fila = document.createElement("tr");
+
+                const htmlCantidadControles = `
+                    <div class="controles-stock" style="margin: 0 auto;">
+                        <button class="btn-control menos" onclick="modificarCantidad(${index}, -1)">-</button>
+                        <input type="text" class="input-stock-directo" value="${insumo.actual}" onchange="actualizarCantidadDirecta(${index}, this.value)">
+                        <span class="unidad-medida">${insumo.unidad}</span>
+                        <button class="btn-control mas" onclick="modificarCantidad(${index}, 1)">+</button>
+                    </div>`;
+
+                fila.innerHTML = `
+                    <td><span class="nombre-insumo">📦 ${escaparHtml(insumo.nombre)}</span></td>
+                    <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
+                    <td style="text-align: center;">${htmlCantidadControles}</td>
+                    <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
+                    <td style="text-align: center;">
+                        <div class="grupo-botones-acciones">
+                            <button class="btn-eliminar" onclick="eliminarInsumo(${index})" title="Eliminar">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(fila);
+            });
+
+            document.getElementById("lbl-total-insumos").innerText = insumos.length;
+            document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
+            if (resultadosBusqueda === 0) tbody.innerHTML = `<tr><td colspan="5" class="mensaje-vacio">No se encontraron insumos.</td></tr>`;
+        }
+
+        function renderizarVistaDivididaOperador() {
+            const thead = document.getElementById("encabezado-tabla");
+            const tbody = document.getElementById("cuerpo-tabla-inventario");
             const insumosCocina = baseDatosInventario[areaSeleccionada] || [];
             const comandasEstacion = (window.comandasActivas || []).filter(s => s.area === areaSeleccionada);
             
-            // Creamos un encabezado unificado inteligente
             thead.innerHTML = `
                 <tr>
                     <th>Elemento (Insumo / Orden)</th>
                     <th style="text-align: center;">Mínimo / Cantidad</th>
                     <th style="text-align: center;">Control / Cantidad Actual</th>
                     <th style="text-align: center;">Estado</th>
-                </ul>`;
+                    <th style="text-align: center;">Acciones</th>
+                </tr>`;
 
             let alertasCriticasArea = 0;
 
-            // 1. Renderizamos la sección de INSUMOS puros de la cocina
             if (insumosCocina.length > 0) {
                 const filaSeparadorInsumos = document.createElement("tr");
-                filaSeparadorInsumos.innerHTML = `<td colspan="4" style="background-color: var(--bg-intermedio); color: var(--chocolate-bubaru); font-weight: 800; padding: 8px 12px; font-size: 1.05rem;">📦 INGREDIENTES Y MATERIALES EN ESTA ESTACIÓN</td>`;
+                filaSeparadorInsumos.innerHTML = `<td colspan="5" style="background-color: var(--bg-intermedio); color: var(--chocolate-bubaru); font-weight: 800; padding: 8px 12px; font-size: 1.05rem;">📦 INGREDIENTES Y MATERIALES EN ESTA ESTACIÓN</td>`;
                 tbody.appendChild(filaSeparadorInsumos);
 
-                insumosCocina.forEach((insumo) => {
+                insumosCocina.forEach((insumo, index) => {
                     const estado = obtenerEstadoInsumo(insumo);
                     if (estado.clase === "critico") alertasCriticasArea++;
                     if (terminoBusqueda !== "" && !normalizarTexto(insumo.nombre).includes(normalizarTexto(terminoBusqueda))) return;
 
-                    const indexOriginal = insumosCocina.findIndex(item => item.nombre === insumo.nombre);
                     const fila = document.createElement("tr");
-
                     const htmlCantidadControles = `
                         <div class="controles-stock" style="margin: 0 auto;">
-                            <button class="btn-control menos" onclick="modificarCantidad(${indexOriginal}, -1)">-</button>
-                            <input type="text" class="input-stock-directo" value="${insumo.actual}" onchange="actualizarCantidadDirecta(${indexOriginal}, this.value)">
+                            <button class="btn-control menos" onclick="modificarCantidad(${index}, -1)">-</button>
+                            <input type="text" class="input-stock-directo" value="${insumo.actual}" onchange="actualizarCantidadDirecta(${index}, this.value)">
                             <span class="unidad-medida">${insumo.unidad}</span>
-                            <button class="btn-control mas" onclick="modificarCantidad(${indexOriginal}, 1)">+</button>
+                            <button class="btn-control mas" onclick="modificarCantidad(${index}, 1)">+</button>
                         </div>`;
 
                     fila.innerHTML = `
-                        <td><span class="nombre-insumo">🍓 ${escaparHtml(insumo.nombre)}</span></td>
+                        <td><span class="nombre-insumo">${escaparHtml(insumo.nombre)}</span></td>
                         <td style="text-align: center;">${insumo.min} ${insumo.unidad}</td>
                         <td style="text-align: center;">${htmlCantidadControles}</td>
                         <td style="text-align: center;"><span class="badge-estado ${estado.clase}">${estado.texto}</span></td>
+                        <td style="text-align: center;">
+                            <div class="grupo-botones-acciones">
+                                <button class="btn-eliminar" onclick="eliminarInsumo(${index})" title="Eliminar">🗑️</button>
+                            </div>
+                        </td>
                     `;
                     tbody.appendChild(fila);
                 });
             }
 
-            // 2. Renderizamos la sección de COMANDAS / PEDIDOS de pasteles activos abajo
             const filaSeparadorComandas = document.createElement("tr");
-            filaSeparadorComandas.innerHTML = `<td colspan="4" style="background-color: var(--pastel-lavanda); color: var(--chocolate-bubaru); font-weight: 800; padding: 8px 12px; font-size: 1.05rem;">🎂 ORDENES DE PRODUCCIÓN ASIGNADAS</td>`;
+            filaSeparadorComandas.innerHTML = `<td colspan="5" style="background-color: var(--pastel-lavanda); color: var(--chocolate-bubaru); font-weight: 800; padding: 8px 12px; font-size: 1.05rem;">🎂 ORDENES DE PRODUCCIÓN ASIGNADAS</td>`;
             tbody.appendChild(filaSeparadorComandas);
 
             if (comandasEstacion.length === 0) {
                 const filaVacia = document.createElement("tr");
-                filaVacia.innerHTML = `<td colspan="4" class="mensaje-vacio">No hay comandas pendientes en esta cocina.</td>`;
+                filaVacia.innerHTML = `<td colspan="5" class="mensaje-vacio">No hay comandas pendientes en esta cocina.</td>`;
                 tbody.appendChild(filaVacia);
             } else {
                 comandasEstacion.forEach(orden => {
@@ -4433,12 +4431,12 @@
                             <button class="btn-guardar" style="padding: 6px 16px; height: auto; font-size: 0.85rem;" onclick="avanzarFlujoComanda('${orden.id}')">${textoBoton}</button>
                         </td>
                         <td style="text-align: center;"><span class="badge-solicitud ${claseBadge}">${orden.status}</span></td>
+                        <td style="text-align: center;">-</td>
                     `;
                     tbody.appendChild(fila);
                 });
             }
 
-            // Actualizamos los contadores de la cocina basados en los insumos reales
             document.getElementById("lbl-total-insumos").innerText = insumosCocina.length;
             document.getElementById("lbl-alertas").innerText = alertasCriticasArea;
         }
@@ -4449,92 +4447,86 @@
 
         function modificarCantidad(index, cambio) {
             const areaActualSegura = areaSeleccionada || "Betun";
-            const insumo = baseDatosInventario[areaActualSegura][index];
-            const limiteMinimo = areaActualSegura === "Inventario" ? 1 : 0;
-            const valorAnterior = insumo.actual;
-            let nuevoValor = insumo.actual + cambio;
             
-            if (nuevoValor < limiteMinimo) {
-                nuevoValor = limiteMinimo;
-                if (cambio < 0) {
-                    mostrarToast(`No se puede reducir por debajo de ${limiteMinimo}`, "warning");
+            database.ref(areaActualSegura).once("value", (snapshot) => {
+                const datosActualizados = snapshot.val() || [];
+                const insumo = datosActualizados[index];
+                if (!insumo) return;
+
+                const valorAnterior = insumo.actual;
+                let nuevoValor = valorAnterior + cambio;
+                
+                if (nuevoValor < 0) {
+                    mostrarToast("La cantidad no puede ser menor a 0", "warning");
                     return;
                 }
-            }
 
-            if (nuevoValor !== valorAnterior) {
-                agregarAccionDeshacer({
-                    tipo: "cambiarCantidad",
-                    area: areaActualSegura,
-                    indice: index,
-                    valorAnterior: valorAnterior
-                });
                 insumo.actual = nuevoValor;
                 registrarMovimiento(areaActualSegura, insumo.nombre, valorAnterior, nuevoValor, cambio > 0 ? "Incremento" : "Decremento");
-                
-                // 🔄 Sincronización rápida de stock (+ / -)
-                if (areaActualSegura === "Inventario") {
-                    Object.keys(baseDatosInventario).forEach(otraArea => {
-                        if (otraArea === "Inventario") return;
-                        const idxEspejo = (baseDatosInventario[otraArea] || []).findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumo.nombre));
-                        if (idxEspejo >= 0) {
-                            baseDatosInventario[otraArea][idxEspejo].actual = nuevoValor;
-                            database.ref(otraArea).set(baseDatosInventario[otraArea]);
-                        }
-                    });
-                } else if (baseDatosInventario["Inventario"]) {
-                    const idxEspejo = baseDatosInventario["Inventario"].findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumo.nombre));
-                    if (idxEspejo >= 0) {
-                        baseDatosInventario["Inventario"][idxEspejo].actual = nuevoValor;
-                        database.ref("Inventario").set(baseDatosInventario["Inventario"]);
-                    }
-                }
+                database.ref(areaActualSegura).set(datosActualizados);
 
-                localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
-                database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
-                    .then(() => {
-                        renderizarInventario();
-                        if (document.getElementById("dashboard-view").classList.contains("visible")) {
-                            renderizarDashboard();
+                if (areaActualSegura === "Inventario") {
+                    Object.keys(datosPorDefecto).forEach(otraArea => {
+                        if (otraArea === "Inventario" || otraArea === "Admi") return;
+                        database.ref(otraArea).once("value", (snapArea) => {
+                            let areaNube = snapArea.val() || [];
+                            const idx = areaNube.findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(insumo.nombre));
+                            if (idx >= 0) {
+                                database.ref(`${otraArea}/${idx}/actual`).set(nuevoValor);
+                            }
+                        });
+                    });
+                } else {
+                    database.ref("Inventario").once("value", (snapInv) => {
+                        let invGen = snapInv.val() || [];
+                        const idx = invGen.findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(insumo.nombre));
+                        if (idx >= 0) {
+                            database.ref(`Inventario/${idx}/actual`).set(nuevoValor);
                         }
                     });
-            }
+                }
+            });
+            renderizarInventario();
         }
 
         function actualizarCantidadDirecta(index, valor) {
             const areaActualSegura = areaSeleccionada || "Betun";
             let nuevaCantidad = parseInt(valor);
-            const limiteMinimo = areaActualSegura === "Inventario" ? 1 : 0;
-            const insumo = baseDatosInventario[areaActualSegura][index];
-            const valorAnterior = insumo.actual;
-            
-            if (isNaN(nuevaCantidad)) {
-                nuevaCantidad = limiteMinimo;
-            }
-            if (nuevaCantidad < limiteMinimo) {
-                nuevaCantidad = limiteMinimo;
-                mostrarToast(`La cantidad no puede ser menor a ${limiteMinimo}`, "warning");
-            }
+            if (isNaN(nuevaCantidad) || nuevaCantidad < 0) nuevaCantidad = 0;
 
-            if (valorAnterior !== nuevaCantidad) {
-                agregarAccionDeshacer({
-                    tipo: "cambiarCantidad",
-                    area: areaActualSegura,
-                    indice: index,
-                    valorAnterior: valorAnterior
-                });
+            database.ref(areaActualSegura).once("value", (snapshot) => {
+                const datosActualizados = snapshot.val() || [];
+                const insumo = datosActualizados[index];
+                if (!insumo) return;
+
+                const valorAnterior = insumo.actual;
                 insumo.actual = nuevaCantidad;
                 registrarMovimiento(areaActualSegura, insumo.nombre, valorAnterior, nuevaCantidad, "Ajuste Manual");
                 
-                localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
-                database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
-                    .then(() => {
-                        renderizarInventario();
-                        if (document.getElementById("dashboard-view").classList.contains("visible")) {
-                            renderizarDashboard();
+                database.ref(areaActualSegura).set(datosActualizados);
+
+                if (areaActualSegura === "Inventario") {
+                    Object.keys(datosPorDefecto).forEach(otraArea => {
+                        if (otraArea === "Inventario" || otraArea === "Admi") return;
+                        database.ref(otraArea).once("value", (snapArea) => {
+                            let areaNube = snapArea.val() || [];
+                            const idx = areaNube.findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(insumo.nombre));
+                            if (idx >= 0) {
+                                database.ref(`${otraArea}/${idx}/actual`).set(nuevaCantidad);
+                            }
+                        });
+                    });
+                } else {
+                    database.ref("Inventario").once("value", (snapInv) => {
+                        let invGen = snapInv.val() || [];
+                        const idx = invGen.findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(insumo.nombre));
+                        if (idx >= 0) {
+                            database.ref(`Inventario/${idx}/actual`).set(nuevaCantidad);
                         }
                     });
-            }
+                }
+            });
+            renderizarInventario();
         }
 
         /* ===============================================
@@ -4544,11 +4536,6 @@
         function activarModoEdicion(index) {
             const esAdministrador = tienePermiso("Administrador");
             const areaActualSegura = areaSeleccionada || "Betun";
-
-            if (!esAdministrador && areaActualSegura !== "Inventario") {
-                mostrarNotificacion("El rol Operador no puede editar insumos en esta cocina.", "error");
-                return;
-            }
 
             const insumo = baseDatosInventario[areaActualSegura][index];
             indexInsumoEnEdicion = index;
@@ -4596,14 +4583,7 @@
            =============================================== */
 
         function eliminarInsumo(index) {
-            const esAdministrador = tienePermiso("Administrador");
             const areaActualSegura = areaSeleccionada || "Betun";
-
-            if (!esAdministrador && areaActualSegura !== "Inventario") {
-                mostrarNotificacion("El rol Operador no puede eliminar insumos en esta cocina.", "error");
-                return;
-            }
-
             if (indexInsumoEnEdicion === index) {
                 limpiarFormularioModoRegistro();
             }
@@ -4612,45 +4592,27 @@
 
             mostrarModalConfirmacion(
                 "⚠️ Eliminar insumo",
-                `¿Estás seguro de que deseas eliminar "${insumoEliminado.nombre}"? Esta acción no se puede deshacer.`,
+                `¿Estás seguro de que deseas eliminar "${insumoEliminado.nombre}"? Se eliminará de todas las estaciones.`,
                 () => {
-                    agregarAccionDeshacer({
-                        tipo: "eliminarInsumo",
-                        area: areaActualSegura,
-                        indice: index,
-                        insumo: insumoEliminado
-                    });
-                    
-                    registrarMovimiento(areaActualSegura, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja");
-                    
-                    // 🗑️ Borrado instantáneo en red espejo
-                    if (areaActualSegura === "Inventario") {
-                        Object.keys(baseDatosInventario).forEach(otraArea => {
-                            if (otraArea === "Inventario") return;
-                            const idxEspejo = (baseDatosInventario[otraArea] || []).findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumoEliminado.nombre));
-                            if (idxEspejo >= 0) {
-                                baseDatosInventario[otraArea].splice(idxEspejo, 1);
-                                database.ref(otraArea).set(baseDatosInventario[otraArea]);
+                    // 1. Borramos el insumo en Firebase recorriendo TODAS las áreas
+                    Object.keys(datosPorDefecto).forEach(area => {
+                        database.ref(area).once("value", (snapArea) => {
+                            let listaArea = snapArea.val() || [];
+                            const idx = listaArea.findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(insumoEliminado.nombre));
+                            if (idx >= 0) {
+                                listaArea.splice(idx, 1);
+                                database.ref(area).set(listaArea);
                             }
                         });
-                    } else if (baseDatosInventario["Inventario"]) {
-                        const idxEspejo = baseDatosInventario["Inventario"].findIndex(ins => normalizarTexto(ins.nombre) === normalizarTexto(insumoEliminado.nombre));
-                        if (idxEspejo >= 0) {
-                            baseDatosInventario["Inventario"].splice(idxEspejo, 1);
-                            database.ref("Inventario").set(baseDatosInventario["Inventario"]);
-                        }
-                    }
+                    });
 
+                    // 2. Registro en bitácora y actualización local
+                    registrarMovimiento(areaActualSegura, insumoEliminado.nombre, insumoEliminado.actual, 0, "Baja");
                     baseDatosInventario[areaActualSegura].splice(index, 1);
-                    database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura])
-                        .then(() => {
-                            renderizarInventario();
-                            mostrarToast(`🗑️ Eliminado con éxito: ${insumoEliminado.nombre}`, "success");
-                        })
-                        .catch((error) => {
-                            console.error("Error al eliminar en Firebase:", error);
-                            mostrarToast("Error al actualizar la nube", "error");
-                        });
+                    localStorage.setItem("BUBARU_INVENTARIO_DATA", JSON.stringify(baseDatosInventario));
+                    
+                    renderizarInventario();
+                    mostrarToast(`🗑️ Eliminado de todas las áreas: ${insumoEliminado.nombre}`, "success");
                 },
                 { confirmTexto: "Sí, eliminar" }
             );
@@ -4668,35 +4630,41 @@
             const min = parseInt(minStr);
             const precioUnitario = parseFloat(precioUnitarioStr);
 
-            // Validaciones iniciales... (puedes dejar tus validaciones igual)
             if (!nombre || nombre.length < 2) { mostrarErrorCampo("insumo-nombre", "Nombre inválido"); return; }
             if (isNaN(actual) || actual < 0) { mostrarErrorCampo("insumo-actual", "Cantidad inválida"); return; }
 
             const itemEstructurado = { nombre, actual, min, unidad, precioUnitario: isNaN(precioUnitario) ? 0 : precioUnitario };
 
-            // lógica de guardado
+            // 1. Guardar o editar en el área local activa
             if (indexInsumoEnEdicion !== null) {
+                const insumoAnterior = baseDatosInventario[areaActualSegura][indexInsumoEnEdicion];
                 baseDatosInventario[areaActualSegura][indexInsumoEnEdicion] = itemEstructurado;
+                registrarMovimiento(areaActualSegura, nombre, insumoAnterior.actual, actual, "Edición");
             } else {
                 if (!baseDatosInventario[areaActualSegura]) baseDatosInventario[areaActualSegura] = [];
                 baseDatosInventario[areaActualSegura].unshift(itemEstructurado);
+                registrarMovimiento(areaActualSegura, nombre, 0, actual, "Alta");
             }
-
-            // Sincroniza al nodo actual
             database.ref(areaActualSegura).set(baseDatosInventario[areaActualSegura]);
 
-            // Sincroniza al nodo Inventario (espejo)
-            if (areaActualSegura !== "Inventario") {
-                if (!baseDatosInventario["Inventario"]) baseDatosInventario["Inventario"] = [];
-                const idx = baseDatosInventario["Inventario"].findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(itemEstructurado.nombre));
-                if (idx >= 0) baseDatosInventario["Inventario"][idx] = itemEstructurado;
-                else baseDatosInventario["Inventario"].unshift(itemEstructurado);
-                database.ref("Inventario").set(baseDatosInventario["Inventario"]);
-            }
+            // 2. Sincronización robusta con Inventario General
+            database.ref("Inventario").once("value", (snapshot) => {
+                let inventarioGeneral = snapshot.val() || [];
+                const idxEspejo = inventarioGeneral.findIndex(i => normalizarTexto(i.nombre) === normalizarTexto(nombre));
+                
+                if (idxEspejo >= 0) {
+                    // Si ya existe en Inventario General, lo actualizamos
+                    inventarioGeneral[idxEspejo] = itemEstructurado;
+                } else {
+                    // Si no existe, lo agregamos
+                    inventarioGeneral.unshift(itemEstructurado);
+                }
+                database.ref("Inventario").set(inventarioGeneral);
+            });
 
             limpiarFormularioModoRegistro();
             renderizarInventario();
-            mostrarToast("Guardado en todos los módulos", "success");
+            mostrarToast("Guardado y sincronizado con Almacén General", "success");
         }
 
         /* ===============================================
